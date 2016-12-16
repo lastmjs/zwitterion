@@ -1,9 +1,12 @@
 {
   "name": "zwitterion",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "Live reload development server that supports HTTP2, single page applications (server rewrites to index.html), server-side transpiling (write your code in whatever you want, ES5, ES6, TypeScript, async/await), and incremental building.",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "bin": {
+      "zwitterion": "./main.js"
   },
   "repository": {
     "type": "git",
