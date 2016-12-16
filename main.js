@@ -1,7 +1,5 @@
 #!/usr/bin/env node
 
-const httpHeaders = require('http-headers');
-
 const transpilations = {};
 
 const builder = createBuilder();
@@ -29,25 +27,22 @@ function createHTTPServer(builder, fileServer) {
 }
 
 function buildAndServe(req, res, relativeFilePath) {
-    const transpilation = transpilations[relativeFilePath];
-
-    if (transpilation) {
-        res.end(transpilation);
-    }
-    else {
-        builder.compile(relativeFilePath).then((output) => {
-            if (isSystemImportRequest(req)) {
-                console.log('system.import')
+    if (isSystemImportRequest(req)) {
+        const transpilation = transpilations[relativeFilePath];
+        if (transpilation) {
+            res.end(transpilation);
+        }
+        else {
+            builder.compile(relativeFilePath).then((output) => {
                 transpilations[relativeFilePath] = output.source;
                 res.end(transpilations[relativeFilePath]);
-            }
-            else {
-                console.log('script tag');
-                res.end(`System.import('${relativeFilePath}');`);
-            }
-        }, (error) => {
-            console.log(error);
-        });
+            }, (error) => {
+                console.log(error);
+            });
+        }
+    }
+    else {
+        res.end(`System.import('${relativeFilePath}');`);
     }
 }
 

@@ -19,7 +19,6 @@
   },
   "homepage": "https://github.com/lastmjs/zwitterion#readme",
   "dependencies": {
-    "http-headers": "^3.0.1",
     "node-static": "^0.7.9",
     "plugin-typescript": "^5.3.1",
     "systemjs-builder": "^0.15.34"
