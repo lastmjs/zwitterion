@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 const transpilations = {};
 
 const builder = createBuilder();
