@@ -4,12 +4,18 @@ const transpilations = {};
 
 const builder = createBuilder();
 
-createServer(builder);
+const httpVersion = 2;
+const keyPath = `${process.cwd()}/localhost.key`;
+const certPath = `${process.cwd()}/localhost.cert`;
+const outputDir = null;
+const typeCheckLevel = 'none'; //TODO possibilities will be none, warn, error
 
-function createServer(builder, httpVersion, outputDir) {
+createServer(builder, httpVersion, keyPath, certPath, typeCheckLevel);
+
+function createServer(builder, httpVersion, keyPath, certPath, outputDir, typeCheckLevel) {
     const static = require('node-static');
     const fileServer = new static.Server(process.cwd());
-    const httpServer = httpVersion === '2' ? createHTTP2Server(builder, fileServer) : createHTTPServer(builder, fileServer);
+    const httpServer = httpVersion === 2 ? createHTTP2Server(builder, fileServer, keyPath, certPath) : createHTTPServer(builder, fileServer);
     httpServer.listen(8000, (error) => {
         if (error) console.log(error);
         console.log('zwitterion server listening on port 8000');
@@ -23,6 +29,19 @@ function createHTTPServer(builder, fileServer) {
         const fileExtension = relativeFilePath.slice(relativeFilePath.lastIndexOf('.'));
 
         fileExtension === '.ts' ? buildAndServe(req, res, relativeFilePath) : serveWithoutBuild(fileServer, req, res);
+    });
+}
+
+function createHTTP2Server(builder, fileServer, keyPath, certPath) {
+    const fs = require('fs');
+
+    const options = {
+        key: fs.readFileSync(keyPath),
+        cert: fs.readFileSync(certPath)
+    };
+
+    return require('http2').createServer(options, (req, res) => {
+        console.log(req);
     });
 }
 
@@ -58,13 +77,6 @@ function serveWithoutBuild(fileServer, req, res) {
             }
         });
     }).resume();
-}
-
-function createHTTP2Server(builder) {
-    const options = {};
-    return require('http2').createServer(options, (req, res) => {
-        console.log(req);
-    });
 }
 
 function createBuilder() {
