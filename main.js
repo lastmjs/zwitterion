@@ -1,8 +1,11 @@
 #!/usr/bin/env node
 
+const httpHeaders = require('http-headers');
+
 const transpilations = {};
 
 const builder = createBuilder();
+
 createServer(builder);
 
 function createServer(builder, httpVersion, outputDir) {
@@ -21,24 +24,35 @@ function createHTTPServer(builder, fileServer) {
         const relativeFilePath = req.url.slice(1);
         const fileExtension = relativeFilePath.slice(relativeFilePath.lastIndexOf('.'));
 
-        fileExtension === '.ts' ? buildAndServe(res, relativeFilePath) : serveWithoutBuild(fileServer, req, res);
+        fileExtension === '.ts' ? buildAndServe(req, res, relativeFilePath) : serveWithoutBuild(fileServer, req, res);
     });
 }
 
-function buildAndServe(res, relativeFilePath) {
+function buildAndServe(req, res, relativeFilePath) {
     const transpilation = transpilations[relativeFilePath];
 
     if (transpilation) {
         res.end(transpilation);
     }
     else {
-        builder.buildStatic(relativeFilePath).then((output) => {
-            transpilations[relativeFilePath] = output.source;
-            res.end(output.source);
+        builder.compile(relativeFilePath).then((output) => {
+            if (isSystemImportRequest(req)) {
+                console.log('system.import')
+                transpilations[relativeFilePath] = output.source;
+                res.end(transpilations[relativeFilePath]);
+            }
+            else {
+                console.log('script tag');
+                res.end(`System.import('${relativeFilePath}');`);
+            }
         }, (error) => {
             console.log(error);
         });
     }
+}
+
+function isSystemImportRequest(req) {
+    return req.headers.accept && req.headers.accept.includes('application/x-es-module');
 }
 
 function serveWithoutBuild(fileServer, req, res) {
@@ -62,6 +76,8 @@ function createBuilder() {
     const Builder = require('systemjs-builder');
 
     const builder = new Builder();
+
+    //TODO redo this config, get rid of everything that is unnecessary, becuase I believe there might be quite a bit of it
     builder.config({
         transpiler: 'ts',
         typescriptOptions: {
