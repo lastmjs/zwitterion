@@ -10,7 +10,7 @@ const program = require('commander');
 const fs = require('fs');
 
 program
-    .version('0.0.4')
+    .version('0.0.6')
     .option('-s, --serve-dir [serveDir]', 'The directory to serve files from; the root directory of the server')
     .option('-h, --http', 'Use HTTP 1.x (the default is HTTP 2)')
     .option('-c, --cert-path [certPath]', 'Specify path to SSL certificate')
