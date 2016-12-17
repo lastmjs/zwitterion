@@ -7,9 +7,11 @@ const builder = createBuilder();
 
 const chokidar = require('chokidar');
 const program = require('commander');
+const fs = require('fs');
 
 program
     .version('0.0.4')
+    .option('-s, --serve-dir [serveDir]', 'The directory to serve files from; the root directory of the server')
     .option('-h, --http', 'Use HTTP 1.x (the default is HTTP 2)')
     .option('-c, --cert-path [certPath]', 'Specify path to SSL certificate')
     .option('-k, --key-path [keyPath]', 'Specify path to SSL key')
@@ -17,6 +19,7 @@ program
     .option('-t, --type-check-level [typeCheckLevel]', 'Specify the level of type checking (none, warn, error)')
     .parse(process.argv);
 
+const serveDir = program.serveDir || '';
 const httpVersion = program.http ? 1 : 2;
 const keyPath = program.keyPath;
 const certPath = program.certPath;
@@ -24,7 +27,7 @@ const outputDir = program.outputDir;
 const typeCheckLevel = program.typeCheckLevel;
 
 let watcher = configureFileWatching();
-createServer(builder, httpVersion, keyPath, certPath, typeCheckLevel);
+createServer(builder, httpVersion, keyPath, certPath, outputDir, typeCheckLevel, serveDir);
 
 function configureFileWatching() {
     return chokidar.watch([]).on('change', (path) => {
@@ -48,9 +51,9 @@ function reloadBrowser() {
     io.emit('reload');
 }
 
-function createServer(builder, httpVersion, keyPath, certPath, outputDir, typeCheckLevel) {
+function createServer(builder, httpVersion, keyPath, certPath, outputDir, typeCheckLevel, serveDir) {
     const static = require('node-static');
-    const fileServer = new static.Server(process.cwd());
+    const fileServer = new static.Server(`${process.cwd()}/${serveDir}`);
     const httpServerPromise = httpVersion === 2 ? createHTTP2Server(builder, fileServer, keyPath, certPath) : createHTTPServer(builder, fileServer);
     httpServerPromise.then((httpServer) => {
         io = require('socket.io')(httpServer);
@@ -155,11 +158,21 @@ function isSystemImportRequest(req) {
 
 function serveWithoutBuild(fileServer, req, res) {
     req.addListener('end', () => {
-        fileServer.serve(req, res, (error, result) => {
-            if (error && error.status === 404) {
-                fileServer.serveFile('/index.html', 200, {}, req, res)
-            }
-        });
+        if (req.url === '/browser-config.js') {
+            const systemJS = fs.readFileSync('node_modules/systemjs/dist/system.js');
+            const socketIO = fs.readFileSync('node_modules/socket.io-client/dist/socket.io.min.js');
+            const tsImportsConfig = fs.readFileSync('node_modules/zwitterion/ts-imports-config.js');
+            const socketIOConfig = fs.readFileSync('node_modules/zwitterion/socket-io-config.js');
+
+            res.end(`${systemJS}${socketIO}${tsImportConfig}${socketIOConfig}`);
+        }
+        else {
+            fileServer.serve(req, res, (error, result) => {
+                if (error && error.status === 404) {
+                    fileServer.serveFile('/index.html', 200, {}, req, res);
+                }
+            });
+        }
     }).resume();
 }
 
@@ -208,7 +221,6 @@ function createBuilder() {
 function createCertAndKey(keyPath, certPath) {
     return new Promise((resolve, reject) => {
         const pem = require('pem');
-        const fs = require('fs');
 
         pem.createCertificate({
             selfSigned: true
