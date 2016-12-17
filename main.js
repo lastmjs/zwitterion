@@ -10,7 +10,7 @@ const program = require('commander');
 const fs = require('fs');
 
 program
-    .version('0.0.6')
+    .version('0.0.7')
     .option('-s, --serve-dir [serveDir]', 'The directory to serve files from; the root directory of the server')
     .option('-h, --http', 'Use HTTP 1.x (the default is HTTP 2)')
     .option('-c, --cert-path [certPath]', 'Specify path to SSL certificate')
@@ -148,7 +148,7 @@ function buildAndServe(req, res, relativeFilePath) {
         }
     }
     else {
-        res.end(`System.import('${relativeFilePath}');`);
+        res.end(`System.import('${serveDir}/${relativeFilePath}');`);
     }
 }
 
@@ -164,7 +164,7 @@ function serveWithoutBuild(fileServer, req, res) {
             const tsImportsConfig = fs.readFileSync('node_modules/zwitterion/ts-imports-config.js');
             const socketIOConfig = fs.readFileSync('node_modules/zwitterion/socket-io-config.js');
 
-            res.end(`${systemJS}${socketIO}${tsImportConfig}${socketIOConfig}`);
+            res.end(`${systemJS}${socketIO}${tsImportsConfig}${socketIOConfig}`);
         }
         else {
             fileServer.serve(req, res, (error, result) => {
