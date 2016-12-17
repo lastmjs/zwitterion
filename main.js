@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 let transpilations = {};
+let io;
 
 const builder = createBuilder();
 
@@ -44,7 +45,7 @@ function configureFileWatching() {
 }
 
 function reloadBrowser() {
-    console.log('reloadBrowser');
+    io.emit('reload');
 }
 
 function createServer(builder, httpVersion, keyPath, certPath, outputDir, typeCheckLevel) {
@@ -52,6 +53,7 @@ function createServer(builder, httpVersion, keyPath, certPath, outputDir, typeCh
     const fileServer = new static.Server(process.cwd());
     const httpServerPromise = httpVersion === 2 ? createHTTP2Server(builder, fileServer, keyPath, certPath) : createHTTPServer(builder, fileServer);
     httpServerPromise.then((httpServer) => {
+        io = require('socket.io')(httpServer);
         httpServer.listen(8000, (error) => {
             if (error) {
                 console.log(error);

@@ -9,6 +9,16 @@
     });
 </script>
 
+<script src="socket.io/socket.io.js"></script>
+
+<script>
+    const socket = io('https://localhost:8000');
+
+    socket.on('reload', () => {
+        window.location.reload();
+    });
+</script>
+
 <!-- <script>System.import('test1.ts');</script> -->
 <!-- <script>System.import('test2.ts')</script> -->
 
