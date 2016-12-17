@@ -10,7 +10,7 @@ program
     .version('0.0.4')
     .option('-h, --http', 'Use HTTP 1.x (the default is HTTP 2)')
     .option('-c, --cert-path [certPath]', 'Specify path to SSL certificate')
-    .option('-k, --key-path [keyPath]', 'Specify path to SSL certificate')
+    .option('-k, --key-path [keyPath]', 'Specify path to SSL key')
     .option('-o, --output-dir [outputDir]', 'Specify the output directory for transpiled files (the default is in-memory transpilation only)')
     .option('-t, --type-check-level [typeCheckLevel]', 'Specify the level of type checking (none, warn, error)')
     .parse(process.argv);
