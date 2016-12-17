@@ -1,9 +1,10 @@
 #!/usr/bin/env node
 
-const transpilations = {};
+let transpilations = {};
 
 const builder = createBuilder();
 
+const chokidar = require('chokidar');
 const program = require('commander');
 
 program
@@ -21,7 +22,30 @@ const certPath = program.certPath;
 const outputDir = program.outputDir;
 const typeCheckLevel = program.typeCheckLevel;
 
+let watcher = configureFileWatching();
 createServer(builder, httpVersion, keyPath, certPath, typeCheckLevel);
+
+function configureFileWatching() {
+    return chokidar.watch([]).on('change', (path) => {
+        const fileEnding = path.slice(path.lastIndexOf('.'));
+
+        if (fileEnding === '.ts') {
+            builder.compile(path).then((output) => {
+                transpilations[path] = output.source;
+                reloadBrowser();
+            }, (error) => {
+                console.log(error);
+            });
+        }
+        else {
+            reloadBrowser();
+        }
+    });
+}
+
+function reloadBrowser() {
+    console.log('reloadBrowser');
+}
 
 function createServer(builder, httpVersion, keyPath, certPath, outputDir, typeCheckLevel) {
     const static = require('node-static');
@@ -98,6 +122,7 @@ function handler(fileServer) {
         const relativeFilePath = req.url.slice(1);
         const fileExtension = relativeFilePath.slice(relativeFilePath.lastIndexOf('.'));
 
+        watcher.add(relativeFilePath || 'index.html');
         fileExtension === '.ts' ? buildAndServe(req, res, relativeFilePath) : serveWithoutBuild(fileServer, req, res);
     };
 }

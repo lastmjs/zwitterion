@@ -19,6 +19,7 @@
   },
   "homepage": "https://github.com/lastmjs/zwitterion#readme",
   "dependencies": {
+    "chokidar": "^1.6.1",
     "commander": "^2.9.0",
     "http2": "^3.3.6",
     "node-static": "^0.7.9",
