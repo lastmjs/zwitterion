@@ -1,6 +1,6 @@
 {
   "name": "zwitterion",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "description": "Live reload development server that supports HTTP2, single page applications (server rewrites to index.html), server-side transpiling (write your code in whatever you want, ES5, ES6, TypeScript, async/await), and incremental building.",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"

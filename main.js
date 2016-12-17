@@ -10,7 +10,7 @@ const program = require('commander');
 const fs = require('fs');
 
 program
-    .version('0.0.7')
+    .version('0.0.8')
     .option('-s, --serve-dir [serveDir]', 'The directory to serve files from; the root directory of the server')
     .option('-h, --http', 'Use HTTP 1.x (the default is HTTP 2)')
     .option('-c, --cert-path [certPath]', 'Specify path to SSL certificate')
@@ -165,6 +165,10 @@ function serveWithoutBuild(fileServer, req, res) {
             const socketIOConfig = fs.readFileSync('node_modules/zwitterion/socket-io-config.js');
 
             res.end(`${systemJS}${socketIO}${tsImportsConfig}${socketIOConfig}`);
+        }
+        else if (req.url === '/system.js.map') {
+            const systemJSSourceMap = fs.readFileSync('node_modules/systemjs/dist/system.js.map');
+            res.end(`${systemJSSourceMap}`);
         }
         else {
             fileServer.serve(req, res, (error, result) => {
