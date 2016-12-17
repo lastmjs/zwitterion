@@ -4,11 +4,22 @@ const transpilations = {};
 
 const builder = createBuilder();
 
-const httpVersion = 2;
-const keyPath = null;
-const certPath = null;
-const outputDir = null;
-const typeCheckLevel = 'none'; //TODO possibilities will be none, warn, error
+const program = require('commander');
+
+program
+    .version('0.0.4')
+    .option('-h, --http', 'Use HTTP 1.x (the default is HTTP 2)')
+    .option('-c, --cert-path [certPath]', 'Specify path to SSL certificate')
+    .option('-k, --key-path [keyPath]', 'Specify path to SSL certificate')
+    .option('-o, --output-dir [outputDir]', 'Specify the output directory for transpiled files (the default is in-memory transpilation only)')
+    .option('-t, --type-check-level [typeCheckLevel]', 'Specify the level of type checking (none, warn, error)')
+    .parse(process.argv);
+
+const httpVersion = program.http ? 1 : 2;
+const keyPath = program.keyPath;
+const certPath = program.certPath;
+const outputDir = program.outputDir;
+const typeCheckLevel = program.typeCheckLevel;
 
 createServer(builder, httpVersion, keyPath, certPath, typeCheckLevel);
 
@@ -25,6 +36,8 @@ function createServer(builder, httpVersion, keyPath, certPath, outputDir, typeCh
                 console.log('zwitterion server listening on port 8000');
             }
         });
+    }, (error) => {
+        console.log(error);
     });
 }
 
@@ -43,6 +56,8 @@ function createHTTP2Server(builder, fileServer, keyPath, certPath) {
             };
 
             resolve(require('http2').createServer(options, handler(fileServer)));
+        }, (error) => {
+            console.log(error);
         });
     });
 }
@@ -50,10 +65,12 @@ function createHTTP2Server(builder, fileServer, keyPath, certPath) {
 function getCertAndKey(keyPath, certPath) {
     return new Promise((resolve, reject) => {
         const fs = require('fs');
+        const defaultKeyPath = `localhost.key`;
+        const defaultCertPath = `localhost.cert`;
 
         try {
-            const key = fs.readFileSync(keyPath);
-            const cert = fs.readFileSync(certPath);
+            const key = fs.readFileSync(keyPath || defaultKeyPath);
+            const cert = fs.readFileSync(certPath || defaultCertPath);
 
             resolve({
                 key,
@@ -62,10 +79,10 @@ function getCertAndKey(keyPath, certPath) {
         }
         catch(error) {
             if (!keyPath && !certPath) {
-                const defaultKeyPath = `${process.cwd()}/localhost.key`;
-                const defaultCertPath = `${process.cwd()}/localhost.cert`;
                 createCertAndKey(defaultKeyPath, defaultCertPath).then((certAndKey) => {
                     resolve(certAndKey);
+                }, (error) => {
+                    console.log(error);
                 });
             }
             else {
