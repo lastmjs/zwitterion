@@ -21,6 +21,7 @@
   "dependencies": {
     "http2": "^3.3.6",
     "node-static": "^0.7.9",
+    "pem": "^1.9.4",
     "plugin-typescript": "^5.3.1",
     "systemjs-builder": "^0.15.34"
   }
