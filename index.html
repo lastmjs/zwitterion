@@ -1,26 +1,4 @@
-<script src="node_modules/systemjs/dist/system.js"></script>
-<script>
-    System.config({
-        packages: {
-            '/': {
-                defaultExtension: 'ts'
-            }
-        }
-    });
-</script>
-
-<script src="socket.io/socket.io.js"></script>
-
-<script>
-    const socket = io('https://localhost:8000');
-
-    socket.on('reload', () => {
-        window.location.reload();
-    });
-</script>
-
-<!-- <script>System.import('test1.ts');</script> -->
-<!-- <script>System.import('test2.ts')</script> -->
+<script src="browser-config.js"></script>
 
 <script src="test1.ts"></script>
 <script src="test2.ts"></script>
