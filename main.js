@@ -147,7 +147,10 @@ function handler(fileServer) {
         const relativeFilePath = req.url.slice(1);
         const fileExtension = relativeFilePath.slice(relativeFilePath.lastIndexOf('.'));
 
-        writeRelativeFilePathToZwitterionJSON(relativeFilePath);
+        if (relativeFilePath !== 'browser-config.js') {
+            writeRelativeFilePathToZwitterionJSON(relativeFilePath || 'index.html');
+        }
+
         watcher.add(relativeFilePath || 'index.html');
         fileExtension === '.ts' ? buildAndServe(req, res, relativeFilePath) : serveWithoutBuild(fileServer, req, res);
     };
