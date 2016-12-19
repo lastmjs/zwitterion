@@ -63,7 +63,7 @@ function getZwitterionJSON() {
 }
 
 function setZwitterionJSON(zwitterionJSON) {
-    fs.writeFile('zwitterion.json', zwitterionJSON);
+    fs.writeFile('zwitterion.json', JSON.stringify(zwitterionJSON));
 }
 
 function configureFileWatching() {
