@@ -46,20 +46,25 @@ if (build) {
 
     const filePaths = Object.keys(zwitterionJSON.files).map((filePath) => serveDir ? `${serveDir}/${filePath}` : `${filePath}`);
     filePaths.forEach((filePath) => {
-        const directoriesWithFile = filePath.split('/');
-        if (directoriesWithFile.length > 1) {
-            const directories = directoriesWithFile.slice(0, -1).join('/');
-            mkdirp.sync(`${outputDir}/${directories}`);
-        }
+        try {
+            const directoriesWithFile = filePath.split('/');
+            if (directoriesWithFile.length > 1) {
+                const directories = directoriesWithFile.slice(0, -1).join('/');
+                mkdirp.sync(`${outputDir}/${directories}`);
+            }
 
-        if (filePath === `${serveDir}/browser-config.js`) {
-            fs.writeFileSync(`${outputDir}/browser-config.js`, getBrowserConfig());
+            if (filePath === `${serveDir}/browser-config.js`) {
+                fs.writeFileSync(`${outputDir}/browser-config.js`, getBrowserConfig());
+            }
+            else if (filePath === `${serveDir}/system.js.map`) {
+                fs.writeFileSync(`${outputDir}/system.js.map`, getSystemJSSourceMap());
+            }
+            else {
+                fs.writeFileSync(`${outputDir}/${filePath}`, fs.readFileSync(filePath));
+            }
         }
-        else if (filePath === `${serveDir}/system.js.map`) {
-            fs.writeFileSync(`${outputDir}/system.js.map`, getSystemJSSourceMap());
-        }
-        else {
-            fs.writeFileSync(`${outputDir}/${filePath}`, fs.readFileSync(filePath));
+        catch(error) {
+            console.log(error);
         }
     });
 
