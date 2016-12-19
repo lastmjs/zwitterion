@@ -52,10 +52,10 @@ if (build) {
             mkdirp.sync(`${outputDir}/${directories}`);
         }
 
-        if (filePath === 'browser-config.js') {
+        if (filePath === `${serveDir}/browser-config.js`) {
             fs.writeFileSync(`${outputDir}/browser-config.js`, getBrowserConfig());
         }
-        else if (filePath === 'system.js.map') {
+        else if (filePath === `${serveDir}/system.js.map`) {
             fs.writeFileSync(`${outputDir}/system.js.map`, getSystemJSSourceMap());
         }
         else {
