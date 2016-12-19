@@ -47,12 +47,12 @@ if (build) {
     const filePaths = Object.keys(zwitterionJSON.files).map((filePath) => serveDir ? `${serveDir}/${filePath}` : `${filePath}`);
     filePaths.forEach((filePath) => {
         const directoriesWithFile = filePath.split('/');
-
         if (directoriesWithFile.length > 1) {
             const directories = directoriesWithFile.slice(0, -1).join('/');
-            console.log(`${outputDir}/${directories}`);
-            // mkdirp.sync(`${serveDir}/${directories}`);
+            mkdirp.sync(`${outputDir}/${directories}`);
         }
+
+        
 
         // mkdirp.sync(filePath);
 
