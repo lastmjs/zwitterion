@@ -52,19 +52,15 @@ if (build) {
             mkdirp.sync(`${outputDir}/${directories}`);
         }
 
-        
-
-        // mkdirp.sync(filePath);
-
-        // if (filePath === 'browser-config.js') {
-        //     getBrowserConfig();
-        // }
-        // else if (filePath === 'system.js.map') {
-        //     getSystemJSSourceMap();
-        // }
-        // else {
-        //
-        // }
+        if (filePath === 'browser-config.js') {
+            fs.writeFileSync(`${outputDir}/browser-config.js`, getBrowserConfig());
+        }
+        else if (filePath === 'system.js.map') {
+            fs.writeFileSync(`${outputDir}/system.js.map`, getSystemJSSourceMap());
+        }
+        else {
+            fs.writeFileSync(`${outputDir}/${filePath}`, fs.readFileSync(filePath));
+        }
     });
 
     return;
