@@ -154,7 +154,7 @@ function handler(fileServer) {
 }
 
 function writeRelativeFilePathToZwitterionJSON(relativeFilePath) {
-    const newRelativeFilePath = relativeFilePath.indexOf(serveDir) === 0 ? relativeFilePath.replace(`${relativeFilePath}/`) : relativeFilePath;
+    const newRelativeFilePath = relativeFilePath.indexOf(serveDir) === 0 ? relativeFilePath.replace(`${serveDir}/`, '') : relativeFilePath;
 
     zwitterionJSON.files[newRelativeFilePath] = newRelativeFilePath;
     writeZwitterionJSON();
