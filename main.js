@@ -50,7 +50,7 @@ if (build) {
 
         if (directoriesWithFile.length > 1) {
             const directories = directoriesWithFile.slice(0, -1).join('/');
-            console.log(`${serveDir}/${directories}`);
+            console.log(`${outputDir}/${directories}`);
             // mkdirp.sync(`${serveDir}/${directories}`);
         }
 
