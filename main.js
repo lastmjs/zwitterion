@@ -44,7 +44,7 @@ if (build) {
         throw new Error('You must specify an output directory from the command line, --output-dir [outputDir]');
     }
 
-    mdkirp.sync(outputDir);
+    mkdirp.sync(outputDir);
 
     const filePaths = Object.keys(zwitterionJSON.files);
     filePaths.forEach((filePath) => {
