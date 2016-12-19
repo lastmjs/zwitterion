@@ -44,7 +44,7 @@ if (build) {
         throw new Error('You must specify an output directory from the command line, --output-dir [outputDir]');
     }
 
-    const filePaths = Object.keys(zwitterionJSON.files).map((filePath) => serveDir ? `${serveDir}/${filePath}` : `${filePath}`);
+    const filePaths = Object.keys(zwitterionJSON.files);
     filePaths.forEach((filePath) => {
         try {
             const directoriesWithFile = filePath.split('/');
@@ -53,14 +53,14 @@ if (build) {
                 mkdirp.sync(`${outputDir}/${directories}`);
             }
 
-            if (filePath === `${serveDir}/browser-config.js`) {
+            if (filePath === `browser-config.js`) {
                 fs.writeFileSync(`${outputDir}/browser-config.js`, getBrowserConfig());
             }
-            else if (filePath === `${serveDir}/system.js.map`) {
+            else if (filePath === `system.js.map`) {
                 fs.writeFileSync(`${outputDir}/system.js.map`, getSystemJSSourceMap());
             }
             else {
-                fs.writeFileSync(`${outputDir}/${filePath}`, fs.readFileSync(filePath));
+                fs.writeFileSync(`${outputDir}/${filePath}`, fs.readFileSync(`${serveDir}/${filePath}`));
             }
         }
         catch(error) {
