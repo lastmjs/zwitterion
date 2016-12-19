@@ -154,7 +154,9 @@ function handler(fileServer) {
 }
 
 function writeRelativeFilePathToZwitterionJSON(relativeFilePath) {
-    zwitterionJSON.files[relativeFilePath] = relativeFilePath;
+    const newRelativeFilePath = relativeFilePath.indexOf(serveDir) === 0 ? relativeFilePath.replace(`${relativeFilePath}/`) : relativeFilePath;
+
+    zwitterionJSON.files[newRelativeFilePath] = newRelativeFilePath;
     writeZwitterionJSON();
 }
 
@@ -174,7 +176,7 @@ function buildAndServe(req, res, relativeFilePath) {
         }
     }
     else {
-        res.end(`System.import('${relativeFilePath}');`);
+        res.end(`System.import('${serveDir}/${relativeFilePath}');`);
     }
 }
 
