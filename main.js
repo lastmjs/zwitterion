@@ -20,7 +20,7 @@ program
     .option('-c, --cert-path [certPath]', 'Specify path to SSL certificate')
     .option('-k, --key-path [keyPath]', 'Specify path to SSL key')
     .option('-o, --output-dir [outputDir]', 'Specify the output directory for transpiled files (the default is in-memory transpilation only)')
-    .option('-y, --transpile', 'Transpile all files specified in the files property in zwitterion.json to the corresponding location in the specified output directory (--output-dir)')
+    .option('-b, --build', 'Transpile all files specified in the files property in zwitterion.json to the corresponding location in the specified output directory (--output-dir)')
     .option('-t, --type-check-level [typeCheckLevel]', 'Specify the level of type checking (none, warn, error)')
     .parse(process.argv);
 
@@ -39,7 +39,7 @@ catch(error) {
     fs.writeFileSync('zwitterion.json', JSON.stringify(zwitterionJSON));
 }
 
-if (transpile) {
+if (build) {
     if (!outputDir) {
         throw new Error('You must specify an output directory from the command line, --output-dir [outputDir]');
     }
