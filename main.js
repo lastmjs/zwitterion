@@ -1,6 +1,9 @@
 #!/usr/bin/env node
 
 let transpilations = {};
+let zwitterionJSON = {
+    files: {}
+};
 let io;
 
 const builder = createBuilder();
@@ -28,42 +31,22 @@ const outputDir = program.outputDir;
 const typeCheckLevel = program.typeCheckLevel;
 const transpile = program.transpile;
 
+try {
+    zwitterionJSON = JSON.parse(fs.readFileSync('zwitterion.json'));
+}
+catch(error) {
+    fs.writeFileSync('zwitterion.json', JSON.stringify(zwitterionJSON));
+}
+
 if (transpile) {
-
-    getZwitterionJSON().then((zwitterionJSON) => {
-        console.log(zwitterionJSON);
-    });
-
     return;
 }
 
 let watcher = configureFileWatching();
 createServer(builder, httpVersion, keyPath, certPath, outputDir, typeCheckLevel, serveDir);
 
-function getZwitterionJSON() {
-    const blankZwitterionJSON = {
-        files: {}
-    };
-
-    return new Promise((resolve, reject) => {
-        fs.readFile('zwitterion.json', (error, zwitterionJSON) => {
-            if (error) {
-                fs.writeFile('zwitterion.json', JSON.stringify(blankZwitterionJSON), (error) => {
-                    if (error) {
-                        console.log(error);
-                    }
-                });
-                resolve(blankZwitterionJSON);
-            }
-            else {
-                resolve(JSON.parse(zwitterionJSON));
-            }
-        });
-    });
-}
-
-function setZwitterionJSON(zwitterionJSON) {
-    fs.writeFile('zwitterion.json', JSON.stringify(zwitterionJSON));
+function writeZwitterionJSON() {
+    fs.writeFileSync('zwitterion.json', JSON.stringify(zwitterionJSON));
 }
 
 function configureFileWatching() {
@@ -171,10 +154,8 @@ function handler(fileServer) {
 }
 
 function writeRelativeFilePathToZwitterionJSON(relativeFilePath) {
-    getZwitterionJSON().then((zwitterionJSON) => {
-        zwitterionJSON.files[relativeFilePath] = relativeFilePath;
-        setZwitterionJSON(zwitterionJSON);
-    });
+    zwitterionJSON.files[relativeFilePath] = relativeFilePath;
+    writeZwitterionJSON();
 }
 
 function buildAndServe(req, res, relativeFilePath) {
