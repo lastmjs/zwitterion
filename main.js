@@ -30,7 +30,7 @@ const keyPath = program.keyPath;
 const certPath = program.certPath;
 const outputDir = program.outputDir;
 const typeCheckLevel = program.typeCheckLevel;
-const transpile = program.transpile;
+const build = program.build;
 
 try {
     zwitterionJSON = JSON.parse(fs.readFileSync('zwitterion.json'));
