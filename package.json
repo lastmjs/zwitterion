@@ -22,6 +22,7 @@
     "chokidar": "^1.6.1",
     "commander": "^2.9.0",
     "http2": "^3.3.6",
+    "mkdirp": "^0.5.1",
     "node-static": "^0.7.9",
     "pem": "^1.9.4",
     "plugin-typescript": "^5.3.1",

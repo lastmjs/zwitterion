@@ -11,6 +11,7 @@ const builder = createBuilder();
 const chokidar = require('chokidar');
 const program = require('commander');
 const fs = require('fs');
+const mkdirp = require('mkdirp');
 
 program
     .version('0.0.8')
@@ -39,6 +40,25 @@ catch(error) {
 }
 
 if (transpile) {
+    if (!outputDir) {
+        throw new Error('You must specify an output directory from the command line, --output-dir [outputDir]');
+    }
+
+    const filePaths = Object.keys(zwitterionJSON.files).map((filePath) => serveDir ? `${serveDir}/` : filePath);
+    filePaths.forEach((filePath) => {
+        mkdirp.sync(filePath);
+
+        // if (filePath === 'browser-config.js') {
+        //     getBrowserConfig();
+        // }
+        // else if (filePath === 'system.js.map') {
+        //     getSystemJSSourceMap();
+        // }
+        // else {
+        //
+        // }
+    });
+
     return;
 }
 
@@ -187,16 +207,10 @@ function isSystemImportRequest(req) {
 function serveWithoutBuild(fileServer, req, res) {
     req.addListener('end', () => {
         if (req.url === '/browser-config.js') {
-            const systemJS = fs.readFileSync('node_modules/systemjs/dist/system.js');
-            const socketIO = fs.readFileSync('node_modules/socket.io-client/dist/socket.io.min.js');
-            const tsImportsConfig = fs.readFileSync('node_modules/zwitterion/ts-imports-config.js');
-            const socketIOConfig = fs.readFileSync('node_modules/zwitterion/socket-io-config.js');
-
-            res.end(`${systemJS}${socketIO}${tsImportsConfig}${socketIOConfig}`);
+            res.end(getBrowserConfig());
         }
         else if (req.url === '/system.js.map') {
-            const systemJSSourceMap = fs.readFileSync('node_modules/systemjs/dist/system.js.map');
-            res.end(`${systemJSSourceMap}`);
+            res.end(getSystemJSSourceMap());
         }
         else {
             fileServer.serve(req, res, (error, result) => {
@@ -206,6 +220,19 @@ function serveWithoutBuild(fileServer, req, res) {
             });
         }
     }).resume();
+}
+
+function getBrowserConfig() {
+    const systemJS = fs.readFileSync('node_modules/systemjs/dist/system.js');
+    const socketIO = fs.readFileSync('node_modules/socket.io-client/dist/socket.io.min.js');
+    const tsImportsConfig = fs.readFileSync('node_modules/zwitterion/ts-imports-config.js');
+    const socketIOConfig = fs.readFileSync('node_modules/zwitterion/socket-io-config.js');
+
+    return `${systemJS}${socketIO}${tsImportsConfig}${socketIOConfig}`;
+}
+
+function getSystemJSSourceMap() {
+    return fs.readFileSync('node_modules/systemjs/dist/system.js.map');
 }
 
 function createBuilder() {
