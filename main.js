@@ -16,6 +16,7 @@ program
     .option('-c, --cert-path [certPath]', 'Specify path to SSL certificate')
     .option('-k, --key-path [keyPath]', 'Specify path to SSL key')
     .option('-o, --output-dir [outputDir]', 'Specify the output directory for transpiled files (the default is in-memory transpilation only)')
+    .option('-y, --transpile', 'Transpile all files specified in the files property in zwitterion.json to the corresponding location in the specified output directory (--output-dir)')
     .option('-t, --type-check-level [typeCheckLevel]', 'Specify the level of type checking (none, warn, error)')
     .parse(process.argv);
 
@@ -25,9 +26,45 @@ const keyPath = program.keyPath;
 const certPath = program.certPath;
 const outputDir = program.outputDir;
 const typeCheckLevel = program.typeCheckLevel;
+const transpile = program.transpile;
+
+if (transpile) {
+
+    getZwitterionJSON().then((zwitterionJSON) => {
+        console.log(zwitterionJSON);
+    });
+
+    return;
+}
 
 let watcher = configureFileWatching();
 createServer(builder, httpVersion, keyPath, certPath, outputDir, typeCheckLevel, serveDir);
+
+function getZwitterionJSON() {
+    const blankZwitterionJSON = {
+        files: []
+    };
+
+    return new Promise((resolve, reject) => {
+        fs.readFile('zwitterion.json', (error, zwitterionJSON) => {
+            if (error) {
+                fs.writeFile('zwitterion.json', JSON.stringify(blankZwitterionJSON), (error) => {
+                    if (error) {
+                        console.log(error);
+                    }
+                });
+                resolve(blankZwitterionJSON);
+            }
+            else {
+                resolve(JSON.parse(zwitterionJSON));
+            }
+        });
+    });
+}
+
+function setZwitterionJSON(zwitterionJSON) {
+    fs.writeFile('zwitterion.json', zwitterionJSON);
+}
 
 function configureFileWatching() {
     return chokidar.watch([]).on('change', (path) => {
@@ -127,9 +164,17 @@ function handler(fileServer) {
         const relativeFilePath = req.url.slice(1);
         const fileExtension = relativeFilePath.slice(relativeFilePath.lastIndexOf('.'));
 
+        writeRelativeFilePathToZwitterionJSON(relativeFilePath);
         watcher.add(relativeFilePath || 'index.html');
-        fileExtension === '.ts' ? buildAndServe(req, res, relativeFilePath) : serveWithoutBuild(fileServer, req, res);
+        fileExtension === '.ts' || '.js' ? buildAndServe(req, res, relativeFilePath) : serveWithoutBuild(fileServer, req, res);
     };
+}
+
+function writeRelativeFilePathToZwitterionJSON(relativeFilePath) {
+    getZwitterionJSON().then((zwitterionJSON) => {
+        zwitterionJSON.files.push(relativeFilePath);
+        setZwitterionJSON(zwitterionJSON);
+    });
 }
 
 function buildAndServe(req, res, relativeFilePath) {
