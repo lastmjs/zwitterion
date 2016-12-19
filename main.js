@@ -44,7 +44,7 @@ if (build) {
         throw new Error('You must specify an output directory from the command line, --output-dir [outputDir]');
     }
 
-    const filePaths = Object.keys(zwitterionJSON.files).map((filePath) => serveDir ? `${serveDir}/${filePath}` : filePath);
+    const filePaths = Object.keys(zwitterionJSON.files).map((filePath) => serveDir ? `/${serveDir}/${filePath}` : `/${filePath}`);
     filePaths.forEach((filePath) => {
         const directories = filePath.split('/');
 
@@ -180,7 +180,7 @@ function handler(fileServer) {
 function writeRelativeFilePathToZwitterionJSON(relativeFilePath) {
     const newRelativeFilePath = relativeFilePath.indexOf(serveDir) === 0 ? relativeFilePath.replace(`${serveDir}/`, '') : relativeFilePath;
 
-    zwitterionJSON.files[newRelativeFilePath] = '/' + newRelativeFilePath;
+    zwitterionJSON.files[newRelativeFilePath] = newRelativeFilePath;
     writeZwitterionJSON();
 }
 
