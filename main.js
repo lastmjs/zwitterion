@@ -60,7 +60,17 @@ if (build) {
                 fs.writeFileSync(`${outputDir}/system.js.map`, getSystemJSSourceMap());
             }
             else {
-                fs.writeFileSync(`${outputDir}/${filePath}`, fs.readFileSync(`${serveDir}/${filePath}`));
+                const fileEnding = path.slice(path.lastIndexOf('.'));
+                if (fileEnding === '.ts') {
+                    builder.compile(`${serveDir}/${filePath}`).then((output) => {
+                        fs.writeFileSync(`${outputDir}/${filePath}`, output);
+                    }, (error) => {
+                        console.log(error);
+                    });
+                }
+                else {
+                    fs.writeFileSync(`${outputDir}/${filePath}`, fs.readFileSync(`${serveDir}/${filePath}`));
+                }
             }
         }
         catch(error) {
