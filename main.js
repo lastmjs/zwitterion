@@ -174,7 +174,7 @@ function buildAndServe(req, res, relativeFilePath) {
         }
     }
     else {
-        res.end(`System.import('${serveDir}/${relativeFilePath}');`);
+        res.end(`System.import('${relativeFilePath}');`);
     }
 }
 
