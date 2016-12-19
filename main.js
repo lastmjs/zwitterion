@@ -44,7 +44,7 @@ if (build) {
         throw new Error('You must specify an output directory from the command line, --output-dir [outputDir]');
     }
 
-    const filePaths = Object.keys(zwitterionJSON.files).map((filePath) => serveDir ? `/${serveDir}/${filePath}` : `/${filePath}`);
+    const filePaths = Object.keys(zwitterionJSON.files).map((filePath) => serveDir ? `${serveDir}/${filePath}` : `${filePath}`);
     filePaths.forEach((filePath) => {
         const directories = filePath.split('/');
 
