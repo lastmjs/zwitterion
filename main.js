@@ -63,7 +63,7 @@ if (build) {
                 const fileEnding = filePath.slice(filePath.lastIndexOf('.'));
                 if (fileEnding === '.ts') {
                     builder.compile(`${serveDir}/${filePath}`).then((output) => {
-                        fs.writeFileSync(`${outputDir}/${filePath}`, output);
+                        fs.writeFileSync(`${outputDir}/${filePath}`, output.source);
                     }, (error) => {
                         console.log(error);
                     });
