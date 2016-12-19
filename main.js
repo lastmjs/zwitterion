@@ -42,7 +42,7 @@ createServer(builder, httpVersion, keyPath, certPath, outputDir, typeCheckLevel,
 
 function getZwitterionJSON() {
     const blankZwitterionJSON = {
-        files: []
+        files: {}
     };
 
     return new Promise((resolve, reject) => {
@@ -166,13 +166,13 @@ function handler(fileServer) {
 
         writeRelativeFilePathToZwitterionJSON(relativeFilePath);
         watcher.add(relativeFilePath || 'index.html');
-        fileExtension === '.ts' || '.js' ? buildAndServe(req, res, relativeFilePath) : serveWithoutBuild(fileServer, req, res);
+        fileExtension === '.ts' ? buildAndServe(req, res, relativeFilePath) : serveWithoutBuild(fileServer, req, res);
     };
 }
 
 function writeRelativeFilePathToZwitterionJSON(relativeFilePath) {
     getZwitterionJSON().then((zwitterionJSON) => {
-        zwitterionJSON.files.push(relativeFilePath);
+        zwitterionJSON.files[relativeFilePath] = relativeFilePath;
         setZwitterionJSON(zwitterionJSON);
     });
 }
