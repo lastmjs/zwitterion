@@ -60,7 +60,7 @@ if (build) {
                 fs.writeFileSync(`${outputDir}/system.js.map`, getSystemJSSourceMap());
             }
             else {
-                const fileEnding = path.slice(path.lastIndexOf('.'));
+                const fileEnding = filePath.slice(filePath.lastIndexOf('.'));
                 if (fileEnding === '.ts') {
                     builder.compile(`${serveDir}/${filePath}`).then((output) => {
                         fs.writeFileSync(`${outputDir}/${filePath}`, output);
