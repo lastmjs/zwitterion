@@ -36,7 +36,7 @@ try {
     zwitterionJSON = JSON.parse(fs.readFileSync('zwitterion.json'));
 }
 catch(error) {
-    fs.writeFileSync('zwitterion.json', JSON.stringify(zwitterionJSON));
+    fs.writeFileSync('zwitterion.json', JSON.stringify(zwitterionJSON, null, 4));
 }
 
 if (build) {
@@ -45,7 +45,6 @@ if (build) {
     }
 
     mkdirp.sync(outputDir);
-
     const filePaths = Object.keys(zwitterionJSON.files);
     filePaths.forEach((filePath) => {
         try {
@@ -87,7 +86,7 @@ let watcher = configureFileWatching();
 createServer(builder, httpVersion, keyPath, certPath, outputDir, typeCheckLevel, serveDir);
 
 function writeZwitterionJSON() {
-    fs.writeFileSync('zwitterion.json', JSON.stringify(zwitterionJSON));
+    fs.writeFileSync('zwitterion.json', JSON.stringify(zwitterionJSON, null, 4));
 }
 
 function configureFileWatching() {
