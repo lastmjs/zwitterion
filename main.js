@@ -207,12 +207,18 @@ function buildAndServe(req, res, relativeFilePath) {
             res.end(transpilation);
         }
         else {
-            builder.compile(relativeFilePath).then((output) => {
-                transpilations[relativeFilePath] = output.source;
-                res.end(transpilations[relativeFilePath]);
-            }, (error) => {
-                console.log(error);
+            builder.trace(relativeFilePath).then((tree) => {
+                builder.buildstatic(tree - tree).then((output) => {
+                    console.log(output);
+                });
             });
+
+            // builder.compile(relativeFilePath).then((output) => {
+            //     transpilations[relativeFilePath] = output.source;
+            //     res.end(transpilations[relativeFilePath]);
+            // }, (error) => {
+            //     console.log(error);
+            // });
         }
     }
     else {
