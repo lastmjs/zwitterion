@@ -155,4 +155,13 @@ We all want to use the latest and greatest JavaScript or TypeScript features. Un
 
 ## Acknowledgements
 
+Zwitterion was made possible by various amazing projects:
+
+* [SystemJS]() - for standards-based ES6 module resolution
+* [SystemJS Builder]() - for help with server-side transpilation
+* [plugin-typescript]() - for the actual server-side transpilation
+* [TypeScript]() - for being an amazing language that boosts productivity
+
+And many more projects, take a look at `package.json` for more. Open source is incredible, so get out there and contribute.
+
 TypeScript is either a registered trademark or trademark of Microsoft Corporation in the United States and/or other countries.
