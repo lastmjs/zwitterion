@@ -1,6 +1,6 @@
 # Zwitterion
 
-Super simple development server with built-in support for TypeScript files that gets rid of the complicated build process. Just grab your TypeScript files like so:
+Super simple development server with built-in support for TypeScript files. Get rid of the complicated build process! Just grab your TypeScript files like so:
 
 ```
 <script src="components/app/app.ts"></script>
