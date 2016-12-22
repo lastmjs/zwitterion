@@ -22,7 +22,6 @@ program
     .option('-o, --output-dir [outputDir]', 'Specify the output directory for transpiled files (the default is in-memory transpilation only)')
     .option('-b, --build', 'Transpile all files specified in the files property in zwitterion.json to the corresponding location in the specified output directory (--output-dir)')
     .option('-t, --type-check-level [typeCheckLevel]', 'Specify the level of type checking (none, warn, error)')
-    .option('-d, --default-import-extension [defaultImportExtension]', 'Specify the default file extension for JavaScript imports (defaults to js, can be set to js or ts)')
     .parse(process.argv);
 
 const serveDir = program.serveDir ? `${program.serveDir}/` : '';
@@ -32,7 +31,6 @@ const certPath = program.certPath;
 const outputDir = program.outputDir;
 const typeCheckLevel = program.typeCheckLevel;
 const build = program.build;
-const defaultImportExtension = program.defaultImportExtension || 'js';
 
 try {
     zwitterionJSON = JSON.parse(fs.readFileSync('zwitterion.json'));
@@ -64,7 +62,7 @@ if (build) {
             }
             else {
                 const fileEnding = filePath.slice(filePath.lastIndexOf('.'));
-                if (fileEnding === '.ts' || fileEnding === '.js') {
+                if (fileEnding === '.ts') {
                     const isChildImport = !zwitterionJSON.files[filePath].parentImport;
                     compile(isChildImport, serveDir, filePath).then((source) => {
                         fs.writeFileSync(`${outputDir}/${filePath}`, source);
@@ -94,7 +92,7 @@ function configureFileWatching(serveDir) {
     return chokidar.watch([]).on('change', (path) => {
         const fileEnding = path.slice(path.lastIndexOf('.'));
 
-        if (fileEnding === '.ts' || fileEnding === '.js') {
+        if (fileEnding === '.ts') {
             const relativeFilePath = path.replace(`${serveDir}`, '');
             const isChildImport = !zwitterionJSON.files[relativeFilePath].parentImport;
             compile(isChildImport, serveDir, relativeFilePath).then((source) => {
@@ -191,7 +189,7 @@ function handler(fileServer) {
         const isChildImport = isSystemImportRequest(req);
         writeRelativeFilePathToZwitterionJSON(relativeFilePath || 'index.html', isChildImport);
         watcher.add(`${serveDir}${relativeFilePath}` || `${serveDir}index.html`);
-        fileExtension === '.ts' || fileExtension === '.js' ? buildAndServe(req, res, relativeFilePath) : serveWithoutBuild(fileServer, req, res);
+        fileExtension === '.ts' ? buildAndServe(req, res, relativeFilePath) : serveWithoutBuild(fileServer, req, res);
     };
 }
 
@@ -205,11 +203,6 @@ function writeRelativeFilePathToZwitterionJSON(relativeFilePath, isChildImport) 
 }
 
 function buildAndServe(req, res, relativeFilePath) {
-    if (relativeFilePath === 'browser-config.js') {
-        res.end(getBrowserConfig());
-        return;
-    }
-
     const transpilation = transpilations[relativeFilePath];
     if (transpilation) {
         res.end(transpilation);
@@ -257,7 +250,10 @@ function isSystemImportRequest(req) {
 
 function serveWithoutBuild(fileServer, req, res) {
     req.addListener('end', () => {
-        if (req.url === '/system.js.map') {
+        if (req.url === '/browser-config.js') {
+            res.end(getBrowserConfig());
+        }
+        else if (req.url === '/system.js.map') {
             res.end(getSystemJSSourceMap());
         }
         else {
@@ -273,7 +269,7 @@ function serveWithoutBuild(fileServer, req, res) {
 function getBrowserConfig() {
     const systemJS = fs.readFileSync('node_modules/systemjs/dist/system.js');
     const socketIO = fs.readFileSync('node_modules/socket.io-client/dist/socket.io.min.js');
-    const tsImportsConfig = defaultImportExtension === 'ts' ? fs.readFileSync('node_modules/zwitterion/ts-imports-config.js') : fs.readFileSync('node_modules/zwitterion/js-imports-config.js');
+    const tsImportsConfig = fs.readFileSync('node_modules/zwitterion/ts-imports-config.js');
     const socketIOConfig = fs.readFileSync('node_modules/zwitterion/socket-io-config.js');
 
     return `${systemJS}${socketIO}${tsImportsConfig}${socketIOConfig}`;
@@ -298,15 +294,12 @@ function createBuilder() {
         meta: {
             '*.ts': {
                 loader: 'ts'
-            },
-            '*.js!plugin.js': {
-                loader: 'ts'
             }
         },
         packages: {
-            // '/': {
-            //     defaultExtension: 'ts'
-            // },
+            '/': {
+                defaultExtension: 'ts'
+            },
             ts: {
                 main: 'plugin.js'
             },
