@@ -205,6 +205,11 @@ function writeRelativeFilePathToZwitterionJSON(relativeFilePath, isChildImport) 
 }
 
 function buildAndServe(req, res, relativeFilePath) {
+    if (relativeFilePath === 'browser-config.js') {
+        res.end(getBrowserConfig());
+        return;
+    }
+
     const transpilation = transpilations[relativeFilePath];
     if (transpilation) {
         res.end(transpilation);
@@ -252,10 +257,7 @@ function isSystemImportRequest(req) {
 
 function serveWithoutBuild(fileServer, req, res) {
     req.addListener('end', () => {
-        if (req.url === '/browser-config.js') {
-            res.end(getBrowserConfig());
-        }
-        else if (req.url === '/system.js.map') {
+        if (req.url === '/system.js.map') {
             res.end(getSystemJSSourceMap());
         }
         else {
@@ -271,7 +273,7 @@ function serveWithoutBuild(fileServer, req, res) {
 function getBrowserConfig() {
     const systemJS = fs.readFileSync('node_modules/systemjs/dist/system.js');
     const socketIO = fs.readFileSync('node_modules/socket.io-client/dist/socket.io.min.js');
-    const tsImportsConfig = defaultImportExtension === 'ts' ? fs.readFileSync('node_modules/zwitterion/ts-imports-config.js') : '';
+    const tsImportsConfig = defaultImportExtension === 'ts' ? fs.readFileSync('node_modules/zwitterion/ts-imports-config.js') : fs.readFileSync('node_modules/zwitterion/js-imports-config.js');
     const socketIOConfig = fs.readFileSync('node_modules/zwitterion/socket-io-config.js');
 
     return `${systemJS}${socketIO}${tsImportsConfig}${socketIOConfig}`;
@@ -296,12 +298,15 @@ function createBuilder() {
         meta: {
             '*.ts': {
                 loader: 'ts'
+            },
+            '*.js!plugin.js': {
+                loader: 'ts'
             }
         },
         packages: {
-            '/': {
-                defaultExtension: 'ts'
-            },
+            // '/': {
+            //     defaultExtension: 'ts'
+            // },
             ts: {
                 main: 'plugin.js'
             },
