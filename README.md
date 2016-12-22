@@ -41,6 +41,11 @@ Or use an NPM script:
 }
 ```
 
+And then from the command-line:
+```
+npm start
+```
+
 Make sure in your client code to include the following script tag before other files are requested. For example:
 ```
 //index.html
@@ -116,7 +121,33 @@ Zwitterion supports SPAs (single page applications) by default. SPAs often have 
 
 #### zwitterion.json
 
+This file is automatically created in the directory Zwitterion is started from. It has one property called `files`. `files` is an object containing all of the files that have been requested, with extra information to aid in production building. You shouldn't need to edit this file for normal use cases.
+
 ### Production Usage
+
+This section will discuss preparing your application for deployment with static hosting, or for consumption by another application. To build for production, use the `--output-dir` and `--build` command-line parameters. For example:
+```
+//package.json
+
+{
+  ...
+  "scripts": {
+    "build": "zwitterion --serve-dir src --output-dir src/dist --build"
+  }
+  ...
+}
+```
+
+And then from the command-line:
+```
+npm run build
+```
+
+Those commands will tell Zwitterion to copy or transpile all files specified in `zwitterion.json` to `--output-dir`, wich in the example is `src/dist`. You can then upload `src/dist` to a static hosting provider, or use it as the consumption directory for other applications. It is important that `zwitterion.json` have all of the files that you need to be copied over into the output directory. By using Zwitterion in development, `zwitterion.json` should eventually contain all of the files you would need in production. Keep in mind that lazily loaded files will not be written to `zwitterion.json` until they are requested.
+
+#### .ts MIME Type
+
+
 
 ## Why
 
