@@ -271,7 +271,7 @@ function serveWithoutBuild(fileServer, req, res) {
 function getBrowserConfig() {
     const systemJS = fs.readFileSync('node_modules/systemjs/dist/system.js');
     const socketIO = fs.readFileSync('node_modules/socket.io-client/dist/socket.io.min.js');
-    const tsImportsConfig = fs.readFileSync('node_modules/zwitterion/ts-imports-config.js');
+    const tsImportsConfig = defaultImportExtension === 'ts' ? fs.readFileSync('node_modules/zwitterion/ts-imports-config.js') : '';
     const socketIOConfig = fs.readFileSync('node_modules/zwitterion/socket-io-config.js');
 
     return `${systemJS}${socketIO}${tsImportsConfig}${socketIOConfig}`;
