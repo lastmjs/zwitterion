@@ -94,8 +94,12 @@ function configureFileWatching(serveDir) {
         const fileEnding = path.slice(path.lastIndexOf('.'));
 
         if (fileEnding === '.ts') {
-            const isChildImport = !zwitterionJSON[path].parent;
-            compile(isChildImport, serveDir, path);
+            const relativeFilePath = path.replace(`${serveDir}/`, '');
+            const isChildImport = !zwitterionJSON.files[relativeFilePath].parentImport;
+            compile(isChildImport, serveDir, relativeFilePath).then((source) => {
+                transpilations[relativeFilePath] = source;
+                reloadBrowser();
+            });
         }
         else {
             reloadBrowser();
@@ -185,7 +189,7 @@ function handler(fileServer) {
 
         const isChildImport = isSystemImportRequest(req);
         writeRelativeFilePathToZwitterionJSON(relativeFilePath || 'index.html', isChildImport);
-        watcher.add(relativeFilePath || 'index.html');
+        watcher.add(`${serveDir}/${relativeFilePath}` || `${serveDir}/index.html`);
         fileExtension === '.ts' ? buildAndServe(req, res, relativeFilePath) : serveWithoutBuild(fileServer, req, res);
     };
 }
