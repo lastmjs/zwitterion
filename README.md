@@ -1,6 +1,6 @@
 # Zwitterion
 
-Super simple development server with built-in support for TypeScript files. Get rid of the complicated build process! Just grab your TypeScript files like so:
+Super simple development server with built-in support for TypeScript files. Zwitterion gets rid of the complicated build process, while still allowing you to use all of TypeScript and many future ES features, including ES6 modules and async/await. Just grab your TypeScript files like so:
 
 ```
 <script src="components/app/app.ts"></script>
@@ -151,4 +151,8 @@ Unfortunately, `.ts` files already have a MIME type associated with them. You wi
 
 ## Why
 
+We all want to use the latest and greatest JavaScript and TypeScript features. Unfortunately, these features are not yet standardized across all browsers (and in the case of TypeScript, they may never be standardized). To cope, we've created complicated build processes that include transpilation and bundling and perhaps more. 
+
 ## Acknowledgements
+
+TypeScript is either a registered trademark or trademark of Microsoft Corporation in the United States and/or other countries.
