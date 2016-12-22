@@ -8,7 +8,7 @@ Super simple development server with built-in support for TypeScript files. Zwit
 
 Zwitterion will automatically transpile your files for you and serve them up. 
 
-By default Zwitterion supports HTTP2, SPA (single page applications, server rewrites to index.html), live-reloading, and one-command production building.
+By default Zwitterion supports server-side transpilation of `.ts` files, HTTP2, SPA (single page applications, server rewrites to index.html), live-reloading, and one-command production building.
 
 ## Installation
 
