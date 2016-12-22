@@ -82,24 +82,20 @@ if (build) {
     return;
 }
 
-let watcher = configureFileWatching();
+let watcher = configureFileWatching(serveDir);
 createServer(builder, httpVersion, keyPath, certPath, outputDir, typeCheckLevel, serveDir);
 
 function writeZwitterionJSON() {
     fs.writeFileSync('zwitterion.json', JSON.stringify(zwitterionJSON, null, 4));
 }
 
-function configureFileWatching() {
+function configureFileWatching(serveDir) {
     return chokidar.watch([]).on('change', (path) => {
         const fileEnding = path.slice(path.lastIndexOf('.'));
 
         if (fileEnding === '.ts') {
-            builder.compile(path).then((output) => {
-                transpilations[path] = output.source;
-                reloadBrowser();
-            }, (error) => {
-                console.log(error);
-            });
+            const isChildImport = !zwitterionJSON[path].parent;
+            compile(isChildImport, serveDir, path);
         }
         else {
             reloadBrowser();
@@ -187,16 +183,19 @@ function handler(fileServer) {
         const relativeFilePath = req.url.slice(1);
         const fileExtension = relativeFilePath.slice(relativeFilePath.lastIndexOf('.'));
 
-        writeRelativeFilePathToZwitterionJSON(relativeFilePath || 'index.html');
+        const isChildImport = isSystemImportRequest(req);
+        writeRelativeFilePathToZwitterionJSON(relativeFilePath || 'index.html', isChildImport);
         watcher.add(relativeFilePath || 'index.html');
         fileExtension === '.ts' ? buildAndServe(req, res, relativeFilePath) : serveWithoutBuild(fileServer, req, res);
     };
 }
 
-function writeRelativeFilePathToZwitterionJSON(relativeFilePath) {
+function writeRelativeFilePathToZwitterionJSON(relativeFilePath, isChildImport) {
     const newRelativeFilePath = relativeFilePath.indexOf(serveDir) === 0 ? relativeFilePath.replace(`${serveDir}/`, '') : relativeFilePath;
 
-    zwitterionJSON.files[newRelativeFilePath] = newRelativeFilePath;
+    zwitterionJSON.files[newRelativeFilePath] = {
+        parentImport: !isChildImport
+    };
     writeZwitterionJSON();
 }
 
@@ -206,20 +205,29 @@ function buildAndServe(req, res, relativeFilePath) {
         res.end(transpilation);
     }
     else {
-        builder.compile(`${serveDir}/${relativeFilePath}`, null, {
-            minify: false
-        }).then((output) => {
-            const source = prepareSource(req, relativeFilePath, output.source);
+        const isChildImport = isSystemImportRequest(req);
+        compile(isChildImport, serveDir, relativeFilePath).then((source) => {
             transpilations[relativeFilePath] = source;
             res.end(transpilations[relativeFilePath]);
-        }, (error) => {
-            console.log(error);
         });
     }
 }
 
-function prepareSource(req, relativeFilePath, rawSource) {
-    if (isSystemImportRequest(req)) {
+function compile(isChildImport, serveDir, relativeFilePath) {
+    return new Promise((resolve, reject) => {
+        builder.compile(`${serveDir}/${relativeFilePath}`, null, {
+            minify: true
+        }).then((output) => {
+            const source = prepareSource(isChildImport, relativeFilePath, output.source);
+            resolve(source);
+        }, (error) => {
+            console.log(error);
+        });
+    });
+}
+
+function prepareSource(isChildImport, relativeFilePath, rawSource) {
+    if (isChildImport) {
         return rawSource;
     }
     else {
