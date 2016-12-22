@@ -206,26 +206,35 @@ function buildAndServe(req, res, relativeFilePath) {
         res.end(transpilation);
     }
     else {
-        builder.compile(relativeFilePath).then((output) => {
-            const source = `
-                if (!window.ZWITTERION_SOURCE_IMPORT_INFO) window.ZWITTERION_SOURCE_IMPORT_INFO = {};
-                if (window.ZWITTERION_SOURCE_IMPORT_INFO[${relativeFilePath}].imported) {
-                    ${output.source}
-                }
-                else {
-                    window.ZWITTERION_SOURCES[${relativeFilePath}] = {
-                        imported: true
-                    };
-                    System.import('${serveDir}/${relativeFilePath}');
-                }
-            `;
-
-            transpilations[relativeFilePath] = output.source;
+        builder.compile(`${serveDir}/${relativeFilePath}`, null, {
+            minify: false
+        }).then((output) => {
+            const source = prepareSource(req, relativeFilePath, output.source);
+            transpilations[relativeFilePath] = source;
             res.end(transpilations[relativeFilePath]);
         }, (error) => {
             console.log(error);
         });
     }
+}
+
+function prepareSource(req, relativeFilePath, rawSource) {
+    if (isSystemImportRequest(req)) {
+        return rawSource;
+    }
+    else {
+        const escapedSource = rawSource.replace(/\\/g, '\\\\');
+        const preparedSource = `
+            System.define(System.normalizeSync('${relativeFilePath}'), \`
+                ${escapedSource}
+            \`);
+        `;
+        return preparedSource;
+    }
+}
+
+function isSystemImportRequest(req) {
+    return req.headers.accept && req.headers.accept.includes('application/x-es-module');
 }
 
 function serveWithoutBuild(fileServer, req, res) {
