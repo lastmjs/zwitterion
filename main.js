@@ -201,33 +201,31 @@ function writeRelativeFilePathToZwitterionJSON(relativeFilePath) {
 }
 
 function buildAndServe(req, res, relativeFilePath) {
-    if (isSystemImportRequest(req)) {
-        const transpilation = transpilations[relativeFilePath];
-        if (transpilation) {
-            res.end(transpilation);
-        }
-        else {
-            builder.trace(relativeFilePath).then((tree) => {
-                builder.buildstatic(tree - tree).then((output) => {
-                    console.log(output);
-                });
-            });
-
-            // builder.compile(relativeFilePath).then((output) => {
-            //     transpilations[relativeFilePath] = output.source;
-            //     res.end(transpilations[relativeFilePath]);
-            // }, (error) => {
-            //     console.log(error);
-            // });
-        }
+    const transpilation = transpilations[relativeFilePath];
+    if (transpilation) {
+        res.end(transpilation);
     }
     else {
-        res.end(`System.import('${serveDir}/${relativeFilePath}');`);
-    }
-}
+        builder.compile(relativeFilePath).then((output) => {
+            const source = `
+                if (!window.ZWITTERION_SOURCE_IMPORT_INFO) window.ZWITTERION_SOURCE_IMPORT_INFO = {};
+                if (window.ZWITTERION_SOURCE_IMPORT_INFO[${relativeFilePath}].imported) {
+                    ${output.source}
+                }
+                else {
+                    window.ZWITTERION_SOURCES[${relativeFilePath}] = {
+                        imported: true
+                    };
+                    System.import('${serveDir}/${relativeFilePath}');
+                }
+            `;
 
-function isSystemImportRequest(req) {
-    return req.headers.accept && req.headers.accept.includes('application/x-es-module');
+            transpilations[relativeFilePath] = output.source;
+            res.end(transpilations[relativeFilePath]);
+        }, (error) => {
+            console.log(error);
+        });
+    }
 }
 
 function serveWithoutBuild(fileServer, req, res) {
