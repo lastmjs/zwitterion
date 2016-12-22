@@ -24,7 +24,7 @@ program
     .option('-t, --type-check-level [typeCheckLevel]', 'Specify the level of type checking (none, warn, error)')
     .parse(process.argv);
 
-const serveDir = program.serveDir || '';
+const serveDir = program.serveDir ? `${program.serveDir}/` : '';
 const httpVersion = program.http ? 1 : 2;
 const keyPath = program.keyPath;
 const certPath = program.certPath;
@@ -69,7 +69,7 @@ if (build) {
                     });
                 }
                 else {
-                    fs.writeFileSync(`${outputDir}/${filePath}`, fs.readFileSync(`${serveDir}/${filePath}`));
+                    fs.writeFileSync(`${outputDir}/${filePath}`, fs.readFileSync(`${serveDir}${filePath}`));
                 }
             }
         }
@@ -93,7 +93,7 @@ function configureFileWatching(serveDir) {
         const fileEnding = path.slice(path.lastIndexOf('.'));
 
         if (fileEnding === '.ts') {
-            const relativeFilePath = path.replace(`${serveDir}/`, '');
+            const relativeFilePath = path.replace(`${serveDir}`, '');
             const isChildImport = !zwitterionJSON.files[relativeFilePath].parentImport;
             compile(isChildImport, serveDir, relativeFilePath).then((source) => {
                 transpilations[relativeFilePath] = source;
@@ -188,13 +188,13 @@ function handler(fileServer) {
 
         const isChildImport = isSystemImportRequest(req);
         writeRelativeFilePathToZwitterionJSON(relativeFilePath || 'index.html', isChildImport);
-        watcher.add(`${serveDir}/${relativeFilePath}` || `${serveDir}/index.html`);
+        watcher.add(`${serveDir}${relativeFilePath}` || `${serveDir}index.html`);
         fileExtension === '.ts' ? buildAndServe(req, res, relativeFilePath) : serveWithoutBuild(fileServer, req, res);
     };
 }
 
 function writeRelativeFilePathToZwitterionJSON(relativeFilePath, isChildImport) {
-    const newRelativeFilePath = relativeFilePath.indexOf(serveDir) === 0 ? relativeFilePath.replace(`${serveDir}/`, '') : relativeFilePath;
+    const newRelativeFilePath = relativeFilePath.indexOf(serveDir) === 0 ? relativeFilePath.replace(`${serveDir}`, '') : relativeFilePath;
 
     zwitterionJSON.files[newRelativeFilePath] = {
         parentImport: !isChildImport
@@ -218,7 +218,7 @@ function buildAndServe(req, res, relativeFilePath) {
 
 function compile(isChildImport, serveDir, relativeFilePath) {
     return new Promise((resolve, reject) => {
-        builder.compile(`${serveDir}/${relativeFilePath}`, null, {
+        builder.compile(`${serveDir}${relativeFilePath}`, null, {
             minify: true
         }).then((output) => {
             const source = prepareSource(isChildImport, relativeFilePath, output.source);
