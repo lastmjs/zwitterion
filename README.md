@@ -151,7 +151,7 @@ Unfortunately, `.ts` files already have a MIME type associated with them. You wi
 
 ## Why
 
-We all want to use the latest and greatest JavaScript and TypeScript features. Unfortunately, these features are not yet standardized across all browsers (and in the case of TypeScript, they may never be standardized). To cope, we've created complicated build processes that include transpilation and bundling and perhaps more. 
+We all want to use the latest and greatest JavaScript or TypeScript features. Unfortunately, these features are not yet standardized across all browsers (and in the case of TypeScript, they may never be standardized). To cope, we've created complicated build processes that include transpilation and bundling and perhaps more. Ideally, the code that we write in development would be the exact same code that runs in production. Zwitterion is a large step forward in simplifying our build processes. With HTTP2, we can get away with less bundling. And with server-side transpilation, Zwitterion allows for `.ts` files to be included directly. All of this creates a simpler development environment that is nearly identical to the production environment.
 
 ## Acknowledgements
 
