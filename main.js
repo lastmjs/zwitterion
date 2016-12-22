@@ -22,6 +22,7 @@ program
     .option('-o, --output-dir [outputDir]', 'Specify the output directory for transpiled files (the default is in-memory transpilation only)')
     .option('-b, --build', 'Transpile all files specified in the files property in zwitterion.json to the corresponding location in the specified output directory (--output-dir)')
     .option('-t, --type-check-level [typeCheckLevel]', 'Specify the level of type checking (none, warn, error)')
+    .option('-d, --default-import-extension [defaultImportExtension]', 'Specify the default file extension for JavaScript imports (defaults to js, can be set to js or ts)')
     .parse(process.argv);
 
 const serveDir = program.serveDir ? `${program.serveDir}/` : '';
@@ -31,6 +32,7 @@ const certPath = program.certPath;
 const outputDir = program.outputDir;
 const typeCheckLevel = program.typeCheckLevel;
 const build = program.build;
+const defaultImportExtension = program.defaultImportExtension || 'js';
 
 try {
     zwitterionJSON = JSON.parse(fs.readFileSync('zwitterion.json'));
@@ -62,7 +64,7 @@ if (build) {
             }
             else {
                 const fileEnding = filePath.slice(filePath.lastIndexOf('.'));
-                if (fileEnding === '.ts') {
+                if (fileEnding === '.ts' || fileEnding === '.js') {
                     const isChildImport = !zwitterionJSON.files[filePath].parentImport;
                     compile(isChildImport, serveDir, filePath).then((source) => {
                         fs.writeFileSync(`${outputDir}/${filePath}`, source);
@@ -92,7 +94,7 @@ function configureFileWatching(serveDir) {
     return chokidar.watch([]).on('change', (path) => {
         const fileEnding = path.slice(path.lastIndexOf('.'));
 
-        if (fileEnding === '.ts') {
+        if (fileEnding === '.ts' || fileEnding === '.js') {
             const relativeFilePath = path.replace(`${serveDir}`, '');
             const isChildImport = !zwitterionJSON.files[relativeFilePath].parentImport;
             compile(isChildImport, serveDir, relativeFilePath).then((source) => {
@@ -189,7 +191,7 @@ function handler(fileServer) {
         const isChildImport = isSystemImportRequest(req);
         writeRelativeFilePathToZwitterionJSON(relativeFilePath || 'index.html', isChildImport);
         watcher.add(`${serveDir}${relativeFilePath}` || `${serveDir}index.html`);
-        fileExtension === '.ts' ? buildAndServe(req, res, relativeFilePath) : serveWithoutBuild(fileServer, req, res);
+        fileExtension === '.ts' || fileExtension === '.js' ? buildAndServe(req, res, relativeFilePath) : serveWithoutBuild(fileServer, req, res);
     };
 }
 
