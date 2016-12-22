@@ -147,7 +147,7 @@ Those commands will tell Zwitterion to copy or transpile all files specified in 
 
 #### .ts MIME Type
 
-`.ts`
+Unfortunately, `.ts` files already have a MIME type associated with them. You will need to configure your server to change the MIME type of `.ts` files to `application/javascript`. You may run into problems if you are including both TypeScript `.ts` files and other types of `.ts` files within the same application.
 
 ## Why
 
