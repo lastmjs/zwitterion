@@ -63,7 +63,7 @@ if (build) {
             else {
                 const fileEnding = filePath.slice(filePath.lastIndexOf('.'));
                 if (fileEnding === '.ts') {
-                    const isChildImport = !zwitterionJSON.files[relativeFilePath].parentImport;
+                    const isChildImport = !zwitterionJSON.files[filePath].parentImport;
                     compile(isChildImport, serveDir, filePath).then((source) => {
                         fs.writeFileSync(`${outputDir}/${filePath}`, source);
                     });
