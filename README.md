@@ -8,7 +8,7 @@ Super simple development server with built-in support for TypeScript files. Zwit
 
 Zwitterion will automatically transpile your files for you and serve them up. 
 
-By default Zwitterion supports HTTP2, SPA (single page applications, server rewrites to index.html), live-reloading, and one-command production building.
+By default Zwitterion supports server-side transpilation of `.ts` files, HTTP2, SPA (single page applications, server rewrites to index.html), live-reloading, and one-command production building.
 
 ## Installation
 
@@ -117,7 +117,7 @@ Zwitterion will automatically watch all files requested. When a file is changed,
 
 #### SPA
 
-Zwitterion supports SPAs (single page applications) by default. SPAs often have client-side routing separate from server-side routing. In a SPA, we do not want the server responding to client-side route requests inappropriately, but client-side route requests are often sent to the server (for example, when someone types a client-side route into the address bar and hits enter). Whenever a route is requested on the server that cannot be found, `index.html` is returned in the response. This allows the client to handle its own routes without any interference from the server. For the time being, you cannot specify the file to redirect to, `index.html` in the serve directory is used by default. Open an issue if you really want to be able to configure the file to redirect to.
+Zwitterion supports SPAs (single page applications) by default. SPAs often have client-side routing separate from server-side routing. In a SPA, we do not want the server responding to client-side route requests inappropriately, but client-side route requests are often sent to the server (for example, when someone types a client-side route into the address bar and hits enter). Whenever a route is requested on the server that cannot be found, `index.html` is returned in the response. This allows the client to handle its own routes without any interference from the server. For the time being, `index.html` in the serve directory is used by default, and you cannot specify the file to redirect to. Open an issue if you really want to be able to configure the file to redirect to.
 
 #### zwitterion.json
 
@@ -154,5 +154,14 @@ Unfortunately, `.ts` files already have a MIME type associated with them. You wi
 We all want to use the latest and greatest JavaScript or TypeScript features. Unfortunately, these features are not yet standardized across all browsers (and in the case of TypeScript, they may never be standardized). To cope, we've created complicated build processes that include transpilation and bundling and perhaps more. Ideally, the code that we write in development would be the exact same code that runs in production. Zwitterion is a large step forward in simplifying our build processes. With HTTP2, we can get away with less bundling. And with server-side transpilation, Zwitterion allows for `.ts` files to be included directly. All of this creates a simpler development environment that is nearly identical to the production environment.
 
 ## Acknowledgements
+
+Zwitterion was made possible by various amazing projects:
+
+* [SystemJS]() - for standards-based ES6 module resolution
+* [SystemJS Builder]() - for help with server-side transpilation
+* [plugin-typescript]() - for the actual server-side transpilation
+* [TypeScript]() - for being an amazing language that boosts productivity
+
+And many more projects, take a look at `package.json` for more. Open source is incredible, so get out there and contribute.
 
 TypeScript is either a registered trademark or trademark of Microsoft Corporation in the United States and/or other countries.
