@@ -1,7 +1,7 @@
 System.config({
-    defaultJSExtensions: true,
+    defaultJSExtension: true,
     packages: {
-        '/': {
+        '': {
             defaultExtension: 'ts'
         }
     }
