@@ -219,24 +219,15 @@ function buildAndServe(req, res, relativeFilePath) {
 function compile(isChildImport, serveDir, relativeFilePath) {
     return new Promise((resolve, reject) => {
         const sourceOnFile = fs.readFileSync(`${serveDir}${relativeFilePath}`);
-        if (alreadyCompiled(sourceOnFile)) {
-            resolve(sourceOnFile);
-        }
-        else {
-            builder.compile(`${serveDir}${relativeFilePath}`, null, {
-                minify: true
-            }).then((output) => {
-                const source = prepareSource(isChildImport, relativeFilePath, output.source);
-                resolve(source);
-            }, (error) => {
-                console.log(error);
-            });
-        }
+        builder.compile(`${serveDir}${relativeFilePath}`, null, {
+            minify: true
+        }).then((output) => {
+            const source = prepareSource(isChildImport, relativeFilePath, output.source);
+            resolve(source);
+        }, (error) => {
+            console.log(error);
+        });
     });
-}
-
-function alreadyCompiled(source) {
-    source.includes('System.define') || source.includes('System.register') ? true : false;
 }
 
 function prepareSource(isChildImport, relativeFilePath, rawSource) {
