@@ -32,7 +32,7 @@ const certPath = program.certPath;
 const outputDir = program.outputDir;
 const typeCheckLevel = program.typeCheckLevel;
 const build = program.build;
-const buildstatic = program.buildStatic;
+const buildStatic = program.buildStatic;
 
 try {
     zwitterionJSON = JSON.parse(fs.readFileSync('zwitterion.json'));
@@ -41,7 +41,7 @@ catch(error) {
     fs.writeFileSync('zwitterion.json', JSON.stringify(zwitterionJSON, null, 4));
 }
 
-if (build) {
+if (build || buildStatic) {
     if (!outputDir) {
         throw new Error('You must specify an output directory from the command line, --output-dir [outputDir]');
     }
