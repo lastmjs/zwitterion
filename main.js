@@ -66,9 +66,12 @@ if (build) {
                 const fileEnding = filePath.slice(filePath.lastIndexOf('.'));
                 if (fileEnding === '.ts') {
                     const isChildImport = !zwitterionJSON.files[filePath].parentImport;
-                    compile(isChildImport, serveDir, filePath, buildStatic).then((source) => {
-                        fs.writeFileSync(`${outputDir}/${filePath}`, source);
-                    });
+                    const shouldTranspile = buildStatic ? zwitterionJSON.files[filePath].parentImport : true;
+                    if (shouldTranspile) {
+                        compile(isChildImport, serveDir, filePath, buildStatic).then((source) => {
+                            fs.writeFileSync(`${outputDir}/${filePath}`, source);
+                        });
+                    }
                 }
                 else {
                     fs.writeFileSync(`${outputDir}/${filePath}`, fs.readFileSync(`${serveDir}${filePath}`));
