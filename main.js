@@ -21,6 +21,7 @@ program
     .option('-k, --key-path [keyPath]', 'Specify path to SSL key')
     .option('-o, --output-dir [outputDir]', 'Specify the output directory for transpiled files (the default is in-memory transpilation only)')
     .option('-b, --build', 'Transpile all files specified in the files property in zwitterion.json to the corresponding location in the specified output directory (--output-dir)')
+    .option('--build-static', 'Transpile as static bundles (bundle with no SystemJS dependency) all files with the parentImport property in the files property in zwitterion.json to the corresponding location in the specified output directory (--output-dir)')
     .option('-t, --type-check-level [typeCheckLevel]', 'Specify the level of type checking (none, warn, error)')
     .parse(process.argv);
 
@@ -31,6 +32,7 @@ const certPath = program.certPath;
 const outputDir = program.outputDir;
 const typeCheckLevel = program.typeCheckLevel;
 const build = program.build;
+const buildstatic = program.buildStatic;
 
 try {
     zwitterionJSON = JSON.parse(fs.readFileSync('zwitterion.json'));
@@ -64,7 +66,7 @@ if (build) {
                 const fileEnding = filePath.slice(filePath.lastIndexOf('.'));
                 if (fileEnding === '.ts') {
                     const isChildImport = !zwitterionJSON.files[filePath].parentImport;
-                    compile(isChildImport, serveDir, filePath).then((source) => {
+                    compile(isChildImport, serveDir, filePath, buildStatic).then((source) => {
                         fs.writeFileSync(`${outputDir}/${filePath}`, source);
                     });
                 }
@@ -95,7 +97,7 @@ function configureFileWatching(serveDir) {
         if (fileEnding === '.ts') {
             const relativeFilePath = path.replace(`${serveDir}`, '');
             const isChildImport = !zwitterionJSON.files[relativeFilePath].parentImport;
-            compile(isChildImport, serveDir, relativeFilePath).then((source) => {
+            compile(isChildImport, serveDir, relativeFilePath, false).then((source) => {
                 transpilations[relativeFilePath] = source;
                 reloadBrowser();
             });
@@ -209,17 +211,19 @@ function buildAndServe(req, res, relativeFilePath) {
     }
     else {
         const isChildImport = isSystemImportRequest(req);
-        compile(isChildImport, serveDir, relativeFilePath).then((source) => {
+        compile(isChildImport, serveDir, relativeFilePath, false).then((source) => {
             transpilations[relativeFilePath] = source;
             res.end(transpilations[relativeFilePath]);
         });
     }
 }
 
-function compile(isChildImport, serveDir, relativeFilePath) {
+function compile(isChildImport, serveDir, relativeFilePath, buildStatic) {
     return new Promise((resolve, reject) => {
         const sourceOnFile = fs.readFileSync(`${serveDir}${relativeFilePath}`);
-        builder.compile(`${serveDir}${relativeFilePath}`, null, {
+        const transpileFunction = buildStatic ? builder.buildStatic : builder.compile;
+        const outputFileName = buildStatic ? relativeFilePath.replace('.ts', '.js') : null;
+        transpileFunction(`${serveDir}${relativeFilePath}`, outputFileName, {
             minify: true
         }).then((output) => {
             const source = prepareSource(isChildImport, relativeFilePath, output.source);
