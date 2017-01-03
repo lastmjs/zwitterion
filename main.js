@@ -29,7 +29,7 @@ const serveDir = program.serveDir ? `${program.serveDir}/` : '';
 const httpVersion = program.http ? 1 : 2;
 const keyPath = program.keyPath;
 const certPath = program.certPath;
-const outputDir = program.outputDir;
+const outputDir = program.outputDir ? `${program.outputDir}/` : '/';
 const typeCheckLevel = program.typeCheckLevel;
 const build = program.build;
 const buildStatic = program.buildStatic;
@@ -42,10 +42,6 @@ catch(error) {
 }
 
 if (build || buildStatic) {
-    if (!outputDir) {
-        throw new Error('You must specify an output directory from the command line, --output-dir [outputDir]');
-    }
-
     mkdirp.sync(outputDir);
     const filePaths = Object.keys(zwitterionJSON.files);
     filePaths.forEach((filePath) => {
@@ -53,14 +49,14 @@ if (build || buildStatic) {
             const directoriesWithFile = filePath.split('/');
             if (directoriesWithFile.length > 1) {
                 const directories = directoriesWithFile.slice(0, -1).join('/');
-                mkdirp.sync(`${outputDir}/${directories}`);
+                mkdirp.sync(`${outputDir}${directories}`);
             }
 
             if (filePath === `browser-config.js`) {
-                fs.writeFileSync(`${outputDir}/browser-config.js`, getBrowserConfig());
+                fs.writeFileSync(`${outputDir}browser-config.js`, getBrowserConfig());
             }
             else if (filePath === `system.js.map`) {
-                fs.writeFileSync(`${outputDir}/system.js.map`, getSystemJSSourceMap());
+                fs.writeFileSync(`${outputDir}system.js.map`, getSystemJSSourceMap());
             }
             else {
                 const fileEnding = filePath.slice(filePath.lastIndexOf('.'));
@@ -70,12 +66,13 @@ if (build || buildStatic) {
 
                     if (shouldTranspile) {
                         compile(isChildImport, serveDir, filePath, buildStatic).then((source) => {
-                            fs.writeFileSync(`${outputDir}/${filePath}`, source);
+                            const fileName = buildStatic ? `${outputDir}${filePath}`.replace('.ts', '.js'): `${outputDir}${filePath}`;
+                            fs.writeFileSync(fileName, source);
                         });
                     }
                 }
                 else {
-                    fs.writeFileSync(`${outputDir}/${filePath}`, fs.readFileSync(`${serveDir}${filePath}`));
+                    fs.writeFileSync(`${outputDir}${filePath}`, fs.readFileSync(`${serveDir}${filePath}`));
                 }
             }
         }
@@ -224,8 +221,8 @@ function buildAndServe(req, res, relativeFilePath) {
 
 function compile(isChildImport, serveDir, relativeFilePath, buildStatic) {
     return new Promise((resolve, reject) => {
-        const sourceOnFile = fs.readFileSync(`${serveDir}${relativeFilePath}`);
-        const outputFileName = buildStatic ? relativeFilePath.replace('.ts', '.js') : null;
+        const serveFilePath = `${serveDir}${relativeFilePath}`;
+        const sourceOnFile = fs.readFileSync(serveFilePath);
         const options = {
             minify: true
         };
@@ -238,10 +235,10 @@ function compile(isChildImport, serveDir, relativeFilePath, buildStatic) {
         };
 
         if (buildStatic) {
-            builder.buildStatic(`${serveDir}${relativeFilePath}`, outputFileName, options).then(success, failure);
+            builder.buildStatic(serveFilePath, null, options).then(success, failure);
         }
         else {
-            builder.compile(`${serveDir}${relativeFilePath}`, outputFileName, options).then(success, failure);
+            builder.compile(serveFilePath, null, options).then(success, failure);
         }
     });
 }
