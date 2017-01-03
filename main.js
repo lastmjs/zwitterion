@@ -227,7 +227,7 @@ function compile(isChildImport, serveDir, relativeFilePath, buildStatic) {
             minify: true
         };
         const success = (output) => {
-            const source = prepareSource(isChildImport, relativeFilePath, output.source);
+            const source = prepareSource(isChildImport, buildStatic, relativeFilePath, output.source);
             resolve(source);
         };
         const failure = (error) => {
@@ -243,8 +243,8 @@ function compile(isChildImport, serveDir, relativeFilePath, buildStatic) {
     });
 }
 
-function prepareSource(isChildImport, relativeFilePath, rawSource) {
-    if (isChildImport) {
+function prepareSource(isChildImport, buildStatic, relativeFilePath, rawSource) {
+    if (isChildImport || buildStatic) {
         return rawSource;
     }
     else {
