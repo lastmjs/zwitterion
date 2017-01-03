@@ -66,7 +66,8 @@ if (build || buildStatic) {
                 const fileEnding = filePath.slice(filePath.lastIndexOf('.'));
                 if (fileEnding === '.ts') {
                     const isChildImport = !zwitterionJSON.files[filePath].parentImport;
-                    const shouldTranspile = buildStatic ? zwitterionJSON.files[filePath].parentImport : true;
+                    const shouldTranspile = buildStatic ? !isChildImport : true;
+
                     if (shouldTranspile) {
                         compile(isChildImport, serveDir, filePath, buildStatic).then((source) => {
                             fs.writeFileSync(`${outputDir}/${filePath}`, source);
@@ -224,16 +225,24 @@ function buildAndServe(req, res, relativeFilePath) {
 function compile(isChildImport, serveDir, relativeFilePath, buildStatic) {
     return new Promise((resolve, reject) => {
         const sourceOnFile = fs.readFileSync(`${serveDir}${relativeFilePath}`);
-        const transpileFunction = buildStatic ? builder.buildStatic : builder.compile;
         const outputFileName = buildStatic ? relativeFilePath.replace('.ts', '.js') : null;
-        transpileFunction(`${serveDir}${relativeFilePath}`, outputFileName, {
+        const options = {
             minify: true
-        }).then((output) => {
+        };
+        const success = (output) => {
             const source = prepareSource(isChildImport, relativeFilePath, output.source);
             resolve(source);
-        }, (error) => {
+        };
+        const failure = (error) => {
             console.log(error);
-        });
+        };
+
+        if (buildStatic) {
+            builder.buildStatic(`${serveDir}${relativeFilePath}`, outputFileName, options).then(success, failure);
+        }
+        else {
+            builder.compile(`${serveDir}${relativeFilePath}`, outputFileName, options).then(success, failure);
+        }
     });
 }
 
