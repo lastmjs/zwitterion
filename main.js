@@ -22,7 +22,7 @@ program
     .option('-o, --output-dir [outputDir]', 'Specify the output directory for transpiled files (the default is in-memory transpilation only)')
     .option('-b, --build', 'Transpile all files specified in the files property in zwitterion.json to the corresponding location in the specified output directory (--output-dir)')
     .option('--build-static', 'Transpile as static bundles (bundle with no SystemJS dependency) all files with the parentImport property in the files property in zwitterion.json to the corresponding location in the specified output directory (--output-dir)')
-    .option('--no-write-files', 'Do not write requested file names to zwitterion.json')
+    .option('--write-files-off', 'Do not write requested file names to zwitterion.json')
     .option('-t, --type-check-level [typeCheckLevel]', 'Specify the level of type checking (none, warn, error)')
     .parse(process.argv);
 
@@ -34,7 +34,7 @@ const outputDir = program.outputDir ? `${program.outputDir}/` : '';
 const typeCheckLevel = program.typeCheckLevel;
 const build = program.build;
 const buildStatic = program.buildStatic;
-const noWriteFiles = program.noWriteFiles;
+const writeFilesOff = program.writeFilesOff;
 
 try {
     zwitterionJSON = JSON.parse(fs.readFileSync('zwitterion.json'));
@@ -90,7 +90,7 @@ let watcher = configureFileWatching(serveDir);
 createServer(builder, httpVersion, keyPath, certPath, outputDir, typeCheckLevel, serveDir);
 
 function writeZwitterionJSON() {
-    if (!noWriteFiles) {
+    if (!writeFilesOff) {
         fs.writeFileSync('zwitterion.json', JSON.stringify(zwitterionJSON, null, 4));
     }
 }
