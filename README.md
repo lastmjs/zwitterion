@@ -3,7 +3,7 @@
 Super simple development server with built-in support for TypeScript files. Zwitterion gets rid of the complicated build process, while still allowing you to use all of TypeScript and many future ES features, including ES6 modules and async/await. Just grab your TypeScript files like so:
 
 ```
-<script src="components/app/app.ts"></script>
+<script src="path/to/file.ts"></script>
 ```
 
 Zwitterion will automatically transpile your files for you and serve them up.
