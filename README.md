@@ -134,6 +134,21 @@ To minify all files ending in `.ts`, add the `--minify-ts` option.
 }
 ```
 
+### Port
+
+The default port is `8000`. If you want to specify a different port, use the `--port` command-line option:
+```
+//package.json
+
+{
+  ...
+  "scripts": {
+    "start": "zwitterion --serve-dir src --port 5050"
+  }
+  ...
+}
+```
+
 #### zwitterion.json
 
 This file is automatically created in the directory Zwitterion is started from. It has one property called `files`. `files` is an object containing all of the files that have been requested, with extra information to aid in production building. The `parentImport` property on each file is set to true if the file was requested from a script tag or another XHR request that was not initiated by a JavaScript module import. You shouldn't need to edit this file for normal use cases.
