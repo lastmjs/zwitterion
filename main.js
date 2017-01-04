@@ -88,7 +88,7 @@ if (build || buildStatic) {
     return;
 }
 
-let watcher = configureFileWatching(serveDir);
+let watcher = configureFileWatching(serveDir, minifyTs);
 createServer(builder, httpVersion, keyPath, certPath, outputDir, typeCheckLevel, serveDir, minifyTs);
 
 function writeZwitterionJSON() {
