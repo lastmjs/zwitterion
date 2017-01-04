@@ -25,6 +25,7 @@ program
     .option('--write-files-off', 'Do not write requested file names to zwitterion.json')
     .option('-t, --type-check-level [typeCheckLevel]', 'Specify the level of type checking (none, warn, error)')
     .option('-m, --minify-ts', 'All files ending in .ts will be minified in addition to being transpiled')
+    .option('-p, --port [port]', 'Specify the port for Zwitterion to run on')
     .parse(process.argv);
 
 const serveDir = program.serveDir ? `${program.serveDir}/` : '';
@@ -37,6 +38,7 @@ const build = program.build;
 const buildStatic = program.buildStatic;
 const writeFilesOff = program.writeFilesOff;
 const minifyTs = program.minifyTs;
+const port = program.port || 8000;
 
 try {
     zwitterionJSON = JSON.parse(fs.readFileSync('zwitterion.json'));
@@ -57,7 +59,7 @@ if (build || buildStatic) {
             }
 
             if (filePath === `browser-config.js`) {
-                fs.writeFileSync(`${outputDir}browser-config.js`, getBrowserConfig());
+                fs.writeFileSync(`${outputDir}browser-config.js`, getBrowserConfig(port));
             }
             else if (filePath === `system.js.map`) {
                 fs.writeFileSync(`${outputDir}system.js.map`, getSystemJSSourceMap());
@@ -89,7 +91,7 @@ if (build || buildStatic) {
 }
 
 let watcher = configureFileWatching(serveDir, minifyTs);
-createServer(builder, httpVersion, keyPath, certPath, outputDir, typeCheckLevel, serveDir, minifyTs);
+createServer(builder, httpVersion, keyPath, certPath, outputDir, typeCheckLevel, serveDir, minifyTs, port);
 
 function writeZwitterionJSON() {
     if (!writeFilesOff) {
@@ -119,18 +121,18 @@ function reloadBrowser() {
     io.emit('reload');
 }
 
-function createServer(builder, httpVersion, keyPath, certPath, outputDir, typeCheckLevel, serveDir, minifyTs) {
+function createServer(builder, httpVersion, keyPath, certPath, outputDir, typeCheckLevel, serveDir, minifyTs, port) {
     const static = require('node-static');
     const fileServer = new static.Server(`${process.cwd()}/${serveDir}`);
-    const httpServerPromise = httpVersion === 2 ? createHTTP2Server(builder, fileServer, keyPath, certPath, minifyTs) : createHTTPServer(builder, fileServer, minifyTs);
+    const httpServerPromise = httpVersion === 2 ? createHTTP2Server(builder, fileServer, keyPath, certPath, minifyTs, port) : createHTTPServer(builder, fileServer, minifyTs, port);
     httpServerPromise.then((httpServer) => {
         io = require('socket.io')(httpServer);
-        httpServer.listen(8000, (error) => {
+        httpServer.listen(port, (error) => {
             if (error) {
                 console.log(error);
             }
             else {
-                console.log('zwitterion server listening on port 8000');
+                console.log(`zwitterion server listening on port ${port}`);
             }
         });
     }, (error) => {
@@ -138,13 +140,13 @@ function createServer(builder, httpVersion, keyPath, certPath, outputDir, typeCh
     });
 }
 
-function createHTTPServer(builder, fileServer, minifyTs) {
+function createHTTPServer(builder, fileServer, minifyTs, port) {
     return new Promise((resolve, reject) => {
-        resolve(require('http').createServer(handler(fileServer, minifyTs)));
+        resolve(require('http').createServer(handler(fileServer, minifyTs, port)));
     });
 }
 
-function createHTTP2Server(builder, fileServer, keyPath, certPath, minifyTs) {
+function createHTTP2Server(builder, fileServer, keyPath, certPath, minifyTs, port) {
     return new Promise((resolve, reject) => {
         getCertAndKey(keyPath, certPath).then((certAndKey) => {
             const options = {
@@ -152,7 +154,7 @@ function createHTTP2Server(builder, fileServer, keyPath, certPath, minifyTs) {
                 cert: certAndKey.cert
             };
 
-            resolve(require('http2').createServer(options, handler(fileServer, minifyTs)));
+            resolve(require('http2').createServer(options, handler(fileServer, minifyTs, port)));
         }, (error) => {
             console.log(error);
         });
@@ -189,7 +191,7 @@ function getCertAndKey(keyPath, certPath) {
     });
 }
 
-function handler(fileServer, minifyTs) {
+function handler(fileServer, minifyTs, port) {
     return (req, res) => {
         const absoluteFilePath = `${process.cwd()}${req.url}`;
         const relativeFilePath = req.url.slice(1);
@@ -198,7 +200,7 @@ function handler(fileServer, minifyTs) {
         const isChildImport = isSystemImportRequest(req);
         writeRelativeFilePathToZwitterionJSON(relativeFilePath || 'index.html', isChildImport);
         watcher.add(`${serveDir}${relativeFilePath}` || `${serveDir}index.html`);
-        fileExtension === '.ts' ? buildAndServe(req, res, relativeFilePath, minifyTs) : serveWithoutBuild(fileServer, req, res);
+        fileExtension === '.ts' ? buildAndServe(req, res, relativeFilePath, minifyTs) : serveWithoutBuild(fileServer, req, res, port);
     };
 }
 
@@ -268,10 +270,10 @@ function isSystemImportRequest(req) {
     return req.headers.accept && req.headers.accept.includes('application/x-es-module');
 }
 
-function serveWithoutBuild(fileServer, req, res) {
+function serveWithoutBuild(fileServer, req, res, port) {
     req.addListener('end', () => {
         if (req.url === '/browser-config.js') {
-            res.end(getBrowserConfig());
+            res.end(getBrowserConfig(port));
         }
         else if (req.url === '/system.js.map') {
             res.end(getSystemJSSourceMap());
@@ -286,9 +288,9 @@ function serveWithoutBuild(fileServer, req, res) {
     }).resume();
 }
 
-function getBrowserConfig() {
+function getBrowserConfig(port) {
     const systemJS = fs.readFileSync('node_modules/systemjs/dist/system.js');
-    const socketIO = fs.readFileSync('node_modules/socket.io-client/dist/socket.io.min.js');
+    const socketIO = fs.readFileSync('node_modules/socket.io-client/dist/socket.io.min.js').replace(`io('https://localhost:8000')`, `io('https://localhost:${port}')`);
     const tsImportsConfig = fs.readFileSync('node_modules/zwitterion/ts-imports-config.js');
     const socketIOConfig = fs.readFileSync('node_modules/zwitterion/socket-io-config.js');
 
