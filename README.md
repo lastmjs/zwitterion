@@ -6,7 +6,7 @@ Super simple development server with built-in support for TypeScript files. Zwit
 <script src="components/app/app.ts"></script>
 ```
 
-Zwitterion will automatically transpile your files for you and serve them up. 
+Zwitterion will automatically transpile your files for you and serve them up.
 
 By default Zwitterion supports server-side transpilation of `.ts` files, HTTP2, SPA (single page applications, server rewrites to index.html), live-reloading, and one-command production building.
 
@@ -118,6 +118,21 @@ Zwitterion will automatically watch all files requested. When a file is changed,
 #### SPA
 
 Zwitterion supports SPAs (single page applications) by default. SPAs often have client-side routing separate from server-side routing. In a SPA, we do not want the server responding to client-side route requests inappropriately, but client-side route requests are often sent to the server (for example, when someone types a client-side route into the address bar and hits enter). Whenever a route is requested on the server that cannot be found, `index.html` is returned in the response. This allows the client to handle its own routes without any interference from the server. For the time being, `index.html` in the serve directory is used by default, and you cannot specify the file to redirect to. Open an issue if you really want to be able to configure the file to redirect to.
+
+### Minification
+
+To minify all files ending in `.ts`, add the `--minify-ts` option.
+```
+//package.json
+
+{
+  ...
+  "scripts": {
+    "start": "zwitterion --serve-dir src --minify-ts"
+  }
+  ...
+}
+```
 
 #### zwitterion.json
 
