@@ -41,7 +41,7 @@ const minifyTs = program.minifyTs;
 const port = program.port || 8000;
 
 try {
-    zwitterionJSON = JSON.parse(fs.readFileSync('zwitterion.json'));
+    zwitterionJSON = JSON.parse(fs.readFileSync('zwitterion.json', 'utf8'));
 }
 catch(error) {
     fs.writeFileSync('zwitterion.json', JSON.stringify(zwitterionJSON, null, 4));
@@ -78,7 +78,7 @@ if (build || buildStatic) {
                     }
                 }
                 else {
-                    fs.writeFileSync(`${outputDir}${filePath}`, fs.readFileSync(`${serveDir}${filePath}`));
+                    fs.writeFileSync(`${outputDir}${filePath}`, fs.readFileSync(`${serveDir}${filePath}`, 'utf8'));
                 }
             }
         }
@@ -168,8 +168,8 @@ function getCertAndKey(keyPath, certPath) {
         const defaultCertPath = `localhost.cert`;
 
         try {
-            const key = fs.readFileSync(keyPath || defaultKeyPath);
-            const cert = fs.readFileSync(certPath || defaultCertPath);
+            const key = fs.readFileSync(keyPath || defaultKeyPath, 'utf8');
+            const cert = fs.readFileSync(certPath || defaultCertPath, 'utf8');
 
             resolve({
                 key,
@@ -230,7 +230,7 @@ function buildAndServe(req, res, relativeFilePath, minifyTs) {
 function compile(isChildImport, serveDir, relativeFilePath, buildStatic, minifyTs) {
     return new Promise((resolve, reject) => {
         const serveFilePath = `${serveDir}${relativeFilePath}`;
-        const sourceOnFile = fs.readFileSync(serveFilePath);
+        const sourceOnFile = fs.readFileSync(serveFilePath, 'utf8');
         const options = {
             minify: minifyTs
         };
@@ -289,16 +289,16 @@ function serveWithoutBuild(fileServer, req, res, port) {
 }
 
 function getBrowserConfig(port) {
-    const systemJS = fs.readFileSync('node_modules/systemjs/dist/system.js');
-    const socketIO = fs.readFileSync('node_modules/socket.io-client/dist/socket.io.min.js').replace(`io('https://localhost:8000')`, `io('https://localhost:${port}')`);
-    const tsImportsConfig = fs.readFileSync('node_modules/zwitterion/ts-imports-config.js');
-    const socketIOConfig = fs.readFileSync('node_modules/zwitterion/socket-io-config.js');
+    const systemJS = fs.readFileSync('node_modules/systemjs/dist/system.js', 'utf8');
+    const socketIO = fs.readFileSync('node_modules/socket.io-client/dist/socket.io.min.js', 'utf8').replace(`io('https://localhost:8000')`, `io('https://localhost:${port}')`);
+    const tsImportsConfig = fs.readFileSync('node_modules/zwitterion/ts-imports-config.js', 'utf8');
+    const socketIOConfig = fs.readFileSync('node_modules/zwitterion/socket-io-config.js', 'utf8');
 
     return `${systemJS}${socketIO}${tsImportsConfig}${socketIOConfig}`;
 }
 
 function getSystemJSSourceMap() {
-    return fs.readFileSync('node_modules/systemjs/dist/system.js.map');
+    return fs.readFileSync('node_modules/systemjs/dist/system.js.map', 'utf8');
 }
 
 function createBuilder() {
