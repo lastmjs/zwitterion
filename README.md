@@ -46,7 +46,7 @@ And then from the command-line:
 npm start
 ```
 
-Make sure in your client code to include the following script tag before other files are requested. For example:
+Make sure to include `browser-config.js` in your client code before other files are requested. For example:
 ```
 //index.html
 
