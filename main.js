@@ -24,6 +24,7 @@ program
     .option('--build-static', 'Transpile as static bundles (bundle with no SystemJS dependency) all files with the parentImport property in the files property in zwitterion.json to the corresponding location in the specified output directory (--output-dir)')
     .option('--write-files-off', 'Do not write requested file names to zwitterion.json')
     .option('-t, --type-check-level [typeCheckLevel]', 'Specify the level of type checking (none, warn, error)')
+    .option('-m, --minify-ts', 'All files ending in .ts will be minified in addition to being transpiled')
     .parse(process.argv);
 
 const serveDir = program.serveDir ? `${program.serveDir}/` : '';
@@ -35,6 +36,7 @@ const typeCheckLevel = program.typeCheckLevel;
 const build = program.build;
 const buildStatic = program.buildStatic;
 const writeFilesOff = program.writeFilesOff;
+const minifyTs = program.minifyTs;
 
 try {
     zwitterionJSON = JSON.parse(fs.readFileSync('zwitterion.json'));
@@ -67,7 +69,7 @@ if (build || buildStatic) {
                     const shouldTranspile = buildStatic ? !isChildImport : true;
 
                     if (shouldTranspile) {
-                        compile(isChildImport, serveDir, filePath, buildStatic).then((source) => {
+                        compile(isChildImport, serveDir, filePath, buildStatic, minifyTs).then((source) => {
                             const fileName = buildStatic ? `${outputDir}${filePath}`.replace('.ts', '.js'): `${outputDir}${filePath}`;
                             fs.writeFileSync(fileName, source);
                         });
@@ -87,7 +89,7 @@ if (build || buildStatic) {
 }
 
 let watcher = configureFileWatching(serveDir);
-createServer(builder, httpVersion, keyPath, certPath, outputDir, typeCheckLevel, serveDir);
+createServer(builder, httpVersion, keyPath, certPath, outputDir, typeCheckLevel, serveDir, minifyTs);
 
 function writeZwitterionJSON() {
     if (!writeFilesOff) {
@@ -95,14 +97,14 @@ function writeZwitterionJSON() {
     }
 }
 
-function configureFileWatching(serveDir) {
+function configureFileWatching(serveDir, minifyTs) {
     return chokidar.watch([]).on('change', (path) => {
         const fileEnding = path.slice(path.lastIndexOf('.'));
 
         if (fileEnding === '.ts') {
             const relativeFilePath = path.replace(`${serveDir}`, '');
             const isChildImport = !zwitterionJSON.files[relativeFilePath].parentImport;
-            compile(isChildImport, serveDir, relativeFilePath, false).then((source) => {
+            compile(isChildImport, serveDir, relativeFilePath, false, minifyTs).then((source) => {
                 transpilations[relativeFilePath] = source;
                 reloadBrowser();
             });
@@ -117,10 +119,10 @@ function reloadBrowser() {
     io.emit('reload');
 }
 
-function createServer(builder, httpVersion, keyPath, certPath, outputDir, typeCheckLevel, serveDir) {
+function createServer(builder, httpVersion, keyPath, certPath, outputDir, typeCheckLevel, serveDir, minifyTs) {
     const static = require('node-static');
     const fileServer = new static.Server(`${process.cwd()}/${serveDir}`);
-    const httpServerPromise = httpVersion === 2 ? createHTTP2Server(builder, fileServer, keyPath, certPath) : createHTTPServer(builder, fileServer);
+    const httpServerPromise = httpVersion === 2 ? createHTTP2Server(builder, fileServer, keyPath, certPath, minifyTs) : createHTTPServer(builder, fileServer, minifyTs);
     httpServerPromise.then((httpServer) => {
         io = require('socket.io')(httpServer);
         httpServer.listen(8000, (error) => {
@@ -136,13 +138,13 @@ function createServer(builder, httpVersion, keyPath, certPath, outputDir, typeCh
     });
 }
 
-function createHTTPServer(builder, fileServer) {
+function createHTTPServer(builder, fileServer, minifyTs) {
     return new Promise((resolve, reject) => {
-        resolve(require('http').createServer(handler(fileServer)));
+        resolve(require('http').createServer(handler(fileServer, minifyTs)));
     });
 }
 
-function createHTTP2Server(builder, fileServer, keyPath, certPath) {
+function createHTTP2Server(builder, fileServer, keyPath, certPath, minifyTs) {
     return new Promise((resolve, reject) => {
         getCertAndKey(keyPath, certPath).then((certAndKey) => {
             const options = {
@@ -150,7 +152,7 @@ function createHTTP2Server(builder, fileServer, keyPath, certPath) {
                 cert: certAndKey.cert
             };
 
-            resolve(require('http2').createServer(options, handler(fileServer)));
+            resolve(require('http2').createServer(options, handler(fileServer, minifyTs)));
         }, (error) => {
             console.log(error);
         });
@@ -187,7 +189,7 @@ function getCertAndKey(keyPath, certPath) {
     });
 }
 
-function handler(fileServer) {
+function handler(fileServer, minifyTs) {
     return (req, res) => {
         const absoluteFilePath = `${process.cwd()}${req.url}`;
         const relativeFilePath = req.url.slice(1);
@@ -196,7 +198,7 @@ function handler(fileServer) {
         const isChildImport = isSystemImportRequest(req);
         writeRelativeFilePathToZwitterionJSON(relativeFilePath || 'index.html', isChildImport);
         watcher.add(`${serveDir}${relativeFilePath}` || `${serveDir}index.html`);
-        fileExtension === '.ts' ? buildAndServe(req, res, relativeFilePath) : serveWithoutBuild(fileServer, req, res);
+        fileExtension === '.ts' ? buildAndServe(req, res, relativeFilePath, minifyTs) : serveWithoutBuild(fileServer, req, res);
     };
 }
 
@@ -209,26 +211,26 @@ function writeRelativeFilePathToZwitterionJSON(relativeFilePath, isChildImport) 
     writeZwitterionJSON();
 }
 
-function buildAndServe(req, res, relativeFilePath) {
+function buildAndServe(req, res, relativeFilePath, minifyTs) {
     const transpilation = transpilations[relativeFilePath];
     if (transpilation) {
         res.end(transpilation);
     }
     else {
         const isChildImport = isSystemImportRequest(req);
-        compile(isChildImport, serveDir, relativeFilePath, false).then((source) => {
+        compile(isChildImport, serveDir, relativeFilePath, false, minifyTs).then((source) => {
             transpilations[relativeFilePath] = source;
             res.end(transpilations[relativeFilePath]);
         });
     }
 }
 
-function compile(isChildImport, serveDir, relativeFilePath, buildStatic) {
+function compile(isChildImport, serveDir, relativeFilePath, buildStatic, minifyTs) {
     return new Promise((resolve, reject) => {
         const serveFilePath = `${serveDir}${relativeFilePath}`;
         const sourceOnFile = fs.readFileSync(serveFilePath);
         const options = {
-            minify: true
+            minify: minifyTs
         };
         const success = (output) => {
             const source = prepareSource(isChildImport, buildStatic, relativeFilePath, output.source);
