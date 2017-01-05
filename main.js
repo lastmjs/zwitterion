@@ -295,7 +295,7 @@ function getBrowserConfig(port, httpVersion) {
     const socketIO = fs.readFileSync('node_modules/socket.io-client/dist/socket.io.min.js', 'utf8');
     const tsImportsConfig = fs.readFileSync('node_modules/zwitterion/ts-imports-config.js', 'utf8');
     const httpProtocol = httpVersion === 2 ? 'https' : 'http';
-    const socketIOConfig = fs.readFileSync('node_modules/zwitterion/socket-io-config.js', 'utf8').replace(`io('${httpProtocol}://localhost:8000')`, `io('${httpProtocol}://localhost:${port}')`);
+    const socketIOConfig = fs.readFileSync('node_modules/zwitterion/socket-io-config.js', 'utf8').replace(`io('https://localhost:8000')`, `io('${httpProtocol}://localhost:${port}')`);
 
     return `${systemJS}${socketIO}${tsImportsConfig}${socketIOConfig}`;
 }
