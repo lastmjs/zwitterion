@@ -28,7 +28,7 @@ program
     .option('-p, --port [port]', 'Specify the port for Zwitterion to run on')
     .parse(process.argv);
 
-const serveDir = program.serveDir ? `${program.serveDir}/` : '';
+const serveDir = program.serveDir ? program.serveDir === '/' ? '' : `${program.serveDir}/` : '';
 const httpVersion = program.http ? 1 : 2;
 const keyPath = program.keyPath;
 const certPath = program.certPath;
