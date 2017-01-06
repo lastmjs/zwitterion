@@ -59,7 +59,7 @@ npm start
 ...
 ```
 
-Everything should be good to go now.
+Everything should be good to go now. Note that since Zwitterion serves over HTTP2 and HTTPS by default, you might need to click through some warnings from your browser while developing. These should go away in production if you use proper certificates.
 
 If you need more information about the different command-line parameters, you can read below or use the `--help` command-line parameter:
 ```
