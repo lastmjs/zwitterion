@@ -201,7 +201,6 @@ function handler(fileServer, minifyTs, port, notFoundRedirect, httpVersion) {
         const relativeFilePath = req.url.slice(1);
         const fileExtension = relativeFilePath.slice(relativeFilePath.lastIndexOf('.'));
 
-        const isChildImport = isSystemImportRequest(req);
         watcher.add(`${serveDir}${relativeFilePath}` || `${serveDir}index.html`);
         fileExtension === '.ts' ? buildAndServe(req, res, relativeFilePath, minifyTs) : serveWithoutBuild(fileServer, req, res, port, notFoundRedirect, httpVersion, relativeFilePath);
     };
@@ -274,6 +273,7 @@ function isSystemImportRequest(req) {
 }
 
 function serveWithoutBuild(fileServer, req, res, port, notFoundRedirect, httpVersion, relativeFilePath) {
+    const isChildImport = isSystemImportRequest(req);
     req.addListener('end', () => {
         if (req.url === '/zwitterion-config.js') {
             writeRelativeFilePathToZwitterionJSON(relativeFilePath || 'index.html', isChildImport);
