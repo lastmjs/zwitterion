@@ -288,6 +288,9 @@ function serveWithoutBuild(fileServer, req, res, port, notFoundRedirect, httpVer
                 if (error && error.status === 404) {
                     fileServer.serveFile(`/${notFoundRedirect}`, 200, {}, req, res);
                 }
+                else {
+                    writeRelativeFilePathToZwitterionJSON(relativeFilePath || 'index.html', isChildImport);
+                }
             });
         }
     }).resume();
