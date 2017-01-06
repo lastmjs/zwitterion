@@ -42,11 +42,13 @@ const minifyTs = program.minifyTs;
 const port = program.port || 8000;
 const notFoundRedirect = program.notFoundRedirect || 'index.html';
 
-try {
-    zwitterionJSON = JSON.parse(fs.readFileSync('zwitterion.json', 'utf8'));
-}
-catch(error) {
-    fs.writeFileSync('zwitterion.json', JSON.stringify(zwitterionJSON, null, 4));
+if (!writeFilesOff) {
+    try {
+        zwitterionJSON = JSON.parse(fs.readFileSync('zwitterion.json', 'utf8'));
+    }
+    catch(error) {
+        fs.writeFileSync('zwitterion.json', JSON.stringify(zwitterionJSON, null, 4));
+    }
 }
 
 if (build || buildStatic) {
