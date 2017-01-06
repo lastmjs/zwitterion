@@ -59,6 +59,8 @@ Make sure to include `zwitterion-config.js` in your client code before other fil
 ...
 ```
 
+`zwitterion-config.js` is a file that Zwitterion generates automatically when requested. The `src` path used to get the script must be relative to the serve directory of Zwitterion.
+
 Everything should be good to go now.
 
 If you need more information about the different command-line parameters, you can read below or use the `--help` command-line parameter:
