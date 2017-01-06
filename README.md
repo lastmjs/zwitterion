@@ -115,9 +115,20 @@ HTTP2 requires a key and certificate to operate. Zwitterion will generate a defa
 
 Zwitterion will automatically watch all files requested. When a file is changed, the browser will reload. Live-reload is turned on only for `localhost` and `127.0.0.1`.
 
-#### SPA
+#### SPA Redirect
 
-Zwitterion supports SPAs (single page applications) by default. SPAs often have client-side routing separate from server-side routing. In a SPA, we do not want the server responding to client-side route requests inappropriately, but client-side route requests are often sent to the server (for example, when someone types a client-side route into the address bar and hits enter). Whenever a route is requested on the server that cannot be found, `index.html` is returned in the response. This allows the client to handle its own routes without any interference from the server. For the time being, `index.html` in the serve directory is used by default, and you cannot specify the file to redirect to. Open an issue if you really want to be able to configure the file to redirect to.
+Zwitterion supports SPAs (single page applications) by default. SPAs often have client-side routing separate from server-side routing. In a SPA, we do not want the server responding to client-side route requests inappropriately, but client-side route requests are often sent to the server (for example, when someone types a client-side route into the address bar and hits enter). Whenever a route is requested on the server that cannot be found, by default `index.html` is returned in the response. This allows the client to handle its own routes without any interference from the server. If you would like to change the file that Zwitterion redirects to when a route is not found, use the `--not-found-redirect` command-line option:
+```
+//package.json
+
+{
+  ...
+  "scripts": {
+    "start": "zwitterion --serve-dir src --not-found-redirect file.html"
+  }
+  ...
+}
+```
 
 ### Minification
 
