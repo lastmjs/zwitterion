@@ -202,7 +202,6 @@ function handler(fileServer, minifyTs, port, notFoundRedirect, httpVersion) {
         const fileExtension = relativeFilePath.slice(relativeFilePath.lastIndexOf('.'));
 
         const isChildImport = isSystemImportRequest(req);
-        writeRelativeFilePathToZwitterionJSON(relativeFilePath || 'index.html', isChildImport);
         watcher.add(`${serveDir}${relativeFilePath}` || `${serveDir}index.html`);
         fileExtension === '.ts' ? buildAndServe(req, res, relativeFilePath, minifyTs) : serveWithoutBuild(fileServer, req, res, port, notFoundRedirect, httpVersion, relativeFilePath);
     };
@@ -216,12 +215,6 @@ function writeRelativeFilePathToZwitterionJSON(relativeFilePath, isChildImport) 
     writeZwitterionJSON();
 }
 
-function removeRelativeFilePathFromZwitterionJSON(relativeFilePath) {
-    const newRelativeFilePath = relativeFilePath.indexOf(serveDir) === 0 ? relativeFilePath.replace(`${serveDir}`, '') : relativeFilePath;
-    delete zwitterionJSON.files[newRelativeFilePath];
-    writeZwitterionJSON();
-}
-
 function buildAndServe(req, res, relativeFilePath, minifyTs) {
     const transpilation = transpilations[relativeFilePath];
     if (transpilation) {
@@ -231,6 +224,7 @@ function buildAndServe(req, res, relativeFilePath, minifyTs) {
         const isChildImport = isSystemImportRequest(req);
         compile(isChildImport, serveDir, relativeFilePath, false, minifyTs).then((source) => {
             transpilations[relativeFilePath] = source;
+            writeRelativeFilePathToZwitterionJSON(relativeFilePath || 'index.html', isChildImport);
             res.end(transpilations[relativeFilePath]);
         });
     }
@@ -282,16 +276,17 @@ function isSystemImportRequest(req) {
 function serveWithoutBuild(fileServer, req, res, port, notFoundRedirect, httpVersion, relativeFilePath) {
     req.addListener('end', () => {
         if (req.url === '/zwitterion-config.js') {
+            writeRelativeFilePathToZwitterionJSON(relativeFilePath || 'index.html', isChildImport);
             res.end(getBrowserConfig(port, httpVersion));
         }
         else if (req.url === '/system.js.map') {
+            writeRelativeFilePathToZwitterionJSON(relativeFilePath || 'index.html', isChildImport);
             res.end(getSystemJSSourceMap());
         }
         else {
             fileServer.serve(req, res, (error, result) => {
                 if (error && error.status === 404) {
                     fileServer.serveFile(`/${notFoundRedirect}`, 200, {}, req, res);
-                    removeRelativeFilePathFromZwitterionJSON(relativeFilePath);
                 }
             });
         }
