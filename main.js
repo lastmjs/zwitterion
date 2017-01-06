@@ -204,16 +204,21 @@ function handler(fileServer, minifyTs, port, notFoundRedirect, httpVersion) {
         const isChildImport = isSystemImportRequest(req);
         writeRelativeFilePathToZwitterionJSON(relativeFilePath || 'index.html', isChildImport);
         watcher.add(`${serveDir}${relativeFilePath}` || `${serveDir}index.html`);
-        fileExtension === '.ts' ? buildAndServe(req, res, relativeFilePath, minifyTs) : serveWithoutBuild(fileServer, req, res, port, notFoundRedirect, httpVersion);
+        fileExtension === '.ts' ? buildAndServe(req, res, relativeFilePath, minifyTs) : serveWithoutBuild(fileServer, req, res, port, notFoundRedirect, httpVersion, relativeFilePath);
     };
 }
 
 function writeRelativeFilePathToZwitterionJSON(relativeFilePath, isChildImport) {
     const newRelativeFilePath = relativeFilePath.indexOf(serveDir) === 0 ? relativeFilePath.replace(`${serveDir}`, '') : relativeFilePath;
-
     zwitterionJSON.files[newRelativeFilePath] = {
         parentImport: !isChildImport
     };
+    writeZwitterionJSON();
+}
+
+function removeRelativeFilePathFromZwitterionJSON(relativeFilePath) {
+    const newRelativeFilePath = relativeFilePath.indexOf(serveDir) === 0 ? relativeFilePath.replace(`${serveDir}`, '') : relativeFilePath;
+    delete zwitterionJSON.files[newRelativeFilePath];
     writeZwitterionJSON();
 }
 
@@ -274,7 +279,7 @@ function isSystemImportRequest(req) {
     return req.headers.accept && req.headers.accept.includes('application/x-es-module');
 }
 
-function serveWithoutBuild(fileServer, req, res, port, notFoundRedirect, httpVersion) {
+function serveWithoutBuild(fileServer, req, res, port, notFoundRedirect, httpVersion, relativeFilePath) {
     req.addListener('end', () => {
         if (req.url === '/zwitterion-config.js') {
             res.end(getBrowserConfig(port, httpVersion));
@@ -286,6 +291,7 @@ function serveWithoutBuild(fileServer, req, res, port, notFoundRedirect, httpVer
             fileServer.serve(req, res, (error, result) => {
                 if (error && error.status === 404) {
                     fileServer.serveFile(`/${notFoundRedirect}`, 200, {}, req, res);
+                    removeRelativeFilePathFromZwitterionJSON(relativeFilePath);
                 }
             });
         }
