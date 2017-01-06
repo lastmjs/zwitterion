@@ -46,14 +46,14 @@ And then from the command-line:
 npm start
 ```
 
-Make sure to include `browser-config.js` in your client code before other files are requested. For example:
+Make sure to include `zwitterion-config.js` in your client code before other files are requested. For example:
 ```
 //index.html
 
 ...
 <head>
   ...
-  <script src="browser-config.js"></script>
+  <script src="zwitterion-config.js"></script>
   ...
 </head>
 ...

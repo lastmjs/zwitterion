@@ -62,8 +62,8 @@ if (build || buildStatic) {
                 mkdirp.sync(`${outputDir}${directories}`);
             }
 
-            if (filePath === `browser-config.js`) {
-                fs.writeFileSync(`${outputDir}browser-config.js`, getBrowserConfig(port, httpVersion));
+            if (filePath === `zwitterion-config.js`) {
+                fs.writeFileSync(`${outputDir}zwitterion-config.js`, getBrowserConfig(port, httpVersion));
             }
             else if (filePath === `system.js.map`) {
                 fs.writeFileSync(`${outputDir}system.js.map`, getSystemJSSourceMap());
@@ -276,7 +276,7 @@ function isSystemImportRequest(req) {
 
 function serveWithoutBuild(fileServer, req, res, port, notFoundRedirect, httpVersion) {
     req.addListener('end', () => {
-        if (req.url === '/browser-config.js') {
+        if (req.url === '/zwitterion-config.js') {
             res.end(getBrowserConfig(port, httpVersion));
         }
         else if (req.url === '/system.js.map') {
