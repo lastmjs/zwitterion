@@ -23,7 +23,7 @@ npm install --save-dev zwitterion
 
 #### Basic Usage
 
-For the most basic use, just call the executable from the command-line:
+For the most basic use, just call the executable from the command-line and include `zwitterion-config.js` in your client code before other files are requested:
 ```
 node_modules/.bin/zwitterion
 ```
@@ -46,7 +46,7 @@ And then from the command-line:
 npm start
 ```
 
-Make sure to include `zwitterion-config.js` in your client code before other files are requested. For example:
+`zwitterion-config.js` is a file that Zwitterion generates automatically when requested. The `src` path used to get the script must be relative to the serve directory of Zwitterion. Make sure to include it in your client code before other files are requested. For example:
 ```
 //index.html
 
@@ -58,8 +58,6 @@ Make sure to include `zwitterion-config.js` in your client code before other fil
 </head>
 ...
 ```
-
-`zwitterion-config.js` is a file that Zwitterion generates automatically when requested. The `src` path used to get the script must be relative to the serve directory of Zwitterion.
 
 Everything should be good to go now.
 
