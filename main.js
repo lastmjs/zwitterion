@@ -95,7 +95,7 @@ if (build || buildStatic) {
 }
 
 let watcher = configureFileWatching(serveDir, minifyTs);
-createServer(builder, httpVersion, keyPath, certPath, outputDir, typeCheckLevel, serveDir, minifyTs, port, notFoundRedirect, httpVersion);
+createServer(builder, httpVersion, keyPath, certPath, outputDir, typeCheckLevel, serveDir, minifyTs, port, notFoundRedirect);
 
 function writeZwitterionJSON() {
     if (!writeFilesOff) {
@@ -125,7 +125,7 @@ function reloadBrowser() {
     io.emit('reload');
 }
 
-function createServer(builder, httpVersion, keyPath, certPath, outputDir, typeCheckLevel, serveDir, minifyTs, port, notFoundRedirect, httpVersion) {
+function createServer(builder, httpVersion, keyPath, certPath, outputDir, typeCheckLevel, serveDir, minifyTs, port, notFoundRedirect) {
     const static = require('node-static');
     const fileServer = new static.Server(`${process.cwd()}/${serveDir}`);
     const httpServerPromise = httpVersion === 2 ? createHTTP2Server(builder, fileServer, keyPath, certPath, minifyTs, port, notFoundRedirect, httpVersion) : createHTTPServer(builder, fileServer, minifyTs, port, notFoundRedirect, httpVersion);
@@ -144,13 +144,13 @@ function createServer(builder, httpVersion, keyPath, certPath, outputDir, typeCh
     });
 }
 
-function createHTTPServer(builder, fileServer, minifyTs, port, httpVersion) {
+function createHTTPServer(builder, fileServer, minifyTs, port, notFoundRedirect, httpVersion) {
     return new Promise((resolve, reject) => {
         resolve(require('http').createServer(handler(fileServer, minifyTs, port, notFoundRedirect, httpVersion)));
     });
 }
 
-function createHTTP2Server(builder, fileServer, keyPath, certPath, minifyTs, port, httpVersion) {
+function createHTTP2Server(builder, fileServer, keyPath, certPath, minifyTs, port, notFoundRedirect, httpVersion) {
     return new Promise((resolve, reject) => {
         getCertAndKey(keyPath, certPath).then((certAndKey) => {
             const options = {
