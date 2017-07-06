@@ -1,5 +1,5 @@
 {
-  "name": "zwitterion-production",
+  "name": "zwitterion",
   "version": "0.8.0",
   "description": "Static development file server for TypeScript, built with NGINX and Node.js.",
   "scripts": {
