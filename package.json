@@ -1,9 +1,9 @@
 {
-  "name": "zwitterion",
-  "version": "0.7.0",
-  "description": "Live reload development server that supports HTTP2, single page applications (server rewrites to index.html), server-side transpiling (write your code in whatever you want, ES5, ES6, TypeScript, async/await), and incremental building.",
+  "name": "zwitterion-production",
+  "version": "0.8.0",
+  "description": "Static development file server for TypeScript, built with NGINX and Node.js.",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node main.js"
   },
   "bin": {
     "zwitterion": "./main.js"
@@ -19,14 +19,13 @@
   },
   "homepage": "https://github.com/lastmjs/zwitterion#readme",
   "dependencies": {
-    "chokidar": "^1.6.1",
+    "chokidar": "^1.7.0",
     "commander": "^2.9.0",
-    "http2": "^3.3.6",
-    "mkdirp": "^0.5.1",
-    "node-static": "^0.7.9",
-    "pem": "^1.9.4",
-    "plugin-typescript": "^5.3.1",
-    "socket.io": "^1.7.2",
-    "systemjs-builder": "^0.15.34"
+    "node-cleanup": "^2.1.2",
+    "nx-local-server": "^0.1.0",
+    "plugin-typescript": "^7.0.6",
+    "socket.io": "^1.7.4",
+    "systemjs-builder": "^0.16.4",
+    "typescript": "^2.3.2"
   }
 }

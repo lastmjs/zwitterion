@@ -1,325 +1,152 @@
 #!/usr/bin/env node
 
-let transpilations = {};
-let zwitterionJSON = {
-    files: {}
-};
-let io;
-
-const builder = createBuilder();
-
-const chokidar = require('chokidar');
-const program = require('commander');
+// start side-causes, read from the world
 const fs = require('fs');
-const mkdirp = require('mkdirp');
+const program = require('commander');
+const http = require('http');
+const execSync = require('child_process').execSync;
+const nodeCleanup = require('node-cleanup');
+const Builder = require('systemjs-builder');
+const chokidar = require('chokidar');
 
 program
-    .version('0.7.0')
-    .option('-s, --serve-dir [serveDir]', 'The directory to serve files from; the root directory of the server')
-    .option('-h, --http', 'Use HTTP 1.x (the default is HTTP 2)')
-    .option('-c, --cert-path [certPath]', 'Specify path to SSL certificate')
-    .option('-k, --key-path [keyPath]', 'Specify path to SSL key')
-    .option('-o, --output-dir [outputDir]', 'Specify the output directory for transpiled files (the default is in-memory transpilation only)')
-    .option('-b, --build', 'Transpile all files specified in the files property in zwitterion.json to the corresponding location in the specified output directory (--output-dir)')
-    .option('--build-static', 'Transpile as static bundles (bundle with no SystemJS dependency) all files with the parentImport property in the files property in zwitterion.json to the corresponding location in the specified output directory (--output-dir)')
-    .option('--write-files-off', 'Do not write requested file names to zwitterion.json')
-    .option('-t, --type-check-level [typeCheckLevel]', 'Specify the level of type checking (none, warn, error)')
-    .option('-m, --minify-ts', 'All files ending in .ts will be minified in addition to being transpiled')
-    .option('-p, --port [port]', 'Specify the port for Zwitterion to run on')
-    .option('-r, --not-found-redirect [notFoundRedirect]', 'The file to redirect to on 404 errors, defaults to index.html')
+    .version('0.8.0')
+    .option('-p, --port [port]', 'Specify the server\'s port')
+    .option('-r, --spa-root [spaRoot]', 'The file to redirect to when a requested file is not found')
+    .option('-w, --watch-files', 'Watch files in current directory and reload browser on changes')
     .parse(process.argv);
+// end side-causes
 
-const serveDir = program.serveDir ? program.serveDir === '/' ? '' : `${program.serveDir}/` : '';
-const httpVersion = program.http ? 1 : 2;
-const keyPath = program.keyPath;
-const certPath = program.certPath;
-const outputDir = program.outputDir ? `${program.outputDir}/` : '';
-const typeCheckLevel = program.typeCheckLevel;
-const build = program.build;
-const buildStatic = program.buildStatic;
-const writeFilesOff = program.writeFilesOff;
-const minifyTs = program.minifyTs;
-const port = program.port || 8000;
-const notFoundRedirect = program.notFoundRedirect || 'index.html';
+// start pure operations, generate the data
+const watchFiles = program.watchFiles;
+const spaRoot = program.spaRoot || 'index.html';
+const logs = watchFiles ? true : program.logs;
+const nginxPort = +(program.port || 5000);
+const typeScriptPort = nginxPort + 1;
+const nginxConf = createNGINXConfigFile(fs, nginxPort, typeScriptPort, spaRoot);
+let typeScriptBuilder = createTypeScriptBuilder(Builder);
+const typeScriptHttpServer = createTypeScriptServer(http, typeScriptPort, typeScriptBuilder, watchFiles);
+const io = require('socket.io')(typeScriptHttpServer);
+let watcher;
+if (watchFiles) watcher = configureFileWatcher(io, typeScriptBuilder, 'node_modules/nx-local-server/logs/access.log');
+//end pure operations
 
-if (!writeFilesOff) {
-    try {
-        zwitterionJSON = JSON.parse(fs.readFileSync('zwitterion.json', 'utf8'));
-    }
-    catch(error) {
-        fs.writeFileSync('zwitterion.json', JSON.stringify(zwitterionJSON, null, 4));
-    }
-}
+// start side-effects, change the world
+fs.writeFileSync('node_modules/nx-local-server/nginx.conf', nginxConf);
+execSync(`node_modules/.bin/nginx -p node_modules/nx-local-server -c nginx.conf && exit 0`);
+console.log(`NGINX listening on port ${nginxPort}`);
+nodeCleanup((exitCode, signal) => {
+    execSync(`node_modules/.bin/nginx -p node_modules/nx-local-server -s stop`);
+});
+typeScriptHttpServer.listen(typeScriptPort);
+// end side-effects
 
-if (build || buildStatic) {
-    mkdirp.sync(outputDir);
-    const filePaths = Object.keys(zwitterionJSON.files);
-    filePaths.forEach((filePath) => {
-        try {
-            const directoriesWithFile = filePath.split('/');
-            if (directoriesWithFile.length > 1) {
-                const directories = directoriesWithFile.slice(0, -1).join('/');
-                mkdirp.sync(`${outputDir}${directories}`);
-            }
+function createNGINXConfigFile(fs, nginxPort, typeScriptPort, spaRoot) {
+    return `
+        events {}
 
-            if (filePath === `zwitterion-config.js`) {
-                fs.writeFileSync(`${outputDir}zwitterion-config.js`, getBrowserConfig(port, httpVersion));
-            }
-            else if (filePath === `system.js.map`) {
-                fs.writeFileSync(`${outputDir}system.js.map`, getSystemJSSourceMap());
-            }
-            else {
-                const fileEnding = filePath.slice(filePath.lastIndexOf('.'));
-                if (fileEnding === '.ts') {
-                    const isChildImport = !zwitterionJSON.files[filePath].parentImport;
-                    const shouldTranspile = buildStatic ? !isChildImport : true;
+        http {
+            include conf/mime.types;
+            log_format path '$request_filename';
 
-                    if (shouldTranspile) {
-                        compile(isChildImport, serveDir, filePath, buildStatic, minifyTs).then((source) => {
-                            const fileName = buildStatic ? `${outputDir}${filePath}`.replace('.ts', '.js'): `${outputDir}${filePath}`;
-                            fs.writeFileSync(fileName, source);
-                        });
-                    }
+            server {
+                listen ${nginxPort};
+
+                access_log logs/access.log path;
+                error_log logs/error.log;
+
+                root ../..;
+
+                location /zwitterion-config.js {
+                    proxy_pass http://localhost:${typeScriptPort};
                 }
-                else {
-                    fs.writeFileSync(`${outputDir}${filePath}`, fs.readFileSync(`${serveDir}${filePath}`, 'utf8'));
+
+                # send all .ts files to the Node.js server for transpilation
+                location ~ \..ts$ {
+                    proxy_pass http://localhost:${typeScriptPort};
+                    add_header Content-type "application/javascript";
+                }
+
+                # send all requests to files that don't exist back to the root file
+                location / {
+                    try_files $uri /${spaRoot};
+                    # try_files $uri $uri/ /${spaRoot}; # If the above ends up not working, this line also seemed popular
                 }
             }
         }
-        catch(error) {
-            console.log(error);
-        }
-    });
-
-    return;
+    `;
 }
 
-let watcher = configureFileWatching(serveDir, minifyTs);
-createServer(builder, httpVersion, keyPath, certPath, outputDir, typeCheckLevel, serveDir, minifyTs, port, notFoundRedirect);
-
-function writeZwitterionJSON() {
-    if (!writeFilesOff) {
-        fs.writeFileSync('zwitterion.json', JSON.stringify(zwitterionJSON, null, 4));
-    }
-}
-
-function configureFileWatching(serveDir, minifyTs) {
-    return chokidar.watch([]).on('change', (path) => {
-        const fileEnding = path.slice(path.lastIndexOf('.'));
-
-        if (fileEnding === '.ts') {
-            const relativeFilePath = path.replace(`${serveDir}`, '');
-            const isChildImport = !zwitterionJSON.files[relativeFilePath].parentImport;
-            compile(isChildImport, serveDir, relativeFilePath, false, minifyTs).then((source) => {
-                transpilations[relativeFilePath] = source;
-                reloadBrowser();
-            });
+function configureFileWatcher(io, typeScriptBuilder, accessLogFile) {
+    return chokidar.watch(accessLogFile).on('change', (path) => {
+        if (path === accessLogFile) {
+            const accessLog = fs.readFileSync(path).toString();
+            const lastLine = accessLog.trim().split('\n').slice(-1)[0];
+            const filePath = lastLine.replace('node_modules/nx-local-server/../../', '');
+            watcher.add(filePath);
         }
         else {
-            reloadBrowser();
+            // typeScriptBuilder.invalidate(path); //TODO not sure if we need this yet
+            reloadBrowser(io);
         }
     });
 }
 
-function reloadBrowser() {
+function reloadBrowser(io) {
     io.emit('reload');
 }
 
-function createServer(builder, httpVersion, keyPath, certPath, outputDir, typeCheckLevel, serveDir, minifyTs, port, notFoundRedirect) {
-    const static = require('node-static');
-    const fileServer = new static.Server(`${process.cwd()}/${serveDir}`);
-    const httpServerPromise = httpVersion === 2 ? createHTTP2Server(builder, fileServer, keyPath, certPath, minifyTs, port, notFoundRedirect, httpVersion) : createHTTPServer(builder, fileServer, minifyTs, port, notFoundRedirect, httpVersion);
-    httpServerPromise.then((httpServer) => {
-        io = require('socket.io')(httpServer);
-        httpServer.listen(port, (error) => {
-            if (error) {
-                console.log(error);
-            }
-            else {
-                console.log(`zwitterion server listening on port ${port}`);
-            }
-        });
-    }, (error) => {
-        console.log(error);
-    });
-}
+function createTypeScriptServer(http, typeScriptPort, builder, watchFiles) {
+    return http.createServer((req, res) => {
+        const path = req.url.slice(1);
 
-function createHTTPServer(builder, fileServer, minifyTs, port, notFoundRedirect, httpVersion) {
-    return new Promise((resolve, reject) => {
-        resolve(require('http').createServer(handler(fileServer, minifyTs, port, notFoundRedirect, httpVersion)));
-    });
-}
-
-function createHTTP2Server(builder, fileServer, keyPath, certPath, minifyTs, port, notFoundRedirect, httpVersion) {
-    return new Promise((resolve, reject) => {
-        getCertAndKey(keyPath, certPath).then((certAndKey) => {
-            const options = {
-                key: certAndKey.key,
-                cert: certAndKey.cert
-            };
-
-            resolve(require('http2').createServer(options, handler(fileServer, minifyTs, port, notFoundRedirect, httpVersion)));
-        }, (error) => {
-            console.log(error);
-        });
-    });
-}
-
-function getCertAndKey(keyPath, certPath) {
-    return new Promise((resolve, reject) => {
-        const fs = require('fs');
-        const defaultKeyPath = `localhost.key`;
-        const defaultCertPath = `localhost.cert`;
-
-        try {
-            const key = fs.readFileSync(keyPath || defaultKeyPath, 'utf8');
-            const cert = fs.readFileSync(certPath || defaultCertPath, 'utf8');
-
-            resolve({
-                key,
-                cert
-            });
-        }
-        catch(error) {
-            if (!keyPath && !certPath) {
-                createCertAndKey(defaultKeyPath, defaultCertPath).then((certAndKey) => {
-                    resolve(certAndKey);
-                }, (error) => {
-                    console.log(error);
+        if (path === 'zwitterion-config.js') {
+            const systemJS = fs.readFileSync('node_modules/systemjs/dist/system.js', 'utf8'); //TODO we might not want to leave this as sync, but I don't think it matters for development, and this will only be used for development
+            const socketIO = watchFiles ? fs.readFileSync('node_modules/socket.io-client/dist/socket.io.min.js', 'utf8') : '';
+            const tsImportsConfig = `
+                System.config({
+                    packages: {
+                        '': {
+                            defaultExtension: 'ts'
+                        }
+                    }
                 });
-            }
-            else {
-                throw error;
-            }
+            `;
+            const socketIOConfig = watchFiles ? `
+                window.ZWITTERION_SOCKET = window.ZWITTERION_SOCKET || io('http://localhost:${typeScriptPort}');
+                window.ZWITTERION_SOCKET.removeAllListeners('reload');
+                window.ZWITTERION_SOCKET.on('reload', function() {
+                    window.location.reload();
+                });
+            ` : '';
+
+            res.end(`${systemJS}${socketIO}${tsImportsConfig}${socketIOConfig}`);
+            return;
         }
-    });
-}
 
-function handler(fileServer, minifyTs, port, notFoundRedirect, httpVersion) {
-    return (req, res) => {
-        const absoluteFilePath = `${process.cwd()}${req.url}`;
-        const relativeFilePath = req.url.slice(1);
-        const fileExtension = relativeFilePath.slice(relativeFilePath.lastIndexOf('.'));
+        const isRootImport = !isRawSourceRequest(req) && !isSystemImportRequest(req);
 
-        watcher.add(`${serveDir}${relativeFilePath}` || `${serveDir}index.html`);
-        fileExtension === '.ts' ? buildAndServe(req, res, relativeFilePath, minifyTs) : serveWithoutBuild(fileServer, req, res, port, notFoundRedirect, httpVersion, relativeFilePath);
-    };
-}
-
-function writeRelativeFilePathToZwitterionJSON(relativeFilePath, isChildImport) {
-    const newRelativeFilePath = relativeFilePath.indexOf(serveDir) === 0 ? relativeFilePath.replace(`${serveDir}`, '') : relativeFilePath;
-    zwitterionJSON.files[newRelativeFilePath] = {
-        parentImport: !isChildImport
-    };
-    writeZwitterionJSON();
-}
-
-function buildAndServe(req, res, relativeFilePath, minifyTs) {
-    const transpilation = transpilations[relativeFilePath];
-    if (transpilation) {
-        res.end(transpilation);
-    }
-    else {
-        const isChildImport = isSystemImportRequest(req);
-        compile(isChildImport, serveDir, relativeFilePath, false, minifyTs).then((source) => {
-            transpilations[relativeFilePath] = source;
-            writeRelativeFilePathToZwitterionJSON(relativeFilePath || 'index.html', isChildImport);
-            res.end(transpilations[relativeFilePath]);
+        builder.compile(path, null, {
+            minify: false
+        })
+        .then((output) => {
+            const source = prepareSource(isRootImport, path, output.source);
+            res.end(source);
+        })
+        .catch((error) => {
+            res.end(error.toString());
         });
-    }
-}
-
-function compile(isChildImport, serveDir, relativeFilePath, buildStatic, minifyTs) {
-    return new Promise((resolve, reject) => {
-        const serveFilePath = `${serveDir}${relativeFilePath}`;
-        const sourceOnFile = fs.readFileSync(serveFilePath, 'utf8');
-        const options = {
-            minify: minifyTs
-        };
-        const success = (output) => {
-            const source = prepareSource(isChildImport, buildStatic, relativeFilePath, output.source);
-            resolve(source);
-        };
-        const failure = (error) => {
-            console.log(error);
-        };
-
-        if (buildStatic) {
-            builder.buildStatic(serveFilePath, null, options).then(success, failure);
-        }
-        else {
-            builder.compile(serveFilePath, null, options).then(success, failure);
-        }
     });
 }
 
-function prepareSource(isChildImport, buildStatic, relativeFilePath, rawSource) {
-    if (isChildImport || buildStatic) {
-        return rawSource;
-    }
-    else {
-        const escapedSource = rawSource.replace(/\\/g, '\\\\');
-        const preparedSource = `
-            System.define(System.normalizeSync('${relativeFilePath}'), \`
-                ${escapedSource}
-            \`);
-        `;
-        return preparedSource;
-    }
-}
-
-function isSystemImportRequest(req) {
-    return req.headers.accept && req.headers.accept.includes('application/x-es-module');
-}
-
-function serveWithoutBuild(fileServer, req, res, port, notFoundRedirect, httpVersion, relativeFilePath) {
-    const isChildImport = isSystemImportRequest(req);
-    req.addListener('end', () => {
-        if (req.url === '/zwitterion-config.js') {
-            writeRelativeFilePathToZwitterionJSON(relativeFilePath || 'index.html', isChildImport);
-            res.end(getBrowserConfig(port, httpVersion));
-        }
-        else if (req.url === '/system.js.map') {
-            writeRelativeFilePathToZwitterionJSON(relativeFilePath || 'index.html', isChildImport);
-            res.end(getSystemJSSourceMap());
-        }
-        else {
-            fileServer.serve(req, res, (error, result) => {
-                if (error && error.status === 404) {
-                    fileServer.serveFile(`/${notFoundRedirect}`, 200, {}, req, res);
-                }
-                else {
-                    writeRelativeFilePathToZwitterionJSON(relativeFilePath || 'index.html', isChildImport);
-                }
-            });
-        }
-    }).resume();
-}
-
-function getBrowserConfig(port, httpVersion) {
-    const systemJS = fs.readFileSync('node_modules/systemjs/dist/system.js', 'utf8');
-    const socketIO = fs.readFileSync('node_modules/socket.io-client/dist/socket.io.min.js', 'utf8');
-    const tsImportsConfig = fs.readFileSync('node_modules/zwitterion/ts-imports-config.js', 'utf8');
-    const httpProtocol = httpVersion === 2 ? 'https' : 'http';
-    const socketIOConfig = fs.readFileSync('node_modules/zwitterion/socket-io-config.js', 'utf8').replace(`io('https://localhost:8000')`, `io('${httpProtocol}://localhost:${port}')`);
-
-    return `${systemJS}${socketIO}${tsImportsConfig}${socketIOConfig}`;
-}
-
-function getSystemJSSourceMap() {
-    return fs.readFileSync('node_modules/systemjs/dist/system.js.map', 'utf8');
-}
-
-function createBuilder() {
-    const Builder = require('systemjs-builder');
-
+function createTypeScriptBuilder(Builder) {
     const builder = new Builder();
 
     //TODO redo this config, get rid of everything that is unnecessary, becuase I believe there might be quite a bit of it
     builder.config({
         transpiler: 'ts',
         typescriptOptions: {
-            target: 'es5',
+            target: 'es2015',
             module: 'system'
         },
         meta: {
@@ -352,25 +179,43 @@ function createBuilder() {
     return builder;
 }
 
-function createCertAndKey(keyPath, certPath) {
-    return new Promise((resolve, reject) => {
-        const pem = require('pem');
+function isSystemImportRequest(req) {
+    return req.headers.accept && req.headers.accept.includes('application/x-es-module');
+}
 
-        pem.createCertificate({
-            selfSigned: true
-        }, (error, keys) => {
-            if (error) {
-                console.log(error);
-            }
-            else {
-                fs.writeFileSync(keyPath, keys.serviceKey);
-                fs.writeFileSync(certPath, keys.certificate);
+function isRawSourceRequest(req) {
+    return req.headers.accept.includes('application/zwitterion-raw-source');
+}
 
-                resolve({
-                    key: keys.serviceKey,
-                    cert: keys.certificate
-                });
-            }
-        });
-    });
+function prepareSource(isRootImport, path, rawSource) {
+    if (isRootImport) {
+        const preparedSource = `
+            window.fetch('${path}', {
+                headers: {
+                    'Accept': 'application/zwitterion-raw-source'
+                }
+            })
+            .then((response) => {
+                return response.text();
+            })
+            .then((text) => {
+                System.define(System.normalizeSync('${path}'), text);
+            });
+
+            //TODO use async await when the time comes
+            // (async () => {
+            //     const request = await window.fetch('${path}', {
+            //         headers: {
+            //             'Accept': 'application/zwitterion-raw-source'
+            //         }
+            //     });
+            //     const text = await request.text();
+            //     System.define(System.normalizeSync('${path}'), text);
+            // })();
+        `;
+        return preparedSource;
+    }
+    else {
+        return rawSource;
+    }
 }

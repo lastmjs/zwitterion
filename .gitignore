@@ -1,4 +1,5 @@
+/http.access.log
+/http.error.log
+/nginx.conf
 /node_modules
-*.cert
-*.key
-/zwitterion.json
+/npm-debug.log
