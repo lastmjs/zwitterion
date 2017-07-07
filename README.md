@@ -1,4 +1,4 @@
-# zwitterion-production
+# Zwitterion
 
 ## Installation
 
