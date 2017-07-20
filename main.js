@@ -6,8 +6,7 @@ const program = require('commander');
 const http = require('http');
 const execSync = require('child_process').execSync;
 const nodeCleanup = require('node-cleanup');
-const Builder = require('systemjs-builder');
-const chokidar = require('chokidar');
+const tsc = require('typescript');
 
 program
     .version('0.8.0')
@@ -20,14 +19,13 @@ program
 // start pure operations, generate the data
 const watchFiles = program.watchFiles;
 const spaRoot = program.spaRoot || 'index.html';
-const logs = watchFiles ? true : program.logs;
+// const logs = watchFiles ? true : program.logs;
 const nginxPort = +(program.port || 5000);
 const nodePort = nginxPort + 1;
 const nginxConf = createNGINXConfigFile(fs, nginxPort, nodePort, spaRoot);
-// let typeScriptBuilder = createTypeScriptBuilder(Builder);
 const nodeHttpServer = createNodeServer(http, nodePort, watchFiles);
-const io = require('socket.io')(nodeHttpServer);
-let watcher;
+// const io = require('socket.io')(nodeHttpServer);
+// let watcher;
 // if (watchFiles) watcher = configureFileWatcher(io, typeScriptBuilder, 'node_modules/nx-local-server/logs/access.log');
 //end pure operations
 
@@ -81,148 +79,70 @@ function createNGINXConfigFile(fs, nginxPort, nodePort, spaRoot) {
     `;
 }
 
-function configureFileWatcher(io, typeScriptBuilder, accessLogFile) {
-    return chokidar.watch(accessLogFile).on('change', (path) => {
-        if (path === accessLogFile) {
-            const accessLog = fs.readFileSync(path).toString();
-            const lastLine = accessLog.trim().split('\n').slice(-1)[0];
-            const filePath = lastLine.replace('node_modules/nx-local-server/../../', '');
-            watcher.add(filePath);
-        }
-        else {
-            // typeScriptBuilder.invalidate(path); //TODO not sure if we need this yet
-            reloadBrowser(io);
-        }
-    });
-}
-
-function reloadBrowser(io) {
-    io.emit('reload');
-}
-
 function createNodeServer(http, nodePort, watchFiles) {
     return http.createServer((req, res) => {
-        console.log(req);
-        // const path = req.url.
+        const normalizedReqUrl = req.url === '/' ? '/index.html' : req.url;
+        const filePathWithDot = normalizedReqUrl.slice(0, normalizedReqUrl.lastIndexOf('.') + 1);
+        const fileExtensionWithoutDot = normalizedReqUrl.slice(normalizedReqUrl.lastIndexOf('.') + 1);
 
-        // const path = req.url.slice(1);
-        //
-        // if (path === 'zwitterion-config.js') {
-        //     const systemJS = fs.readFileSync('node_modules/systemjs/dist/system.js', 'utf8'); //TODO we might not want to leave this as sync, but I don't think it matters for development, and this will only be used for development
-        //     const socketIO = watchFiles ? fs.readFileSync('node_modules/socket.io-client/dist/socket.io.min.js', 'utf8') : '';
-        //     const tsImportsConfig = `
-        //         System.config({
-        //             packages: {
-        //                 '': {
-        //                     defaultExtension: 'ts'
-        //                 }
-        //             }
-        //         });
-        //     `;
-        //     const socketIOConfig = watchFiles ? `
-        //         window.ZWITTERION_SOCKET = window.ZWITTERION_SOCKET || io('http://localhost:${nodePort}');
-        //         window.ZWITTERION_SOCKET.removeAllListeners('reload');
-        //         window.ZWITTERION_SOCKET.on('reload', function() {
-        //             window.location.reload();
-        //         });
-        //     ` : '';
-        //
-        //     res.end(`${systemJS}${socketIO}${tsImportsConfig}${socketIOConfig}`);
-        //     return;
-        // }
-        //
-        // const isRootImport = !isRawSourceRequest(req) && !isSystemImportRequest(req);
-        //
-        // builder.compile(path, null, {
-        //     minify: false
-        // })
-        // .then((output) => {
-        //     const source = prepareSource(isRootImport, path, output.source);
-        //     res.end(source);
-        // })
-        // .catch((error) => {
-        //     res.end(error.toString());
-        // });
-    });
-}
-
-function createTypeScriptBuilder(Builder) {
-    const builder = new Builder();
-
-    //TODO redo this config, get rid of everything that is unnecessary, becuase I believe there might be quite a bit of it
-    builder.config({
-        transpiler: 'ts',
-        typescriptOptions: {
-            target: 'es2015',
-            module: 'system'
-        },
-        meta: {
-            '*.ts': {
-                loader: 'ts'
+        switch (fileExtensionWithoutDot) {
+            case 'html': {
+                if (fs.existsSync(`.${normalizedReqUrl}`)) {
+                    const fileText = fs.readFileSync(`.${normalizedReqUrl}`).toString();
+                    res.end(getTsReplacedText(fileText));
+                    return;
+                }
+                else {
+                    res.end(getTsReplacedText(fs.readFileSync(`./index.html`).toString()));
+                    return;
+                }
             }
-        },
-        packages: {
-            '/': {
-                defaultExtension: 'ts'
-            },
-            ts: {
-                main: 'plugin.js'
-            },
-            typescript: {
-                main: 'typescript.js',
-                meta: {
-                    'typescript.js': {
-                        exports: 'ts'
+            case 'js': {
+                if (fs.existsSync(`.${filePathWithDot}ts`)) {
+                    res.end(compileTsToJs(fs.readFileSync(`.${filePathWithDot}ts`).toString()));
+                    return;
+                }
+                else {
+                    if (fs.existsSync(`.${normalizedReqUrl}`)) {
+                        res.end(fs.readFileSync(`.${normalizedReqUrl}`).toString());
+                        return;
+                    }
+                    else {
+                        res.end(getTsReplacedText(fs.readFileSync(`./index.html`).toString()));
+                        return;
                     }
                 }
             }
-        },
-        map: {
-            ts: './node_modules/plugin-typescript/lib/',
-            typescript: './node_modules/typescript/lib/'
+            default: {
+                res.end(getTsReplacedText(fs.readFileSync(`./index.html`).toString()));
+                return;
+            }
         }
     });
-
-    return builder;
 }
 
-function isSystemImportRequest(req) {
-    return req.headers.accept && req.headers.accept.includes('application/x-es-module');
+function getTsReplacedText(text) {
+    const tsScriptTagRegex = /(<script\s.*src\s*=\s*["|'](.*)\.ts["|']>\s*<\/script>)/g;
+    const matches = getMatches(text, tsScriptTagRegex, []);
+    return matches.reduce((result, match) => {
+        //TODO there are many duplicate matches, and I don't know why, but it seems to work
+        return result.replace(match[0], `<script>System.import('${match[2]}.js');</script>`);
+    }, text);
 }
 
-function isRawSourceRequest(req) {
-    return req.headers.accept.includes('application/zwitterion-raw-source');
-}
+function getMatches(text, regex, matches) {
+    const match = regex.exec(text);
 
-function prepareSource(isRootImport, path, rawSource) {
-    if (isRootImport) {
-        const preparedSource = `
-            window.fetch('${path}', {
-                headers: {
-                    'Accept': 'application/zwitterion-raw-source'
-                }
-            })
-            .then((response) => {
-                return response.text();
-            })
-            .then((text) => {
-                System.define(System.normalizeSync('${path}'), text);
-            });
-
-            //TODO use async await when the time comes
-            // (async () => {
-            //     const request = await window.fetch('${path}', {
-            //         headers: {
-            //             'Accept': 'application/zwitterion-raw-source'
-            //         }
-            //     });
-            //     const text = await request.text();
-            //     System.define(System.normalizeSync('${path}'), text);
-            // })();
-        `;
-        return preparedSource;
+    if (match === null) {
+        return matches;
     }
-    else {
-        return rawSource;
-    }
+
+    return getMatches(text, regex, [...matches, match]);
+}
+
+function compileTsToJs(tsText) {
+    return tsc.transpile(tsText, {
+        module: 'system',
+        target: 'ES2015'
+    });
 }
