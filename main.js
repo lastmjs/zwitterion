@@ -22,13 +22,13 @@ const watchFiles = program.watchFiles;
 const spaRoot = program.spaRoot || 'index.html';
 const logs = watchFiles ? true : program.logs;
 const nginxPort = +(program.port || 5000);
-const typeScriptPort = nginxPort + 1;
-const nginxConf = createNGINXConfigFile(fs, nginxPort, typeScriptPort, spaRoot);
-let typeScriptBuilder = createTypeScriptBuilder(Builder);
-const typeScriptHttpServer = createTypeScriptServer(http, typeScriptPort, typeScriptBuilder, watchFiles);
-const io = require('socket.io')(typeScriptHttpServer);
+const nodePort = nginxPort + 1;
+const nginxConf = createNGINXConfigFile(fs, nginxPort, nodePort, spaRoot);
+// let typeScriptBuilder = createTypeScriptBuilder(Builder);
+const nodeHttpServer = createNodeServer(http, nodePort, watchFiles);
+const io = require('socket.io')(nodeHttpServer);
 let watcher;
-if (watchFiles) watcher = configureFileWatcher(io, typeScriptBuilder, 'node_modules/nx-local-server/logs/access.log');
+// if (watchFiles) watcher = configureFileWatcher(io, typeScriptBuilder, 'node_modules/nx-local-server/logs/access.log');
 //end pure operations
 
 // start side-effects, change the world
@@ -38,10 +38,10 @@ console.log(`NGINX listening on port ${nginxPort}`);
 nodeCleanup((exitCode, signal) => {
     execSync(`node_modules/.bin/nginx -p node_modules/nx-local-server -s stop`);
 });
-typeScriptHttpServer.listen(typeScriptPort);
+nodeHttpServer.listen(nodePort);
 // end side-effects
 
-function createNGINXConfigFile(fs, nginxPort, typeScriptPort, spaRoot) {
+function createNGINXConfigFile(fs, nginxPort, nodePort, spaRoot) {
     return `
         events {}
 
@@ -57,21 +57,25 @@ function createNGINXConfigFile(fs, nginxPort, typeScriptPort, spaRoot) {
 
                 root ../..;
 
-                location /zwitterion-config.js {
-                    proxy_pass http://localhost:${typeScriptPort};
+                # send all files to the Node.js server for possible manipulation
+                location / {
+                    proxy_pass http://localhost:${nodePort};
                 }
 
-                # send all .ts files to the Node.js server for transpilation
-                location ~ \..ts$ {
-                    proxy_pass http://localhost:${typeScriptPort};
-                    add_header Content-type "application/javascript";
-                }
+                # location /zwitterion-config.js {
+                #    proxy_pass http://localhost:${nodePort};
+                # }
+
+                # location ~ \..ts$ {
+                #    proxy_pass http://localhost:${nodePort};
+                #    add_header Content-type "application/javascript";
+                #}
 
                 # send all requests to files that don't exist back to the root file
-                location / {
-                    try_files $uri /${spaRoot};
-                    # try_files $uri $uri/ /${spaRoot}; # If the above ends up not working, this line also seemed popular
-                }
+                #location / {
+                #    try_files $uri /${spaRoot};
+                #    # try_files $uri $uri/ /${spaRoot}; # If the above ends up not working, this line also seemed popular
+                #}
             }
         }
     `;
@@ -96,46 +100,49 @@ function reloadBrowser(io) {
     io.emit('reload');
 }
 
-function createTypeScriptServer(http, typeScriptPort, builder, watchFiles) {
+function createNodeServer(http, nodePort, watchFiles) {
     return http.createServer((req, res) => {
-        const path = req.url.slice(1);
+        console.log(req);
+        // const path = req.url.
 
-        if (path === 'zwitterion-config.js') {
-            const systemJS = fs.readFileSync('node_modules/systemjs/dist/system.js', 'utf8'); //TODO we might not want to leave this as sync, but I don't think it matters for development, and this will only be used for development
-            const socketIO = watchFiles ? fs.readFileSync('node_modules/socket.io-client/dist/socket.io.min.js', 'utf8') : '';
-            const tsImportsConfig = `
-                System.config({
-                    packages: {
-                        '': {
-                            defaultExtension: 'ts'
-                        }
-                    }
-                });
-            `;
-            const socketIOConfig = watchFiles ? `
-                window.ZWITTERION_SOCKET = window.ZWITTERION_SOCKET || io('http://localhost:${typeScriptPort}');
-                window.ZWITTERION_SOCKET.removeAllListeners('reload');
-                window.ZWITTERION_SOCKET.on('reload', function() {
-                    window.location.reload();
-                });
-            ` : '';
-
-            res.end(`${systemJS}${socketIO}${tsImportsConfig}${socketIOConfig}`);
-            return;
-        }
-
-        const isRootImport = !isRawSourceRequest(req) && !isSystemImportRequest(req);
-
-        builder.compile(path, null, {
-            minify: false
-        })
-        .then((output) => {
-            const source = prepareSource(isRootImport, path, output.source);
-            res.end(source);
-        })
-        .catch((error) => {
-            res.end(error.toString());
-        });
+        // const path = req.url.slice(1);
+        //
+        // if (path === 'zwitterion-config.js') {
+        //     const systemJS = fs.readFileSync('node_modules/systemjs/dist/system.js', 'utf8'); //TODO we might not want to leave this as sync, but I don't think it matters for development, and this will only be used for development
+        //     const socketIO = watchFiles ? fs.readFileSync('node_modules/socket.io-client/dist/socket.io.min.js', 'utf8') : '';
+        //     const tsImportsConfig = `
+        //         System.config({
+        //             packages: {
+        //                 '': {
+        //                     defaultExtension: 'ts'
+        //                 }
+        //             }
+        //         });
+        //     `;
+        //     const socketIOConfig = watchFiles ? `
+        //         window.ZWITTERION_SOCKET = window.ZWITTERION_SOCKET || io('http://localhost:${nodePort}');
+        //         window.ZWITTERION_SOCKET.removeAllListeners('reload');
+        //         window.ZWITTERION_SOCKET.on('reload', function() {
+        //             window.location.reload();
+        //         });
+        //     ` : '';
+        //
+        //     res.end(`${systemJS}${socketIO}${tsImportsConfig}${socketIOConfig}`);
+        //     return;
+        // }
+        //
+        // const isRootImport = !isRawSourceRequest(req) && !isSystemImportRequest(req);
+        //
+        // builder.compile(path, null, {
+        //     minify: false
+        // })
+        // .then((output) => {
+        //     const source = prepareSource(isRootImport, path, output.source);
+        //     res.end(source);
+        // })
+        // .catch((error) => {
+        //     res.end(error.toString());
+        // });
     });
 }
 
