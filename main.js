@@ -33,6 +33,7 @@ const nginxConf = createNGINXConfigFile(fs, nginxPort, nodePort, spaRoot);
 const nodeHttpServer = createNodeServer(http, nodePort, webSocketPort, watchFiles, tsWarning, tsError);
 const webSocketServer = createWebSocketServer(webSocketPort, watchFiles);
 let clients = {};
+let compiledFiles = {};
 // const io = require('socket.io')(nodeHttpServer);
 // let watcher;
 // if (watchFiles) watcher = configureFileWatcher(io, typeScriptBuilder, 'node_modules/nx-local-server/logs/access.log');
@@ -109,10 +110,17 @@ function createNodeServer(http, nodePort, webSocketPort, watchFiles, tsWarning, 
                 }
             }
             case 'js': {
-                if (fs.existsSync(`.${filePathWithDot}ts`)) {
+                if (compiledFiles[`.${filePathWithDot}ts`]) {
+                    res.end(compiledFiles[`.${filePathWithDot}ts`]);
+                    return;
+                }
+                else if (fs.existsSync(`.${filePathWithDot}ts`)) {
                     const typeScriptErrorsString = getTypeScriptErrorsString(`.${filePathWithDot}ts`, tsWarning, tsError);
                     watchFile(`.${filePathWithDot}ts`, watchFiles);
-                    res.end(`${compileTsToJs(fs.readFileSync(`.${filePathWithDot}ts`).toString())}${typeScriptErrorsString}`);
+                    const compiledTs = compileTsToJs(fs.readFileSync(`.${filePathWithDot}ts`).toString());
+                    const compiledTsWithErrorsString = `${compiledTs}${typeScriptErrorsString}`;
+                    compiledFiles[`.${filePathWithDot}ts`] = compiledTsWithErrorsString;
+                    res.end(compiledTsWithErrorsString);
                     return;
                 }
                 else {
@@ -160,6 +168,7 @@ function getTypeScriptErrorsString(filePath, tsWarning, tsError) {
 function watchFile(filePath, watchFiles) {
     if (watchFiles) {
         chokidar.watch(filePath).on('change', () => {
+            compiledFiles[filePath] = null;
             Object.values(clients).forEach((client) => {
                 client.send('RELOAD_MESSAGE');
             });
