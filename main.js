@@ -7,6 +7,7 @@ const http = require('http');
 const execSync = require('child_process').execSync;
 const nodeCleanup = require('node-cleanup');
 const tsc = require('typescript');
+const path = require('path');
 
 program
     .version('0.8.0')
@@ -84,16 +85,17 @@ function createNodeServer(http, nodePort, watchFiles) {
         const normalizedReqUrl = req.url === '/' ? '/index.html' : req.url;
         const filePathWithDot = normalizedReqUrl.slice(0, normalizedReqUrl.lastIndexOf('.') + 1);
         const fileExtensionWithoutDot = normalizedReqUrl.slice(normalizedReqUrl.lastIndexOf('.') + 1);
+        const directoryPath = normalizedReqUrl.slice(0, normalizedReqUrl.lastIndexOf('/'));
 
         switch (fileExtensionWithoutDot) {
             case 'html': {
                 if (fs.existsSync(`.${normalizedReqUrl}`)) {
                     const fileText = fs.readFileSync(`.${normalizedReqUrl}`).toString();
-                    res.end(getTsReplacedText(fileText));
+                    res.end(getTsReplacedText(fileText, directoryPath));
                     return;
                 }
                 else {
-                    res.end(getTsReplacedText(fs.readFileSync(`./index.html`).toString()));
+                    res.end(getTsReplacedText(fs.readFileSync(`./index.html`).toString(), directoryPath));
                     return;
                 }
             }
@@ -108,25 +110,31 @@ function createNodeServer(http, nodePort, watchFiles) {
                         return;
                     }
                     else {
-                        res.end(getTsReplacedText(fs.readFileSync(`./index.html`).toString()));
+                        res.end(getTsReplacedText(fs.readFileSync(`./index.html`).toString(), directoryPath));
                         return;
                     }
                 }
             }
             default: {
-                res.end(getTsReplacedText(fs.readFileSync(`./index.html`).toString()));
-                return;
+                if (fs.existsSync(`.${normalizedReqUrl}`)) {
+                    res.end(fs.readFileSync(`.${normalizedReqUrl}`));
+                    return;
+                }
+                else {
+                    res.end(getTsReplacedText(fs.readFileSync(`./index.html`).toString(), directoryPath));
+                    return;
+                }
             }
         }
     });
 }
 
-function getTsReplacedText(text) {
+function getTsReplacedText(text, directoryPath) {
     const tsScriptTagRegex = /(<script\s.*src\s*=\s*["|'](.*)\.ts["|']>\s*<\/script>)/g;
     const matches = getMatches(text, tsScriptTagRegex, []);
     return matches.reduce((result, match) => {
         //TODO there are many duplicate matches, and I don't know why, but it seems to work
-        return result.replace(match[0], `<script>System.import('${match[2]}.js');</script>`);
+        return result.replace(match[0], `<script>System.import('${path.resolve(directoryPath, match[2])}.js');</script>`);
     }, text);
 }
 
