@@ -1,6 +1,6 @@
 {
   "name": "zwitterion",
-  "version": "0.9.0",
+  "version": "0.9.1",
   "description": "Static development file server for TypeScript, built with NGINX and Node.js.",
   "scripts": {
     "start": "node main.js"
@@ -24,6 +24,7 @@
     "node-cleanup": "^2.1.2",
     "nx-local-server": "^0.1.0",
     "systemjs": "^0.20.15",
-    "typescript": "^2.4.2"
+    "typescript": "^2.4.2",
+    "ws": "^3.0.0"
   }
 }

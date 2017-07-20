@@ -8,9 +8,11 @@ const execSync = require('child_process').execSync;
 const nodeCleanup = require('node-cleanup');
 const tsc = require('typescript');
 const path = require('path');
+const WebSocket = require('ws');
+const chokidar = require('chokidar');
 
 program
-    .version('0.8.0')
+    .version('0.9.1')
     .option('-p, --port [port]', 'Specify the server\'s port')
     .option('-r, --spa-root [spaRoot]', 'The file to redirect to when a requested file is not found')
     .option('-w, --watch-files', 'Watch files in current directory and reload browser on changes')
@@ -20,11 +22,13 @@ program
 // start pure operations, generate the data
 const watchFiles = program.watchFiles;
 const spaRoot = program.spaRoot || 'index.html';
-// const logs = watchFiles ? true : program.logs;
 const nginxPort = +(program.port || 5000);
 const nodePort = nginxPort + 1;
+const webSocketPort = nodePort + 1;
 const nginxConf = createNGINXConfigFile(fs, nginxPort, nodePort, spaRoot);
-const nodeHttpServer = createNodeServer(http, nodePort, watchFiles);
+const nodeHttpServer = createNodeServer(http, nodePort, webSocketPort, watchFiles);
+const webSocketServer = createWebSocketServer(webSocketPort, watchFiles);
+let clients = {};
 // const io = require('socket.io')(nodeHttpServer);
 // let watcher;
 // if (watchFiles) watcher = configureFileWatcher(io, typeScriptBuilder, 'node_modules/nx-local-server/logs/access.log');
@@ -80,7 +84,7 @@ function createNGINXConfigFile(fs, nginxPort, nodePort, spaRoot) {
     `;
 }
 
-function createNodeServer(http, nodePort, watchFiles) {
+function createNodeServer(http, nodePort, webSocketPort, watchFiles) {
     return http.createServer((req, res) => {
         const normalizedReqUrl = req.url === '/' ? '/index.html' : req.url;
         const filePathWithDot = normalizedReqUrl.slice(0, normalizedReqUrl.lastIndexOf('.') + 1);
@@ -90,38 +94,42 @@ function createNodeServer(http, nodePort, watchFiles) {
         switch (fileExtensionWithoutDot) {
             case 'html': {
                 if (fs.existsSync(`.${normalizedReqUrl}`)) {
+                    watchFile(`.${normalizedReqUrl}`, watchFiles);
                     const fileText = fs.readFileSync(`.${normalizedReqUrl}`).toString();
-                    res.end(getTsReplacedText(fileText, directoryPath));
+                    res.end(getTsReplacedText(fileText, directoryPath, watchFiles, webSocketPort));
                     return;
                 }
                 else {
-                    res.end(getTsReplacedText(fs.readFileSync(`./index.html`).toString(), directoryPath));
+                    res.end(getTsReplacedText(fs.readFileSync(`./index.html`).toString(), directoryPath, watchFiles, webSocketPort));
                     return;
                 }
             }
             case 'js': {
                 if (fs.existsSync(`.${filePathWithDot}ts`)) {
+                    watchFile(`.${filePathWithDot}ts`, watchFiles);
                     res.end(compileTsToJs(fs.readFileSync(`.${filePathWithDot}ts`).toString()));
                     return;
                 }
                 else {
                     if (fs.existsSync(`.${normalizedReqUrl}`)) {
+                        watchFile(`.${normalizedReqUrl}`, watchFiles);
                         res.end(fs.readFileSync(`.${normalizedReqUrl}`).toString());
                         return;
                     }
                     else {
-                        res.end(getTsReplacedText(fs.readFileSync(`./index.html`).toString(), directoryPath));
+                        res.end(getTsReplacedText(fs.readFileSync(`./index.html`).toString(), directoryPath, watchFiles, webSocketPort));
                         return;
                     }
                 }
             }
             default: {
                 if (fs.existsSync(`.${normalizedReqUrl}`)) {
+                    watchFile(`.${normalizedReqUrl}`, watchFiles);
                     res.end(fs.readFileSync(`.${normalizedReqUrl}`));
                     return;
                 }
                 else {
-                    res.end(getTsReplacedText(fs.readFileSync(`./index.html`).toString(), directoryPath));
+                    res.end(getTsReplacedText(fs.readFileSync(`./index.html`).toString(), directoryPath, watchFiles, webSocketPort));
                     return;
                 }
             }
@@ -129,7 +137,26 @@ function createNodeServer(http, nodePort, watchFiles) {
     });
 }
 
-function getTsReplacedText(text, directoryPath) {
+function watchFile(filePath, watchFiles) {
+    if (watchFiles) {
+        chokidar.watch(filePath).on('change', () => {
+            Object.values(clients).forEach((client) => {
+                client.send('RELOAD_MESSAGE');
+            });
+        });
+    }
+}
+
+function getTsReplacedText(originalText, directoryPath, watchFiles, webSocketPort) {
+    const text = originalText.includes('<head>') && watchFiles ? originalText.replace('<head>', `<head>
+        <script>
+            const socket = new WebSocket('ws://localhost:${webSocketPort}');
+            socket.addEventListener('message', (message) => {
+                window.location.reload();
+            });
+        </script>
+    `) : originalText;
+
     const tsScriptTagRegex = /(<script\s.*src\s*=\s*["|'](.*)\.ts["|']>\s*<\/script>)/g;
     const matches = getMatches(text, tsScriptTagRegex, []);
     return matches.reduce((result, match) => {
@@ -153,4 +180,21 @@ function compileTsToJs(tsText) {
         module: 'system',
         target: 'ES2015'
     });
+}
+
+function createWebSocketServer(webSocketPort, watchFiles) {
+    if (watchFiles) {
+        const webSocketServer = new WebSocket.Server({
+            port: webSocketPort
+        });
+
+        webSocketServer.on('connection', (client, request) => {
+            clients[request.connection.remoteAddress] = client;
+        });
+
+        return webSocketServer;
+    }
+    else {
+        return null;
+    }
 }
