@@ -16,6 +16,8 @@ program
     .option('-p, --port [port]', 'Specify the server\'s port')
     .option('-r, --spa-root [spaRoot]', 'The file to redirect to when a requested file is not found')
     .option('-w, --watch-files', 'Watch files in current directory and reload browser on changes')
+    .option('--ts-warning', 'Report TypeScript errors in the browser console as warnings')
+    .option('--ts-error', 'Report TypeScript errors in the browser console as errors')
     .parse(process.argv);
 // end side-causes
 
@@ -25,8 +27,10 @@ const spaRoot = program.spaRoot || 'index.html';
 const nginxPort = +(program.port || 5000);
 const nodePort = nginxPort + 1;
 const webSocketPort = nodePort + 1;
+const tsWarning = program.tsWarning;
+const tsError = program.tsError;
 const nginxConf = createNGINXConfigFile(fs, nginxPort, nodePort, spaRoot);
-const nodeHttpServer = createNodeServer(http, nodePort, webSocketPort, watchFiles);
+const nodeHttpServer = createNodeServer(http, nodePort, webSocketPort, watchFiles, tsWarning, tsError);
 const webSocketServer = createWebSocketServer(webSocketPort, watchFiles);
 let clients = {};
 // const io = require('socket.io')(nodeHttpServer);
@@ -84,7 +88,7 @@ function createNGINXConfigFile(fs, nginxPort, nodePort, spaRoot) {
     `;
 }
 
-function createNodeServer(http, nodePort, webSocketPort, watchFiles) {
+function createNodeServer(http, nodePort, webSocketPort, watchFiles, tsWarning, tsError) {
     return http.createServer((req, res) => {
         const normalizedReqUrl = req.url === '/' ? '/index.html' : req.url;
         const filePathWithDot = normalizedReqUrl.slice(0, normalizedReqUrl.lastIndexOf('.') + 1);
@@ -106,8 +110,9 @@ function createNodeServer(http, nodePort, webSocketPort, watchFiles) {
             }
             case 'js': {
                 if (fs.existsSync(`.${filePathWithDot}ts`)) {
+                    const typeScriptErrorsString = getTypeScriptErrorsString(`.${filePathWithDot}ts`, tsWarning, tsError);
                     watchFile(`.${filePathWithDot}ts`, watchFiles);
-                    res.end(compileTsToJs(fs.readFileSync(`.${filePathWithDot}ts`).toString()));
+                    res.end(`${compileTsToJs(fs.readFileSync(`.${filePathWithDot}ts`).toString())}${typeScriptErrorsString}`);
                     return;
                 }
                 else {
@@ -135,6 +140,21 @@ function createNodeServer(http, nodePort, webSocketPort, watchFiles) {
             }
         }
     });
+}
+
+function getTypeScriptErrorsString(filePath, tsWarning, tsError) {
+    if (tsWarning || tsError) {
+        const tsProgram = tsc.createProgram([
+            filePath
+        ], {});
+        const semanticDiagnostics = tsProgram.getSemanticDiagnostics();
+        return semanticDiagnostics.reduce((result, diagnostic) => {
+            return `${result}\nconsole.${tsWarning ? 'warn' : 'error'}("TypeScript: ${diagnostic.file.fileName}: ${diagnostic.messageText}")`;
+        }, '');
+    }
+    else {
+        return '';
+    }
 }
 
 function watchFile(filePath, watchFiles) {
@@ -176,10 +196,13 @@ function getMatches(text, regex, matches) {
 }
 
 function compileTsToJs(tsText) {
-    return tsc.transpile(tsText, {
-        module: 'system',
-        target: 'ES2015'
+    const transpileOutput = tsc.transpileModule(tsText, {
+        compilerOptions: {
+            module: 'system',
+            target: 'ES2015'
+        }
     });
+    return transpileOutput.outputText;
 }
 
 function createWebSocketServer(webSocketPort, watchFiles) {
