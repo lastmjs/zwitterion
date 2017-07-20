@@ -23,6 +23,7 @@
     "commander": "^2.11.0",
     "node-cleanup": "^2.1.2",
     "nx-local-server": "^0.1.0",
+    "systemjs": "^0.20.15",
     "typescript": "^2.4.2"
   }
 }
