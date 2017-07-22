@@ -5,6 +5,7 @@ const fs = require('fs');
 const program = require('commander');
 const http = require('http');
 const execSync = require('child_process').execSync;
+const execAsync = require('child_process').exec;
 const nodeCleanup = require('node-cleanup');
 const tsc = require('typescript');
 const path = require('path');
@@ -18,10 +19,13 @@ program
     .option('-w, --watch-files', 'Watch files in current directory and reload browser on changes')
     .option('--ts-warning', 'Report TypeScript errors in the browser console as warnings')
     .option('--ts-error', 'Report TypeScript errors in the browser console as errors')
+    .option('--build-static', 'Create a static build of the current working directory. The output will be in a directory called dist in the current working directory')
+    // .option('--output-dir', 'The output directory for ') //TODO allow the static build to go to any output directory specified by the user
     .parse(process.argv);
 // end side-causes
 
 // start pure operations, generate the data
+const buildStatic = program.buildStatic;
 const watchFiles = program.watchFiles;
 const spaRoot = program.spaRoot || 'index.html';
 const nginxPort = +(program.port || 5000);
@@ -47,6 +51,15 @@ nodeCleanup((exitCode, signal) => {
     execSync(`node_modules/.bin/nginx -p node_modules/nx-local-server -s stop`);
 });
 nodeHttpServer.listen(nodePort);
+
+if (buildStatic) {
+    const asyncExec = execAsync('node_modules/zwitterion/static-bundle.sh');
+
+    asyncExec.stdout.pipe(process.stdout);
+    asyncExec.stderr.pipe(process.stderr);
+
+    return;
+}
 // end side-effects
 
 function createNGINXConfigFile(fs, nginxPort, nodePort, spaRoot) {
