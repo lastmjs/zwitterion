@@ -46,15 +46,15 @@ console.log(`Zwitterion listening on port ${nodePort}`);
 
 if (buildStatic) {
     const asyncExec = execAsync(`
-        echo "Copy current working directory to dist directory"
+        echo "Copy current working directory to ZWITTERION_TEMP directory"
 
         originalDirectory=$(pwd)
 
         rm -rf dist
         cd ..
-        rm -rf dist
-        cp -r $originalDirectory dist
-        cd dist
+        rm -rf ZWITTERION_TEMP
+        cp -r $originalDirectory ZWITTERION_TEMP
+        cd ZWITTERION_TEMP
 
         echo "Download and save all .html files from Zwitterion"
 
@@ -70,11 +70,11 @@ if (buildStatic) {
             wget -q -x -nH "http://localhost:${nodePort}/$\{file%.*\}.js"
         done
 
-        echo "Copy dist to root directory"
+        echo "Copy ZWITTERION_TEMP to dist directory in the project root directory"
 
         cd ..
-        cp -r dist $originalDirectory/dist
-        rm -rf dist
+        cp -r ZWITTERION_TEMP $originalDirectory/dist
+        rm -rf ZWITTERION_TEMP
 
         echo "Static build finished"
     `, {
