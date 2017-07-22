@@ -1,10 +1,12 @@
 #!/bin/bash
 
-echo "Copy src directory to dist directory"
+echo "Copy current working directory to dist directory"
+
+originalDirectory=$(pwd)
 
 cd ..
 rm -rf dist
-cp -r src dist
+cp -r $originalDirectory dist
 cd dist
 
 echo "Download and save all .html files from Zwitterion"
