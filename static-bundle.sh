@@ -23,11 +23,4 @@ for file in **/*.ts; do
     wget -q -x -nH "http://localhost:8000/${file%.*}.js"
 done
 
-echo "Exit Zwitterion"
-#cd ..
-#cd src
-#node_modules/.bin/nginx -p node_modules/nx-local-server -s stop
-
-echo "Done"
-
-exit 0
+echo "Static build finished"

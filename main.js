@@ -53,7 +53,9 @@ nodeCleanup((exitCode, signal) => {
 nodeHttpServer.listen(nodePort);
 
 if (buildStatic) {
-    const asyncExec = execAsync('node_modules/zwitterion/static-bundle.sh');
+    const asyncExec = execAsync('node_modules/zwitterion/static-bundle.sh', () => {
+        process.exit();
+    });
 
     asyncExec.stdout.pipe(process.stdout);
     asyncExec.stderr.pipe(process.stderr);
