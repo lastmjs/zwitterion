@@ -3,8 +3,7 @@
 ## Installation
 
 ```
-sudo apt-get update
-sudo apt-get install nginx
+npm install zwitterion
 ```
 
 ## Use
