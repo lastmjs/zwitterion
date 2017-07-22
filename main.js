@@ -6,7 +6,6 @@ const program = require('commander');
 const http = require('http');
 const execSync = require('child_process').execSync;
 const execAsync = require('child_process').exec;
-const nodeCleanup = require('node-cleanup');
 const tsc = require('typescript');
 const path = require('path');
 const WebSocket = require('ws');
@@ -25,32 +24,25 @@ program
 // end side-causes
 
 // start pure operations, generate the data
+
 const buildStatic = program.buildStatic;
 const watchFiles = program.watchFiles;
 const spaRoot = program.spaRoot || 'index.html';
-const nginxPort = +(program.port || 5000);
-const nodePort = nginxPort + 1;
+const nodePort = +(program.port || 5000);
 const webSocketPort = nodePort + 1;
 const tsWarning = program.tsWarning;
 const tsError = program.tsError;
-const nginxConf = createNGINXConfigFile(fs, nginxPort, nodePort, spaRoot);
 const nodeHttpServer = createNodeServer(http, nodePort, webSocketPort, watchFiles, tsWarning, tsError);
 const webSocketServer = createWebSocketServer(webSocketPort, watchFiles);
 let clients = {};
 let compiledFiles = {};
-// const io = require('socket.io')(nodeHttpServer);
-// let watcher;
-// if (watchFiles) watcher = configureFileWatcher(io, typeScriptBuilder, 'node_modules/nx-local-server/logs/access.log');
+
 //end pure operations
 
 // start side-effects, change the world
-fs.writeFileSync('node_modules/nx-local-server/nginx.conf', nginxConf);
-execSync(`node_modules/.bin/nginx -p node_modules/nx-local-server -c nginx.conf && exit 0`);
-console.log(`NGINX listening on port ${nginxPort}`);
-nodeCleanup((exitCode, signal) => {
-    execSync(`node_modules/.bin/nginx -p node_modules/nx-local-server -s stop`);
-});
+
 nodeHttpServer.listen(nodePort);
+console.log(`Zwitterion listening on port ${nodePort}`);
 
 if (buildStatic) {
     const asyncExec = execAsync('node_modules/zwitterion/build-static.sh', () => {
@@ -62,47 +54,8 @@ if (buildStatic) {
 
     return;
 }
+
 // end side-effects
-
-function createNGINXConfigFile(fs, nginxPort, nodePort, spaRoot) {
-    return `
-        events {}
-
-        http {
-            include conf/mime.types;
-            log_format path '$request_filename';
-
-            server {
-                listen ${nginxPort};
-
-                access_log logs/access.log path;
-                error_log logs/error.log;
-
-                root ../..;
-
-                # send all files to the Node.js server for possible manipulation
-                location / {
-                    proxy_pass http://localhost:${nodePort};
-                }
-
-                # location /zwitterion-config.js {
-                #    proxy_pass http://localhost:${nodePort};
-                # }
-
-                # location ~ \..ts$ {
-                #    proxy_pass http://localhost:${nodePort};
-                #    add_header Content-type "application/javascript";
-                #}
-
-                # send all requests to files that don't exist back to the root file
-                #location / {
-                #    try_files $uri /${spaRoot};
-                #    # try_files $uri $uri/ /${spaRoot}; # If the above ends up not working, this line also seemed popular
-                #}
-            }
-        }
-    `;
-}
 
 function createNodeServer(http, nodePort, webSocketPort, watchFiles, tsWarning, tsError) {
     return http.createServer((req, res) => {
