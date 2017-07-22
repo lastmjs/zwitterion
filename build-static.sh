@@ -14,7 +14,6 @@ echo "Download and save all .html files from Zwitterion"
 
 shopt -s globstar
 for file in **/*.html; do
-    echo $file
     wget -q -x -nH "http://localhost:8000/$file"
 done
 
@@ -22,7 +21,6 @@ echo "Download and save all .ts files from Zwitterion"
 
 shopt -s globstar
 for file in **/*.ts; do
-    echo $file
     wget -q -x -nH "http://localhost:8000/${file%.*}.js"
 done
 
