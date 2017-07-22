@@ -45,7 +45,41 @@ nodeHttpServer.listen(nodePort);
 console.log(`Zwitterion listening on port ${nodePort}`);
 
 if (buildStatic) {
-    const asyncExec = execAsync('node_modules/zwitterion/build-static.sh', () => {
+    const asyncExec = execAsync(`
+        echo "Copy current working directory to dist directory"
+
+        originalDirectory=$(pwd)
+
+        rm -rf dist
+        cd ..
+        rm -rf dist
+        cp -r $originalDirectory dist
+        cd dist
+
+        echo "Download and save all .html files from Zwitterion"
+
+        shopt -s globstar
+        for file in **/*.html; do
+            wget -q -x -nH "http://localhost:${nodePort}/$file"
+        done
+
+        echo "Download and save all .ts files from Zwitterion"
+
+        shopt -s globstar
+        for file in **/*.ts; do
+            wget -q -x -nH "http://localhost:${nodePort}/$\{file%.*\}.js"
+        done
+
+        echo "Copy dist to root directory"
+
+        cd ..
+        cp -r dist $originalDirectory/dist
+        rm -rf dist
+
+        echo "Static build finished"
+    `, {
+        shell: '/bin/bash'
+    }, () => {
         process.exit();
     });
 
