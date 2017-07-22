@@ -23,4 +23,10 @@ for file in **/*.ts; do
     wget -q -x -nH "http://localhost:8000/${file%.*}.js"
 done
 
+echo "Copy dist to root directory"
+
+cd ..
+cp -r dist $originalDirectory/dist
+rm -rf dist
+
 echo "Static build finished"
