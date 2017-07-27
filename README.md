@@ -80,6 +80,14 @@ From an npm script:
 
 ## Command-line Options
 
+Specify the server's port:
+
 ```bash
--p or --port [port] // Specify the server's port
+-p [port]
+```
+
+or
+
+```bash
+--port [port]
 ```
