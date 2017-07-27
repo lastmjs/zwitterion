@@ -80,7 +80,9 @@ From an npm script:
 
 ## Command-line Options
 
-### Specify the server's port
+### Port
+
+Specify the server's port:
 
 ```bash
 -p [port]
@@ -92,15 +94,40 @@ or
 --port [port]
 ```
 
-### The file to redirect to when a requested file is not found
+### Watch Files
+
+Watch files in current directory and reload browser on changes:
 
 ```bash
--r [spaRoot]
+-w
 ```
 
 or
 
 ```bash
---spa-root [spaRoot]
+--watch-files
 ```
 
+### TypeScript Warnings
+
+Report TypeScript errors in the browser console as warnings:
+
+```bash
+--ts-warning
+```
+
+### TypeScript Errors
+
+Report TypeScript errors in the browser console as errors:
+
+```bash
+--ts-error
+```
+
+### Build Static
+
+Create a static build of the current working directory. The output will be in a directory called dist in the current working directory:
+
+```bash
+--build-static
+```
