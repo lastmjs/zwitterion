@@ -80,7 +80,7 @@ From an npm script:
 
 ## Command-line Options
 
-Specify the server's port:
+### Specify the server's port
 
 ```bash
 -p [port]
@@ -91,3 +91,16 @@ or
 ```bash
 --port [port]
 ```
+
+### The file to redirect to when a requested file is not found
+
+```bash
+-r [spaRoot]
+```
+
+or
+
+```bash
+--spa-root [spaRoot]
+```
+
