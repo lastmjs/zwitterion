@@ -78,6 +78,8 @@ From an npm script:
 }
 ```
 
-## Options
+## Command-line Options
 
-TODO layout all of the options
+```bash
+-p or --port [port] // Specify the server's port
+```
