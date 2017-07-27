@@ -58,10 +58,24 @@ or from an npm script:
 
 ## Production Use
 
-To create a static build suitable for uploading to a CDN (content delivery network), run Zwitterion with the `--build-static` option:
+To create a static build suitable for uploading to a CDN (content delivery network), run Zwitterion with the `--build-static` option.
 
-```
+From the terminal:
+
+```bash
 zwitterion --build-static
+```
+
+From an npm script:
+
+```bash
+{
+  ...
+  "scripts": {
+    "build-static": "zwitterion --build-static"
+  }
+  ...
+}
 ```
 
 ## Options
