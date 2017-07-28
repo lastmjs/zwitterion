@@ -60,7 +60,7 @@ or from an npm script:
 
 ## Production Use
 
-To create a static build suitable for uploading to a CDN (content delivery network), run Zwitterion with the `--build-static` option. The static files will be created in a directory called `dist` in the directory Zwitterion is started from.
+To create a static build suitable for uploading to a CDN (content delivery network), run Zwitterion with the `--build-static` option. The static files will be created in a directory called `dist` in the directory Zwitterion is started from. The [Zwitterion Example project](https://github.com/lastmjs/zwitterion-example) has a [live demo in production](https://zwitterion-example.netlify.com/).
 
 From the terminal:
 
