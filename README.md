@@ -4,7 +4,7 @@ Zwitterion is a server for TypeScript applications that provides automatic trans
 
 ## Installation and Basic Use
 
-### Local
+### Local Installation and Use
 
 Install Zwitterion in the directory that you would like to serve files from:
 
@@ -30,7 +30,7 @@ or from an npm script:
 }
 ```
 
-### Global
+### Global Installation and Use
 
 Install Zwitterion globally to use across projects:
 
@@ -55,6 +55,48 @@ or from an npm script:
   ...
 }
 ```
+
+### Client Use
+
+Include SystemJS before any TypeScript script tags. SystemJS is installed by npm with Zwitterion:
+
+```html
+...
+<head>
+  ...
+  <script src="[path to node_modules]/systemjs/dist/system.js"></script>
+  ...
+</head>
+...
+```
+
+In your source code if you wish to import TypeScript files as ES modules without the `.ts` extension, include the following:
+
+```html
+...
+<head>
+  ...
+  <script>
+    System.config({
+        packages: {
+          '': {
+              defaultExtension: 'js'
+          }
+        }
+    });
+  </script>
+  ...
+</head>
+...
+```
+
+For example, if you include the above configuration script, you'll be able to do the following if you have a file called `hello-world.ts`:
+
+```javascript
+import * as HelloWorld from 'hello-world';
+```
+
+Notice that the file extension has been omitted.
 
 ## Production Use
 
