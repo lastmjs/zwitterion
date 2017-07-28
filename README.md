@@ -56,48 +56,6 @@ or from an npm script:
 }
 ```
 
-### Client Use
-
-Include SystemJS before any TypeScript script tags. SystemJS is installed by npm with Zwitterion:
-
-```html
-...
-<head>
-  ...
-  <script src="[path to node_modules]/systemjs/dist/system.js"></script>
-  ...
-</head>
-...
-```
-
-In your source code if you wish to import TypeScript files as ES modules without the `.ts` extension, include the following:
-
-```html
-...
-<head>
-  ...
-  <script>
-    System.config({
-        packages: {
-          '': {
-              defaultExtension: 'js'
-          }
-        }
-    });
-  </script>
-  ...
-</head>
-...
-```
-
-For example, if you include the above configuration script, you'll be able to do the following if you have a file called `hello-world.ts`:
-
-```javascript
-import * as HelloWorld from 'hello-world';
-```
-
-Notice that the file extension has been omitted.
-
 ## Production Use
 
 To create a static build suitable for uploading to a CDN (content delivery network), run Zwitterion with the `--build-static` option. The static files will be created in a directory called `dist` in the directory Zwitterion is started from.
