@@ -96,7 +96,7 @@ function createNodeServer(http, nodePort, webSocketPort, watchFiles, tsWarning, 
         const normalizedReqUrl = req.url === '/' ? '/index.html' : req.url;
         const filePathWithDot = normalizedReqUrl.slice(0, normalizedReqUrl.lastIndexOf('.') + 1);
         const fileExtensionWithoutDot = normalizedReqUrl.slice(normalizedReqUrl.lastIndexOf('.') + 1);
-        const directoryPath = normalizedReqUrl.slice(0, normalizedReqUrl.lastIndexOf('/'));
+        const directoryPath = normalizedReqUrl.slice(0, normalizedReqUrl.lastIndexOf('/')) || '/';
 
         switch (fileExtensionWithoutDot) {
             case 'html': {
