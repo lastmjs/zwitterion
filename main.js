@@ -12,7 +12,7 @@ const WebSocket = require('ws');
 const chokidar = require('chokidar');
 
 program
-    .version('0.12.4')
+    .version('0.12.5')
     .option('-p, --port [port]', 'Specify the server\'s port')
     .option('-r, --spa-root [spaRoot]', 'The file to redirect to when a requested file is not found')
     .option('-w, --watch-files', 'Watch files in current directory and reload browser on changes')
@@ -182,13 +182,13 @@ function getTsReplacedText(originalText, directoryPath, watchFiles, webSocketPor
     const text = originalText.includes('<head>') && watchFiles ? originalText.replace('<head>', `<head>
         <script src="node_modules/systemjs/dist/system.js"></script>
         <script>
-        System.config({
-            packages: {
-                '': {
-                    defaultExtension: 'js'
+            System.config({
+                packages: {
+                    '': {
+                        defaultExtension: 'js'
+                    }
                 }
-            }
-        });
+            });
         </script>
         <script>
             const socket = new WebSocket('ws://localhost:${webSocketPort}');
@@ -196,7 +196,18 @@ function getTsReplacedText(originalText, directoryPath, watchFiles, webSocketPor
                 window.location.reload();
             });
         </script>
-    `) : originalText;
+    `) : originalText.includes('<head>') ? originalText.replace(`<head>`, `<head>
+            <script src="node_modules/systemjs/dist/system.js"></script>
+            <script>
+                System.config({
+                    packages: {
+                        '': {
+                            defaultExtension: 'js'
+                        }
+                    }
+                });
+            </script>
+        `) : originalText;
 
     const tsScriptTagRegex = /(<script\s.*src\s*=\s*["|'](.*)\.ts["|']>\s*<\/script>)/g;
     const matches = getMatches(text, tsScriptTagRegex, []);
