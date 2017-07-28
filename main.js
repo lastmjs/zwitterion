@@ -180,6 +180,16 @@ function watchFile(filePath, watchFiles) {
 
 function getTsReplacedText(originalText, directoryPath, watchFiles, webSocketPort) {
     const text = originalText.includes('<head>') && watchFiles ? originalText.replace('<head>', `<head>
+        <script src="node_modules/systemjs/dist/system.js"></script>
+        <script>
+        System.config({
+            packages: {
+                '': {
+                    defaultExtension: 'js'
+                }
+            }
+        });
+        </script>
         <script>
             const socket = new WebSocket('ws://localhost:${webSocketPort}');
             socket.addEventListener('message', (message) => {
