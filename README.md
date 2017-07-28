@@ -4,6 +4,8 @@ Zwitterion is a server for TypeScript applications that provides automatic trans
 
 ## Installation and Basic Use
 
+It's important to note that Zwitterion assumes that the root file (the file found at `/`) of your web application is always an `index.html` file.
+
 ### Local Installation and Use
 
 Install Zwitterion in the directory that you would like to serve files from:
