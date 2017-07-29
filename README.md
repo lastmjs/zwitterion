@@ -4,6 +4,8 @@ Zwitterion is a server for TypeScript applications that provides automatic trans
 
 ## Installation and Basic Use
 
+It's important to note that Zwitterion assumes that the root file (the file found at `/`) of your web application is always an `index.html` file.
+
 ### Local Installation and Use
 
 Install Zwitterion in the directory that you would like to serve files from:
@@ -58,7 +60,7 @@ or from an npm script:
 
 ## Production Use
 
-To create a static build suitable for uploading to a CDN (content delivery network), run Zwitterion with the `--build-static` option. The static files will be created in a directory called `dist` in the directory Zwitterion is started from.
+To create a static build suitable for uploading to a CDN (content delivery network), run Zwitterion with the `--build-static` option. The static files will be created in a directory called `dist` in the directory Zwitterion is started from. The [Zwitterion Example project](https://github.com/lastmjs/zwitterion-example) has a [live demo in production](https://zwitterion-example.netlify.com/).
 
 From the terminal:
 
