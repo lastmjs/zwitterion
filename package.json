@@ -21,7 +21,6 @@
   "dependencies": {
     "chokidar": "^1.7.0",
     "commander": "^2.11.0",
-    "systemjs": "^0.20.15",
     "typescript": "^2.4.2",
     "ws": "^3.0.0"
   }
