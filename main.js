@@ -12,7 +12,7 @@ const WebSocket = require('ws');
 const chokidar = require('chokidar');
 
 program
-    .version('0.12.6')
+    .version('0.12.7')
     .option('-p, --port [port]', 'Specify the server\'s port')
     .option('-r, --spa-root [spaRoot]', 'The file to redirect to when a requested file is not found')
     .option('-w, --watch-files', 'Watch files in current directory and reload browser on changes')
