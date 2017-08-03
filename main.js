@@ -103,11 +103,11 @@ function createNodeServer(http, nodePort, webSocketPort, watchFiles, tsWarning, 
                 if (fs.existsSync(`.${normalizedReqUrl}`)) {
                     watchFile(`.${normalizedReqUrl}`, watchFiles);
                     const fileText = fs.readFileSync(`.${normalizedReqUrl}`).toString();
-                    res.end(getTsReplacedText(fileText, directoryPath, watchFiles, webSocketPort));
+                    res.end(getModifiedText(fileText, directoryPath, watchFiles, webSocketPort));
                     return;
                 }
                 else {
-                    res.end(getTsReplacedText(fs.readFileSync(`./index.html`).toString(), directoryPath, watchFiles, webSocketPort));
+                    res.end(getModifiedText(fs.readFileSync(`./index.html`).toString(), directoryPath, watchFiles, webSocketPort));
                     return;
                 }
             }
@@ -134,7 +134,7 @@ function createNodeServer(http, nodePort, webSocketPort, watchFiles, tsWarning, 
                         return;
                     }
                     else {
-                        res.end(getTsReplacedText(fs.readFileSync(`./index.html`).toString(), directoryPath, watchFiles, webSocketPort));
+                        res.end(getModifiedText(fs.readFileSync(`./index.html`).toString(), directoryPath, watchFiles, webSocketPort));
                         return;
                     }
                 }
@@ -146,7 +146,7 @@ function createNodeServer(http, nodePort, webSocketPort, watchFiles, tsWarning, 
                     return;
                 }
                 else {
-                    res.end(getTsReplacedText(fs.readFileSync(`./index.html`).toString(), directoryPath, watchFiles, webSocketPort));
+                    res.end(getModifiedText(fs.readFileSync(`./index.html`).toString(), directoryPath, watchFiles, webSocketPort));
                     return;
                 }
             }
@@ -180,7 +180,7 @@ function watchFile(filePath, watchFiles) {
     }
 }
 
-function getTsReplacedText(originalText, directoryPath, watchFiles, webSocketPort) {
+function getModifiedText(originalText, directoryPath, watchFiles, webSocketPort) {
     const text = originalText.includes('<head>') && watchFiles ? originalText.replace('<head>', `<head>
         <!--
             MIT License
@@ -241,7 +241,7 @@ function getTsReplacedText(originalText, directoryPath, watchFiles, webSocketPor
             </script>
         `) : originalText;
 
-    const tsScriptTagRegex = /(<script\s.*src\s*=\s*["|'](.*)\.ts["|']>\s*<\/script>)/g;
+    const tsScriptTagRegex = /(<script\s.*src\s*=\s*["|'](.*)[\.ts|\.js]["|']>\s*<\/script>)/g;
     const matches = getMatches(text, tsScriptTagRegex, []);
     return matches.reduce((result, match) => {
         //TODO there are many duplicate matches, and I don't know why, but it seems to work
