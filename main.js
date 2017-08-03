@@ -241,7 +241,7 @@ function getModifiedText(originalText, directoryPath, watchFiles, webSocketPort)
             </script>
         `) : originalText;
 
-    const tsScriptTagRegex = /(<script\s.*src\s*=\s*["|'](.*)[\.ts|\.js]["|']>\s*<\/script>)/g;
+    const tsScriptTagRegex = /(<script\s.*src\s*=\s*["|'](.*)(\.ts|\.js)["|']>\s*<\/script>)/g;
     const matches = getMatches(text, tsScriptTagRegex, []);
     return matches.reduce((result, match) => {
         //TODO there are many duplicate matches, and I don't know why, but it seems to work
