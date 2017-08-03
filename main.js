@@ -96,7 +96,7 @@ function createNodeServer(http, nodePort, webSocketPort, watchFiles, tsWarning, 
         const normalizedReqUrl = req.url === '/' ? '/index.html' : req.url;
         const filePathWithDot = normalizedReqUrl.slice(0, normalizedReqUrl.lastIndexOf('.') + 1);
         const fileExtensionWithoutDot = normalizedReqUrl.slice(normalizedReqUrl.lastIndexOf('.') + 1);
-        const directoryPath = normalizedReqUrl.slice(0, normalizedReqUrl.lastIndexOf('/')) || '/';
+        const directoryPath = normalizedReqUrl.slice(0, normalizedReqUrl.lastIndexOf('/')) || '.';
 
         switch (fileExtensionWithoutDot) {
             case 'html': {
@@ -243,9 +243,13 @@ function getModifiedText(originalText, directoryPath, watchFiles, webSocketPort)
 
     const tsScriptTagRegex = /(<script\s.*src\s*=\s*["|'](.*)\.ts["|']>\s*<\/script>)/g;
     const matches = getMatches(text, tsScriptTagRegex, []);
+
     return matches.reduce((result, match) => {
+        console.log('directoryPath', directoryPath);
+        console.log('match[2]', match[2]);
+        console.log('relative', path.relative(directoryPath, `${directoryPath}/${match[2]}`))
         //TODO there are many duplicate matches, and I don't know why, but it seems to work
-        return result.replace(match[0], `<script>System.import('${path.resolve(directoryPath, match[2])}.js');</script>`);
+        return result.replace(match[0], `<script>System.import('${path.relative('.', `${directoryPath}/${match[2]}`)}.js');</script>`);
     }, text);
 }
 
