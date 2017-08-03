@@ -12,7 +12,7 @@ const WebSocket = require('ws');
 const chokidar = require('chokidar');
 
 program
-    .version('0.12.13')
+    .version('0.12.14')
     .option('-p, --port [port]', 'Specify the server\'s port')
     .option('-r, --spa-root [spaRoot]', 'The file to redirect to when a requested file is not found')
     .option('-w, --watch-files', 'Watch files in current directory and reload browser on changes')
@@ -119,7 +119,7 @@ function createNodeServer(http, nodePort, webSocketPort, watchFiles, tsWarning, 
                 else if (fs.existsSync(`.${filePathWithDot}ts`)) {
                     const typeScriptErrorsString = getTypeScriptErrorsString(`.${filePathWithDot}ts`, tsWarning, tsError);
                     watchFile(`.${filePathWithDot}ts`, watchFiles);
-                    const compiledTs = compileToJs(fs.readFileSync(`.${filePathWithDot}ts`).toString());
+                    const compiledTs = compileToJs(fs.readFileSync(`.${filePathWithDot}ts`).toString(), 'system');
                     const compiledTsWithErrorsString = `${compiledTs}${typeScriptErrorsString}`;
                     compiledFiles[`.${filePathWithDot}ts`] = compiledTsWithErrorsString;
                     res.end(compiledTsWithErrorsString);
@@ -128,7 +128,7 @@ function createNodeServer(http, nodePort, webSocketPort, watchFiles, tsWarning, 
                 else {
                     if (fs.existsSync(`.${normalizedReqUrl}`)) {
                         watchFile(`.${normalizedReqUrl}`, watchFiles);
-                        const compiledJs = compileToJs(fs.readFileSync(`.${normalizedReqUrl}`).toString());
+                        const compiledJs = compileToJs(fs.readFileSync(`.${normalizedReqUrl}`).toString(), 'none');
                         compiledFiles[`.${normalizedReqUrl}`] = compiledJs;
                         res.end(compiledJs);
                         return;
@@ -241,7 +241,7 @@ function getModifiedText(originalText, directoryPath, watchFiles, webSocketPort)
             </script>
         `) : originalText;
 
-    const tsScriptTagRegex = /(<script\s.*src\s*=\s*["|'](.*)(\.ts|\.js)["|']>\s*<\/script>)/g;
+    const tsScriptTagRegex = /(<script\s.*src\s*=\s*["|'](.*)\.ts["|']>\s*<\/script>)/g;
     const matches = getMatches(text, tsScriptTagRegex, []);
     return matches.reduce((result, match) => {
         //TODO there are many duplicate matches, and I don't know why, but it seems to work
@@ -259,10 +259,10 @@ function getMatches(text, regex, matches) {
     return getMatches(text, regex, [...matches, match]);
 }
 
-function compileToJs(tsText) {
-    const transpileOutput = tsc.transpileModule(tsText, {
+function compileToJs(text, moduleFormat) {
+    const transpileOutput = tsc.transpileModule(text, {
         compilerOptions: {
-            module: 'system',
+            module: moduleFormat,
             target: 'ES2015'
         }
     });
