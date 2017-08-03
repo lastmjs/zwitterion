@@ -119,7 +119,7 @@ function createNodeServer(http, nodePort, webSocketPort, watchFiles, tsWarning, 
                 else if (fs.existsSync(`.${filePathWithDot}ts`)) {
                     const typeScriptErrorsString = getTypeScriptErrorsString(`.${filePathWithDot}ts`, tsWarning, tsError);
                     watchFile(`.${filePathWithDot}ts`, watchFiles);
-                    const compiledTs = compileTsToJs(fs.readFileSync(`.${filePathWithDot}ts`).toString());
+                    const compiledTs = compileToJs(fs.readFileSync(`.${filePathWithDot}ts`).toString());
                     const compiledTsWithErrorsString = `${compiledTs}${typeScriptErrorsString}`;
                     compiledFiles[`.${filePathWithDot}ts`] = compiledTsWithErrorsString;
                     res.end(compiledTsWithErrorsString);
@@ -128,7 +128,9 @@ function createNodeServer(http, nodePort, webSocketPort, watchFiles, tsWarning, 
                 else {
                     if (fs.existsSync(`.${normalizedReqUrl}`)) {
                         watchFile(`.${normalizedReqUrl}`, watchFiles);
-                        res.end(fs.readFileSync(`.${normalizedReqUrl}`).toString());
+                        const compiledJs = compileToJs(fs.readFileSync(`.${normalizedReqUrl}`).toString());
+                        compiledFiles[`.${normalizedReqUrl}`] = compiledJs;
+                        res.end(compiledJs);
                         return;
                     }
                     else {
@@ -159,7 +161,7 @@ function getTypeScriptErrorsString(filePath, tsWarning, tsError) {
         ], {});
         const semanticDiagnostics = tsProgram.getSemanticDiagnostics();
         return semanticDiagnostics.reduce((result, diagnostic) => {
-            return `${result}\nconsole.${tsWarning ? 'warn' : 'error'}("TypeScript: ${diagnostic.file.fileName}: ${diagnostic.messageText}")`;
+            return `${result}\nconsole.${tsWarning ? 'warn' : 'error'}("TypeScript: ${diagnostic.file ? diagnostic.file.fileName : 'no file name provided'}: ${diagnostic.messageText}")`;
         }, '');
     }
     else {
@@ -257,7 +259,7 @@ function getMatches(text, regex, matches) {
     return getMatches(text, regex, [...matches, match]);
 }
 
-function compileTsToJs(tsText) {
+function compileToJs(tsText) {
     const transpileOutput = tsc.transpileModule(tsText, {
         compilerOptions: {
             module: 'system',
