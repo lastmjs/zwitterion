@@ -10,7 +10,7 @@ const WebSocket = require('ws');
 const chokidar = require('chokidar');
 const esprima = require('esprima');
 program
-    .version('0.14.3')
+    .version('0.14.4')
     .option('-p, --port [port]', 'Specify the server\'s port')
     .option('-w, --watch-files', 'Watch files in current directory and reload browser on changes')
     .option('--ts-warning', 'Report TypeScript errors in the browser console as warnings')
