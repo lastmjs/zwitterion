@@ -16,6 +16,7 @@ program
     .option('--ts-warning', 'Report TypeScript errors in the browser console as warnings')
     .option('--ts-error', 'Report TypeScript errors in the browser console as errors')
     .option('--build-static', 'Create a static build of the current working directory. The output will be in a directory called dist in the current working directory')
+    .option('--target [target]', 'The ECMAScript version to compile to. Any targets supported by the TypeScript compiler are supported here (ES3, ES5, ES6/ES2015, ES2016, ES2017, ESNext)')
     .parse(process.argv);
 // end side-causes
 // start pure operations, generate the data
@@ -26,7 +27,8 @@ const nodePort = +(program.port || 5000);
 const webSocketPort = nodePort + 1;
 const tsWarning = program.tsWarning;
 const tsError = program.tsError;
-const nodeHttpServer = createNodeServer(http, nodePort, webSocketPort, watchFiles, tsWarning, tsError);
+const target = program.target || 'ES5';
+const nodeHttpServer = createNodeServer(http, nodePort, webSocketPort, watchFiles, tsWarning, tsError, target);
 const webSocketServer = createWebSocketServer(webSocketPort, watchFiles);
 let clients = {};
 let compiledFiles = {};
@@ -98,7 +100,7 @@ if (buildStatic) {
     return;
 }
 // end side-effects
-function createNodeServer(http, nodePort, webSocketPort, watchFiles, tsWarning, tsError) {
+function createNodeServer(http, nodePort, webSocketPort, watchFiles, tsWarning, tsError, target) {
     return http.createServer((req, res) => {
         const normalizedReqUrl = req.url === '/' ? '/index.html' : req.url;
         const filePathWithDot = normalizedReqUrl.slice(0, normalizedReqUrl.lastIndexOf('.') + 1);
@@ -126,10 +128,10 @@ function createNodeServer(http, nodePort, webSocketPort, watchFiles, tsWarning, 
                     const typeScriptErrorsString = getTypeScriptErrorsString(`.${filePathWithDot}ts`, tsWarning, tsError);
                     watchFile(`.${filePathWithDot}ts`, watchFiles);
                     const sourceText = fs.readFileSync(`.${filePathWithDot}ts`).toString();
-                    const esModuleCompiledSourceText = compileToJs(sourceText, 'es2015');
+                    const esModuleCompiledSourceText = compileToJs(sourceText, 'es2015', target);
                     const isModule = determineIfModule(esModuleCompiledSourceText);
                     const moduleFormat = isModule ? 'system' : 'es2015';
-                    const compiledSourceText = compileToJs(sourceText, moduleFormat);
+                    const compiledSourceText = compileToJs(sourceText, moduleFormat, target);
                     const compiledSourceTextWithErrorsString = `${compiledSourceText}${typeScriptErrorsString}`;
                     compiledFiles[`.${filePathWithDot}ts`] = compiledSourceTextWithErrorsString;
                     res.end(compiledSourceTextWithErrorsString);
@@ -143,10 +145,10 @@ function createNodeServer(http, nodePort, webSocketPort, watchFiles, tsWarning, 
                     const typeScriptErrorsString = getTypeScriptErrorsString(`.${filePathWithDot}tsx`, tsWarning, tsError);
                     watchFile(`.${filePathWithDot}tsx`, watchFiles);
                     const sourceText = fs.readFileSync(`.${filePathWithDot}tsx`).toString();
-                    const esModuleCompiledSourceText = compileToJs(sourceText, 'es2015');
+                    const esModuleCompiledSourceText = compileToJs(sourceText, 'es2015', target);
                     const isModule = determineIfModule(esModuleCompiledSourceText);
                     const moduleFormat = isModule ? 'system' : 'es2015';
-                    const compiledSourceText = compileToJs(sourceText, moduleFormat);
+                    const compiledSourceText = compileToJs(sourceText, moduleFormat, target);
                     const compiledSourceTextWithErrorsString = `${compiledSourceText}${typeScriptErrorsString}`;
                     compiledFiles[`.${filePathWithDot}tsx`] = compiledSourceTextWithErrorsString;
                     res.end(compiledSourceTextWithErrorsString);
@@ -159,10 +161,10 @@ function createNodeServer(http, nodePort, webSocketPort, watchFiles, tsWarning, 
                 else if (fs.existsSync(`.${filePathWithDot}jsx`)) {
                     watchFile(`.${filePathWithDot}jsx`, watchFiles);
                     const sourceText = fs.readFileSync(`.${filePathWithDot}jsx`).toString();
-                    const esModuleCompiledSourceText = compileToJs(sourceText, 'es2015');
+                    const esModuleCompiledSourceText = compileToJs(sourceText, 'es2015', target);
                     const isModule = determineIfModule(esModuleCompiledSourceText);
                     const moduleFormat = isModule ? 'system' : 'es2015';
-                    const compiledSourceText = compileToJs(sourceText, moduleFormat);
+                    const compiledSourceText = compileToJs(sourceText, moduleFormat, target);
                     compiledFiles[`.${filePathWithDot}jsx`] = compiledSourceText;
                     res.end(compiledSourceText);
                     return;
@@ -177,7 +179,7 @@ function createNodeServer(http, nodePort, webSocketPort, watchFiles, tsWarning, 
                         const sourceText = fs.readFileSync(`.${normalizedReqUrl}`).toString();
                         const isModule = determineIfModule(sourceText);
                         const moduleFormat = isModule ? 'system' : 'es2015';
-                        const compiledSourceText = compileToJs(sourceText, moduleFormat);
+                        const compiledSourceText = compileToJs(sourceText, moduleFormat, target);
                         compiledFiles[`.${normalizedReqUrl}`] = compiledSourceText;
                         res.end(compiledSourceText);
                         return;
@@ -321,11 +323,11 @@ function getMatches(text, regex, matches) {
     }
     return getMatches(text, regex, [...matches, match]);
 }
-function compileToJs(text, moduleFormat) {
+function compileToJs(text, moduleFormat, target) {
     const transpileOutput = tsc.transpileModule(text, {
         compilerOptions: {
             module: moduleFormat,
-            target: 'ES2015',
+            target,
             jsx: 'react'
         }
     });
