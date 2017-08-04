@@ -161,6 +161,10 @@ function createNodeServer(http, nodePort, webSocketPort, watchFiles, tsWarning, 
                     res.end(compiledSourceText);
                     return;
                 }
+                else if (compiledFiles[`.${normalizedReqUrl}`]) {
+                    res.end(compiledFiles[`.${normalizedReqUrl}`]);
+                    return;
+                }
                 else {
                     if (fs.existsSync(`.${normalizedReqUrl}`)) {
                         watchFile(`.${normalizedReqUrl}`, watchFiles);
@@ -204,7 +208,7 @@ function determineIfModule(sourceText) {
         return hasImportOrExport.length > 0;
     }
     catch (error) {
-        return false;
+        return true;
     }
 }
 function getTypeScriptErrorsString(filePath, tsWarning, tsError) {
