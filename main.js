@@ -128,10 +128,10 @@ function createNodeServer(http, nodePort, webSocketPort, watchFiles, tsWarning, 
                     const typeScriptErrorsString = getTypeScriptErrorsString(`.${filePathWithDot}ts`, tsWarning, tsError);
                     watchFile(`.${filePathWithDot}ts`, watchFiles);
                     const sourceText = fs.readFileSync(`.${filePathWithDot}ts`).toString();
-                    const esModuleCompiledSourceText = compileToJs(sourceText, 'es2015', target);
+                    const esModuleCompiledSourceText = compileToJs(sourceText, 'es2015', target, null);
                     const isModule = determineIfModule(esModuleCompiledSourceText);
                     const moduleFormat = isModule ? 'system' : 'es2015';
-                    const compiledSourceText = compileToJs(sourceText, moduleFormat, target);
+                    const compiledSourceText = compileToJs(sourceText, moduleFormat, target, null);
                     const compiledSourceTextWithErrorsString = `${compiledSourceText}${typeScriptErrorsString}`;
                     compiledFiles[`.${filePathWithDot}ts`] = compiledSourceTextWithErrorsString;
                     res.end(compiledSourceTextWithErrorsString);
@@ -145,10 +145,10 @@ function createNodeServer(http, nodePort, webSocketPort, watchFiles, tsWarning, 
                     const typeScriptErrorsString = getTypeScriptErrorsString(`.${filePathWithDot}tsx`, tsWarning, tsError);
                     watchFile(`.${filePathWithDot}tsx`, watchFiles);
                     const sourceText = fs.readFileSync(`.${filePathWithDot}tsx`).toString();
-                    const esModuleCompiledSourceText = compileToJs(sourceText, 'es2015', target);
+                    const esModuleCompiledSourceText = compileToJs(sourceText, 'es2015', target, 'react');
                     const isModule = determineIfModule(esModuleCompiledSourceText);
                     const moduleFormat = isModule ? 'system' : 'es2015';
-                    const compiledSourceText = compileToJs(sourceText, moduleFormat, target);
+                    const compiledSourceText = compileToJs(sourceText, moduleFormat, target, 'react');
                     const compiledSourceTextWithErrorsString = `${compiledSourceText}${typeScriptErrorsString}`;
                     compiledFiles[`.${filePathWithDot}tsx`] = compiledSourceTextWithErrorsString;
                     res.end(compiledSourceTextWithErrorsString);
@@ -161,10 +161,10 @@ function createNodeServer(http, nodePort, webSocketPort, watchFiles, tsWarning, 
                 else if (fs.existsSync(`.${filePathWithDot}jsx`)) {
                     watchFile(`.${filePathWithDot}jsx`, watchFiles);
                     const sourceText = fs.readFileSync(`.${filePathWithDot}jsx`).toString();
-                    const esModuleCompiledSourceText = compileToJs(sourceText, 'es2015', target);
+                    const esModuleCompiledSourceText = compileToJs(sourceText, 'es2015', target, 'react');
                     const isModule = determineIfModule(esModuleCompiledSourceText);
                     const moduleFormat = isModule ? 'system' : 'es2015';
-                    const compiledSourceText = compileToJs(sourceText, moduleFormat, target);
+                    const compiledSourceText = compileToJs(sourceText, moduleFormat, target, 'react');
                     compiledFiles[`.${filePathWithDot}jsx`] = compiledSourceText;
                     res.end(compiledSourceText);
                     return;
@@ -179,7 +179,7 @@ function createNodeServer(http, nodePort, webSocketPort, watchFiles, tsWarning, 
                         const sourceText = fs.readFileSync(`.${normalizedReqUrl}`).toString();
                         const isModule = determineIfModule(sourceText);
                         const moduleFormat = isModule ? 'system' : 'es2015';
-                        const compiledSourceText = compileToJs(sourceText, moduleFormat, target);
+                        const compiledSourceText = compileToJs(sourceText, moduleFormat, target, null);
                         compiledFiles[`.${normalizedReqUrl}`] = compiledSourceText;
                         res.end(compiledSourceText);
                         return;
@@ -323,12 +323,13 @@ function getMatches(text, regex, matches) {
     }
     return getMatches(text, regex, [...matches, match]);
 }
-function compileToJs(text, moduleFormat, target) {
+
+function compileToJs(text, moduleFormat, target, jsx) {
     const transpileOutput = tsc.transpileModule(text, {
         compilerOptions: {
             module: moduleFormat,
             target,
-            jsx: 'react'
+            jsx
         }
     });
     return transpileOutput.outputText;
