@@ -60,7 +60,7 @@ or from an npm script:
 
 ## Production Use
 
-To create a static build suitable for uploading to a CDN (content delivery network), run Zwitterion with the `--build-static` option. The static files will be created in a directory called `dist` in the directory Zwitterion is started from. The [Zwitterion Example project](https://github.com/lastmjs/zwitterion-example) has a [live demo in production](https://zwitterion-example.netlify.com/).
+To create a static build suitable for uploading to a CDN (content delivery network), run Zwitterion with the `--build-static` option. The static files will be created in a directory called `dist` in the directory Zwitterion is started from. The [Zwitterion Example project](https://github.com/lastmjs/zwitterion-example) has a [live demo in production](https://zwitterion-example.netlify.com/). 
 
 From the terminal:
 
@@ -95,6 +95,24 @@ To support an ES module (import/export syntax), you must add the `type="module"`
 ```
 
 Any supported file type can be an ES module and can therefore import other ES modules. For Zwitterion's purposes, an ES module must have at least one import statement or one export statement. Zwitterion uses SystemJS under the hood to emulate native ES module behavior.
+
+#### Performance
+
+It's important to note that Zwitterion does not bundle files nor engage in tree shaking. This may impact the performance of your application. HTTP2 and ES modules may help with performance, but at this point in time signs tend to point toward worse performance. Zwitterion has plans to improve performance by automatically generating HTTP2 server push information from the static build, and looking into tree shaking, but it is unclear what affect this will have. Stay tuned for more information about performance as Zwitterion matures.
+
+With all of the above being said, the performance implications are unclear. Measure for yourself.
+
+Read the following for more information on bundling versus not bundling with HTTP2:
+
+* https://medium.com/@asyncmax/the-right-way-to-bundle-your-assets-for-faster-sites-over-http-2-437c37efe3ff
+* https://stackoverflow.com/questions/30861591/why-bundle-optimizations-are-no-longer-a-concern-in-http-2
+* http://engineering.khanacademy.org/posts/js-packaging-http2.htm
+* https://blog.newrelic.com/2016/02/09/http2-best-practices-web-performance/
+* https://mattwilcox.net/web-development/http2-for-front-end-web-developers
+* https://news.ycombinator.com/item?id=9137690
+* https://www.sitepoint.com/file-bundling-and-http2/
+* https://medium.freecodecamp.org/javascript-modules-part-2-module-bundling-5020383cf306
+* https://css-tricks.com/musings-on-http2-and-bundling/
 
 ## Command-line Options
 
