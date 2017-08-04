@@ -167,3 +167,11 @@ Create a static build of the current working directory. The output will be in a 
 ```bash
 --build-static
 ```
+
+### Target
+
+The ECMAScript version to compile to; if omitted, defaults to ES5. Any targets supported by the TypeScript compiler are supported here (ES3, ES5, ES6/ES2015, ES2016, ES2017, ESNext)
+
+```bash
+--target [target]
+```
