@@ -53,22 +53,28 @@ if (buildStatic) {
             wget -q -x -nH "http://localhost:${nodePort}/$file"
         done
 
-        echo "Download and save all .ts files from Zwitterion"
+        echo "Download and save all .js files from Zwitterion"
 
         shopt -s globstar
         for file in **/*.js; do
             wget -q -x -nH "http://localhost:${nodePort}/$\{file%.*\}.js"
         done
 
+        echo "Download and save all .ts files from Zwitterion"
+
         shopt -s globstar
         for file in **/*.ts; do
             wget -q -x -nH "http://localhost:${nodePort}/$\{file%.*\}.js"
         done
 
+        echo "Download and save all .tsx files from Zwitterion"
+
         shopt -s globstar
         for file in **/*.tsx; do
             wget -q -x -nH "http://localhost:${nodePort}/$\{file%.*\}.js"
         done
+
+        echo "Download and save all .jsx files from Zwitterion"
 
         shopt -s globstar
         for file in **/*.jsx; do
