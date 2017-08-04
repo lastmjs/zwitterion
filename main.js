@@ -14,7 +14,7 @@ const chokidar = require('chokidar');
 program
     .version('0.12.15')
     .option('-p, --port [port]', 'Specify the server\'s port')
-    .option('-r, --spa-root [spaRoot]', 'The file to redirect to when a requested file is not found')
+    // .option('-r, --spa-root [spaRoot]', 'The file to redirect to when a requested file is not found')
     .option('-w, --watch-files', 'Watch files in current directory and reload browser on changes')
     .option('--ts-warning', 'Report TypeScript errors in the browser console as warnings')
     .option('--ts-error', 'Report TypeScript errors in the browser console as errors')
@@ -27,7 +27,7 @@ program
 
 const buildStatic = program.buildStatic;
 const watchFiles = program.watchFiles;
-const spaRoot = program.spaRoot || 'index.html';
+// const spaRoot = program.spaRoot || 'index.html';
 const nodePort = +(program.port || 5000);
 const webSocketPort = nodePort + 1;
 const tsWarning = program.tsWarning;
@@ -96,7 +96,12 @@ function createNodeServer(http, nodePort, webSocketPort, watchFiles, tsWarning, 
         const normalizedReqUrl = req.url === '/' ? '/index.html' : req.url;
         const filePathWithDot = normalizedReqUrl.slice(0, normalizedReqUrl.lastIndexOf('.') + 1);
         const fileExtensionWithoutDot = normalizedReqUrl.slice(normalizedReqUrl.lastIndexOf('.') + 1);
-        const directoryPath = normalizedReqUrl.slice(0, normalizedReqUrl.lastIndexOf('/')) || '.';
+        const directoryPath = normalizedReqUrl.slice(0, normalizedReqUrl.lastIndexOf('/')) || '/';
+        const moduleImport = req.headers.accept.includes('application/x-es-module');
+        const moduleFormat = moduleImport ? 'system' : 'es2015';
+
+        console.log(normalizedReqUrl);
+        console.log(moduleFormat);
 
         switch (fileExtensionWithoutDot) {
             case 'html': {
@@ -119,7 +124,7 @@ function createNodeServer(http, nodePort, webSocketPort, watchFiles, tsWarning, 
                 else if (fs.existsSync(`.${filePathWithDot}ts`)) {
                     const typeScriptErrorsString = getTypeScriptErrorsString(`.${filePathWithDot}ts`, tsWarning, tsError);
                     watchFile(`.${filePathWithDot}ts`, watchFiles);
-                    const compiledTs = compileToJs(fs.readFileSync(`.${filePathWithDot}ts`).toString(), 'system');
+                    const compiledTs = compileToJs(fs.readFileSync(`.${filePathWithDot}ts`).toString(), moduleFormat);
                     const compiledTsWithErrorsString = `${compiledTs}${typeScriptErrorsString}`;
                     compiledFiles[`.${filePathWithDot}ts`] = compiledTsWithErrorsString;
                     res.end(compiledTsWithErrorsString);
@@ -128,7 +133,7 @@ function createNodeServer(http, nodePort, webSocketPort, watchFiles, tsWarning, 
                 else {
                     if (fs.existsSync(`.${normalizedReqUrl}`)) {
                         watchFile(`.${normalizedReqUrl}`, watchFiles);
-                        const compiledJs = compileToJs(fs.readFileSync(`.${normalizedReqUrl}`).toString(), 'none');
+                        const compiledJs = compileToJs(fs.readFileSync(`.${normalizedReqUrl}`).toString(), moduleFormat);
                         compiledFiles[`.${normalizedReqUrl}`] = compiledJs;
                         res.end(compiledJs);
                         return;
@@ -241,15 +246,18 @@ function getModifiedText(originalText, directoryPath, watchFiles, webSocketPort)
             </script>
         `) : originalText;
 
-    const tsScriptTagRegex = /(<script\s.*src\s*=\s*["|'](.*)\.ts["|']>\s*<\/script>)/g;
+    const tsScriptTagRegex = /(<script(\s.*)src\s*=\s*["|'](.*)(\.ts|\.js)["|'](.*)>\s*<\/script>)/g;
     const matches = getMatches(text, tsScriptTagRegex, []);
 
     return matches.reduce((result, match) => {
-        console.log('directoryPath', directoryPath);
-        console.log('match[2]', match[2]);
-        console.log('relative', path.relative(directoryPath, `${directoryPath}/${match[2]}`))
-        //TODO there are many duplicate matches, and I don't know why, but it seems to work
-        return result.replace(match[0], `<script>System.import('${path.relative('.', `${directoryPath}/${match[2]}`)}.js');</script>`);
+        const typeIsModule = (match[2].includes('type') && match[2].includes('module')) || (match[5].includes('type') && match[5].includes('module'));
+
+        if (typeIsModule) {
+            return result.replace(match[0], `<script>System.import('${path.resolve(directoryPath, match[3])}.js');</script>`);
+        }
+        else {
+            return result.replace(match[0], `<script src="${match[3]}.js"></script>`);
+        }
     }, text);
 }
 
