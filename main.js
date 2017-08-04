@@ -208,6 +208,7 @@ function determineIfModule(sourceText) {
         return hasImportOrExport.length > 0;
     }
     catch (error) {
+        // the reason that we return true here is so that the browser will receive the transpiled source text and throw on the syntax error there instead of having to log it into the Zwitterion console. Also, SystemJS was giving a cryptic error message about transpilation
         return true;
     }
 }
