@@ -6,18 +6,6 @@ Zwitterion is a server for web applications that provides automatic transpilatio
 
 ## Installation and Basic Use
 
-It's important to note that Zwitterion assumes that the root file (the file found at `/`) of your web application is always an `index.html` file. That `index.html` file must have a `<head>` element.
-
-### ES Modules
-
-To support an ES module (import/export syntax), you must add the `type="module"` attribute to your script tags, for example:
-
-```
-<script type="module" src="amazing-module.jsx"></script>
-```
-
-Any supported file type can be an ES module and can therefore import other ES modules. For Zwitterion's purposes, an ES module must have at least one import statement or one export statement.
-
 ### Local Installation and Use
 
 Install Zwitterion in the directory that you would like to serve files from:
@@ -91,6 +79,22 @@ From an npm script:
   ...
 }
 ```
+
+### Special Considerations
+
+#### Root File
+
+It's important to note that Zwitterion assumes that the root file (the file found at `/`) of your web application is always an `index.html` file. That `index.html` file must have a `<head>` element.
+
+#### ES Modules
+
+To support an ES module (import/export syntax), you must add the `type="module"` attribute to your script tags, for example:
+
+```
+<script type="module" src="amazing-module.jsx"></script>
+```
+
+Any supported file type can be an ES module and can therefore import other ES modules. For Zwitterion's purposes, an ES module must have at least one import statement or one export statement.
 
 ## Command-line Options
 
