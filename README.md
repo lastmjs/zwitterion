@@ -2,11 +2,21 @@
 
 # Zwitterion
 
-Zwitterion is a server for TypeScript applications that provides automatic transpilation, live-reload, and SPA (single-page application) support out of the box. It allows you to develop TypeScript applications without a complicated build step. Just include TypeScript files directly in `<script>` tags, e.g. `<script src="hello-world.ts"></script>`. All features of TypeScript are automatically available, including ES modules, async/await, and Object spread.
+Zwitterion is a server for web applications that provides automatic transpilation, live-reload, and SPA (single-page application) support out of the box. It allows you to develop JavaScript, JSX, TypeScript, and TSX applications without a complicated build step. Just include files directly in `<script>` tags, for example `<script src="hello-world.ts"></script>`. All features that the TypeScript compiler provides are automatically available, including ES modules, async/await, and Object spread.
 
 ## Installation and Basic Use
 
 It's important to note that Zwitterion assumes that the root file (the file found at `/`) of your web application is always an `index.html` file. That `index.html` file must have a `<head>` element.
+
+### ES Modules
+
+To support an ES module (import/export syntax), you must add the `type="module"` attribute to your script tags, for example:
+
+```
+<script type="module" src="amazing-module.jsx"></script>
+```
+
+Any supported file type can be an ES module and can therefore import other ES modules.
 
 ### Local Installation and Use
 
