@@ -1,6 +1,4 @@
 #!/usr/bin/env node
-
-// start side-causes, read from the world
 const fs = require('fs');
 const program = require('commander');
 const http = require('http');
@@ -10,21 +8,17 @@ const tsc = require('typescript');
 const path = require('path');
 const WebSocket = require('ws');
 const chokidar = require('chokidar');
-
+const esprima = require('esprima');
 program
     .version('0.14.1')
     .option('-p, --port [port]', 'Specify the server\'s port')
-    // .option('-r, --spa-root [spaRoot]', 'The file to redirect to when a requested file is not found')
     .option('-w, --watch-files', 'Watch files in current directory and reload browser on changes')
     .option('--ts-warning', 'Report TypeScript errors in the browser console as warnings')
     .option('--ts-error', 'Report TypeScript errors in the browser console as errors')
     .option('--build-static', 'Create a static build of the current working directory. The output will be in a directory called dist in the current working directory')
-    // .option('--output-dir', 'The output directory for ') //TODO allow the static build to go to any output directory specified by the user
     .parse(process.argv);
 // end side-causes
-
 // start pure operations, generate the data
-
 const buildStatic = program.buildStatic;
 const watchFiles = program.watchFiles;
 // const spaRoot = program.spaRoot || 'index.html';
@@ -36,14 +30,10 @@ const nodeHttpServer = createNodeServer(http, nodePort, webSocketPort, watchFile
 const webSocketServer = createWebSocketServer(webSocketPort, watchFiles);
 let clients = {};
 let compiledFiles = {};
-
 //end pure operations
-
 // start side-effects, change the world
-
 nodeHttpServer.listen(nodePort);
 console.log(`Zwitterion listening on port ${nodePort}`);
-
 if (buildStatic) {
     const asyncExec = execAsync(`
         echo "Copy current working directory to ZWITTERION_TEMP directory"
@@ -66,7 +56,22 @@ if (buildStatic) {
         echo "Download and save all .ts files from Zwitterion"
 
         shopt -s globstar
+        for file in **/*.js; do
+            wget -q -x -nH "http://localhost:${nodePort}/$\{file%.*\}.js"
+        done
+
+        shopt -s globstar
         for file in **/*.ts; do
+            wget -q -x -nH "http://localhost:${nodePort}/$\{file%.*\}.js"
+        done
+
+        shopt -s globstar
+        for file in **/*.tsx; do
+            wget -q -x -nH "http://localhost:${nodePort}/$\{file%.*\}.js"
+        done
+
+        shopt -s globstar
+        for file in **/*.jsx; do
             wget -q -x -nH "http://localhost:${nodePort}/$\{file%.*\}.js"
         done
 
@@ -82,24 +87,17 @@ if (buildStatic) {
     }, () => {
         process.exit();
     });
-
     asyncExec.stdout.pipe(process.stdout);
     asyncExec.stderr.pipe(process.stderr);
-
     return;
 }
-
 // end side-effects
-
 function createNodeServer(http, nodePort, webSocketPort, watchFiles, tsWarning, tsError) {
     return http.createServer((req, res) => {
         const normalizedReqUrl = req.url === '/' ? '/index.html' : req.url;
         const filePathWithDot = normalizedReqUrl.slice(0, normalizedReqUrl.lastIndexOf('.') + 1);
         const fileExtensionWithoutDot = normalizedReqUrl.slice(normalizedReqUrl.lastIndexOf('.') + 1);
         const directoryPath = normalizedReqUrl.slice(0, normalizedReqUrl.lastIndexOf('/')) || '/';
-        const moduleImport = req.headers.accept.includes('application/x-es-module');
-        const moduleFormat = moduleImport ? 'system' : 'es2015';
-
         switch (fileExtensionWithoutDot) {
             case 'html': {
                 if (fs.existsSync(`.${normalizedReqUrl}`)) {
@@ -121,10 +119,14 @@ function createNodeServer(http, nodePort, webSocketPort, watchFiles, tsWarning, 
                 else if (fs.existsSync(`.${filePathWithDot}ts`)) {
                     const typeScriptErrorsString = getTypeScriptErrorsString(`.${filePathWithDot}ts`, tsWarning, tsError);
                     watchFile(`.${filePathWithDot}ts`, watchFiles);
-                    const compiledTs = compileToJs(fs.readFileSync(`.${filePathWithDot}ts`).toString(), moduleFormat);
-                    const compiledTsWithErrorsString = `${compiledTs}${typeScriptErrorsString}`;
-                    compiledFiles[`.${filePathWithDot}ts`] = compiledTsWithErrorsString;
-                    res.end(compiledTsWithErrorsString);
+                    const sourceText = fs.readFileSync(`.${filePathWithDot}ts`).toString();
+                    const esModuleCompiledSourceText = compileToJs(sourceText, 'es2015');
+                    const isModule = determineIfModule(esModuleCompiledSourceText);
+                    const moduleFormat = isModule ? 'system' : 'es2015';
+                    const compiledSourceText = compileToJs(sourceText, moduleFormat);
+                    const compiledSourceTextWithErrorsString = `${compiledSourceText}${typeScriptErrorsString}`;
+                    compiledFiles[`.${filePathWithDot}ts`] = compiledSourceTextWithErrorsString;
+                    res.end(compiledSourceTextWithErrorsString);
                     return;
                 }
                 else if (compiledFiles[`.${filePathWithDot}tsx`]) {
@@ -134,10 +136,14 @@ function createNodeServer(http, nodePort, webSocketPort, watchFiles, tsWarning, 
                 else if (fs.existsSync(`.${filePathWithDot}tsx`)) {
                     const typeScriptErrorsString = getTypeScriptErrorsString(`.${filePathWithDot}tsx`, tsWarning, tsError);
                     watchFile(`.${filePathWithDot}tsx`, watchFiles);
-                    const compiledTs = compileToJs(fs.readFileSync(`.${filePathWithDot}tsx`).toString(), moduleFormat);
-                    const compiledTsWithErrorsString = `${compiledTs}${typeScriptErrorsString}`;
-                    compiledFiles[`.${filePathWithDot}tsx`] = compiledTsWithErrorsString;
-                    res.end(compiledTsWithErrorsString);
+                    const sourceText = fs.readFileSync(`.${filePathWithDot}tsx`).toString();
+                    const esModuleCompiledSourceText = compileToJs(sourceText, 'es2015');
+                    const isModule = determineIfModule(esModuleCompiledSourceText);
+                    const moduleFormat = isModule ? 'system' : 'es2015';
+                    const compiledSourceText = compileToJs(sourceText, moduleFormat);
+                    const compiledSourceTextWithErrorsString = `${compiledSourceText}${typeScriptErrorsString}`;
+                    compiledFiles[`.${filePathWithDot}tsx`] = compiledSourceTextWithErrorsString;
+                    res.end(compiledSourceTextWithErrorsString);
                     return;
                 }
                 else if (compiledFiles[`.${filePathWithDot}jsx`]) {
@@ -145,20 +151,25 @@ function createNodeServer(http, nodePort, webSocketPort, watchFiles, tsWarning, 
                     return;
                 }
                 else if (fs.existsSync(`.${filePathWithDot}jsx`)) {
-                    const typeScriptErrorsString = getTypeScriptErrorsString(`.${filePathWithDot}jsx`, tsWarning, tsError);
                     watchFile(`.${filePathWithDot}jsx`, watchFiles);
-                    const compiledTs = compileToJs(fs.readFileSync(`.${filePathWithDot}jsx`).toString(), moduleFormat);
-                    const compiledTsWithErrorsString = `${compiledTs}${typeScriptErrorsString}`;
-                    compiledFiles[`.${filePathWithDot}jsx`] = compiledTsWithErrorsString;
-                    res.end(compiledTsWithErrorsString);
+                    const sourceText = fs.readFileSync(`.${filePathWithDot}jsx`).toString();
+                    const esModuleCompiledSourceText = compileToJs(sourceText, 'es2015');
+                    const isModule = determineIfModule(esModuleCompiledSourceText);
+                    const moduleFormat = isModule ? 'system' : 'es2015';
+                    const compiledSourceText = compileToJs(sourceText, moduleFormat);
+                    compiledFiles[`.${filePathWithDot}jsx`] = compiledSourceText;
+                    res.end(compiledSourceText);
                     return;
                 }
                 else {
                     if (fs.existsSync(`.${normalizedReqUrl}`)) {
                         watchFile(`.${normalizedReqUrl}`, watchFiles);
-                        const compiledJs = compileToJs(fs.readFileSync(`.${normalizedReqUrl}`).toString(), moduleFormat);
-                        compiledFiles[`.${normalizedReqUrl}`] = compiledJs;
-                        res.end(compiledJs);
+                        const sourceText = fs.readFileSync(`.${normalizedReqUrl}`).toString();
+                        const isModule = determineIfModule(sourceText);
+                        const moduleFormat = isModule ? 'system' : 'es2015';
+                        const compiledSourceText = compileToJs(sourceText, moduleFormat);
+                        compiledFiles[`.${normalizedReqUrl}`] = compiledSourceText;
+                        res.end(compiledSourceText);
                         return;
                     }
                     else {
@@ -181,7 +192,21 @@ function createNodeServer(http, nodePort, webSocketPort, watchFiles, tsWarning, 
         }
     });
 }
-
+// if the source text has import or export syntax, we consider it a module. This is not standard and there is a battle going on about this between Node.js and TC-39...kind of. This could become standard in the future
+function determineIfModule(sourceText) {
+    try {
+        const ast = esprima.parse(sourceText, {
+            sourceType: 'module'
+        });
+        const hasImportOrExport = ast.body.filter((astObject) => {
+            return astObject.type === 'ImportDeclaration' || astObject.type === 'ExportNamedDeclaration' || astObject.type === 'ExportDefaultDeclaration';
+        });
+        return hasImportOrExport.length > 0;
+    }
+    catch (error) {
+        return false;
+    }
+}
 function getTypeScriptErrorsString(filePath, tsWarning, tsError) {
     if (tsWarning || tsError) {
         const tsProgram = tsc.createProgram([
@@ -196,7 +221,6 @@ function getTypeScriptErrorsString(filePath, tsWarning, tsError) {
         return '';
     }
 }
-
 function watchFile(filePath, watchFiles) {
     if (watchFiles) {
         chokidar.watch(filePath).on('change', () => {
@@ -207,7 +231,6 @@ function watchFile(filePath, watchFiles) {
         });
     }
 }
-
 function getModifiedText(originalText, directoryPath, watchFiles, webSocketPort) {
     const text = originalText.includes('<head>') && watchFiles ? originalText.replace('<head>', `<head>
         <!--
@@ -268,13 +291,10 @@ function getModifiedText(originalText, directoryPath, watchFiles, webSocketPort)
                 });
             </script>
         `) : originalText;
-
     const tsScriptTagRegex = /(<script(\s.*)src\s*=\s*["|'](.*)(\.ts|\.tsx|\.jsx|\.js)["|'](.*)>\s*<\/script>)/g;
     const matches = getMatches(text, tsScriptTagRegex, []);
-
     return matches.reduce((result, match) => {
         const typeIsModule = (match[2].includes('type') && match[2].includes('module')) || (match[5].includes('type') && match[5].includes('module'));
-
         if (typeIsModule) {
             return result.replace(match[0], `<script>System.import('${path.resolve(directoryPath, match[3])}.js');</script>`);
         }
@@ -283,17 +303,13 @@ function getModifiedText(originalText, directoryPath, watchFiles, webSocketPort)
         }
     }, text);
 }
-
 function getMatches(text, regex, matches) {
     const match = regex.exec(text);
-
     if (match === null) {
         return matches;
     }
-
     return getMatches(text, regex, [...matches, match]);
 }
-
 function compileToJs(text, moduleFormat) {
     const transpileOutput = tsc.transpileModule(text, {
         compilerOptions: {
@@ -304,17 +320,14 @@ function compileToJs(text, moduleFormat) {
     });
     return transpileOutput.outputText;
 }
-
 function createWebSocketServer(webSocketPort, watchFiles) {
     if (watchFiles) {
         const webSocketServer = new WebSocket.Server({
             port: webSocketPort
         });
-
         webSocketServer.on('connection', (client, request) => {
             clients[request.connection.remoteAddress] = client;
         });
-
         return webSocketServer;
     }
     else {

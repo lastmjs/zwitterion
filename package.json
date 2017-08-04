@@ -1,7 +1,7 @@
 {
   "name": "zwitterion",
   "version": "0.14.1",
-  "description": "Static development file server for TypeScript, built with NGINX and Node.js.",
+  "description": "Auto-transpiling, live-reloading, and SPA-ing server for JavaScript, JSX, TypeScript, and TSX.",
   "scripts": {
     "start": "node main.js"
   },
@@ -21,6 +21,7 @@
   "dependencies": {
     "chokidar": "^1.7.0",
     "commander": "^2.11.0",
+    "esprima": "^4.0.0",
     "typescript": "^2.4.2",
     "ws": "^3.0.0"
   }
