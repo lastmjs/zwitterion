@@ -94,7 +94,7 @@ To support an ES module (import/export syntax), you must add the `type="module"`
 <script type="module" src="amazing-module.jsx"></script>
 ```
 
-Any supported file type can be an ES module and can therefore import other ES modules. For Zwitterion's purposes, an ES module must have at least one import statement or one export statement.
+Any supported file type can be an ES module and can therefore import other ES modules. For Zwitterion's purposes, an ES module must have at least one import statement or one export statement. Zwitterion uses SystemJS under the hood to emulate native ES module behavior.
 
 ## Command-line Options
 
