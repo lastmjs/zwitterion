@@ -100,9 +100,6 @@ function createNodeServer(http, nodePort, webSocketPort, watchFiles, tsWarning, 
         const moduleImport = req.headers.accept.includes('application/x-es-module');
         const moduleFormat = moduleImport ? 'system' : 'es2015';
 
-        console.log(normalizedReqUrl);
-        console.log(moduleFormat);
-
         switch (fileExtensionWithoutDot) {
             case 'html': {
                 if (fs.existsSync(`.${normalizedReqUrl}`)) {
@@ -127,6 +124,32 @@ function createNodeServer(http, nodePort, webSocketPort, watchFiles, tsWarning, 
                     const compiledTs = compileToJs(fs.readFileSync(`.${filePathWithDot}ts`).toString(), moduleFormat);
                     const compiledTsWithErrorsString = `${compiledTs}${typeScriptErrorsString}`;
                     compiledFiles[`.${filePathWithDot}ts`] = compiledTsWithErrorsString;
+                    res.end(compiledTsWithErrorsString);
+                    return;
+                }
+                else if (compiledFiles[`.${filePathWithDot}tsx`]) {
+                    res.end(compiledFiles[`.${filePathWithDot}tsx`]);
+                    return;
+                }
+                else if (fs.existsSync(`.${filePathWithDot}tsx`)) {
+                    const typeScriptErrorsString = getTypeScriptErrorsString(`.${filePathWithDot}tsx`, tsWarning, tsError);
+                    watchFile(`.${filePathWithDot}tsx`, watchFiles);
+                    const compiledTs = compileToJs(fs.readFileSync(`.${filePathWithDot}tsx`).toString(), moduleFormat);
+                    const compiledTsWithErrorsString = `${compiledTs}${typeScriptErrorsString}`;
+                    compiledFiles[`.${filePathWithDot}tsx`] = compiledTsWithErrorsString;
+                    res.end(compiledTsWithErrorsString);
+                    return;
+                }
+                else if (compiledFiles[`.${filePathWithDot}jsx`]) {
+                    res.end(compiledFiles[`.${filePathWithDot}jsx`]);
+                    return;
+                }
+                else if (fs.existsSync(`.${filePathWithDot}jsx`)) {
+                    const typeScriptErrorsString = getTypeScriptErrorsString(`.${filePathWithDot}jsx`, tsWarning, tsError);
+                    watchFile(`.${filePathWithDot}jsx`, watchFiles);
+                    const compiledTs = compileToJs(fs.readFileSync(`.${filePathWithDot}jsx`).toString(), moduleFormat);
+                    const compiledTsWithErrorsString = `${compiledTs}${typeScriptErrorsString}`;
+                    compiledFiles[`.${filePathWithDot}jsx`] = compiledTsWithErrorsString;
                     res.end(compiledTsWithErrorsString);
                     return;
                 }
@@ -246,7 +269,7 @@ function getModifiedText(originalText, directoryPath, watchFiles, webSocketPort)
             </script>
         `) : originalText;
 
-    const tsScriptTagRegex = /(<script(\s.*)src\s*=\s*["|'](.*)(\.ts|\.js)["|'](.*)>\s*<\/script>)/g;
+    const tsScriptTagRegex = /(<script(\s.*)src\s*=\s*["|'](.*)(\.ts|\.tsx|\.jsx|\.js)["|'](.*)>\s*<\/script>)/g;
     const matches = getMatches(text, tsScriptTagRegex, []);
 
     return matches.reduce((result, match) => {
@@ -275,7 +298,8 @@ function compileToJs(text, moduleFormat) {
     const transpileOutput = tsc.transpileModule(text, {
         compilerOptions: {
             module: moduleFormat,
-            target: 'ES2015'
+            target: 'ES2015',
+            jsx: 'react'
         }
     });
     return transpileOutput.outputText;
