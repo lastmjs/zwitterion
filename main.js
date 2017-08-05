@@ -17,6 +17,7 @@ program
     .option('--ts-error', 'Report TypeScript errors in the browser console as errors')
     .option('--build-static', 'Create a static build of the current working directory. The output will be in a directory called dist in the current working directory')
     .option('--target [target]', 'The ECMAScript version to compile to; if omitted, defaults to ES5. Any targets supported by the TypeScript compiler are supported here (ES3, ES5, ES6/ES2015, ES2016, ES2017, ESNext)')
+    .option('--exclude-dirs', 'A space-separated list of directories to exclude from the static build') //TODO I know this is wrong, I need to figure out how to do variadic arguments
     .parse(process.argv);
 // end side-causes
 // start pure operations, generate the data
@@ -30,6 +31,8 @@ const tsError = program.tsError;
 const target = program.target || 'ES5';
 const nodeHttpServer = createNodeServer(http, nodePort, webSocketPort, watchFiles, tsWarning, tsError, target);
 const webSocketServer = createWebSocketServer(webSocketPort, watchFiles);
+const excludeDirs = program.excludeDirs;
+const excludeDirsRegex = `^${excludeDirs ? program.args.join('|') : 'NO_EXCLUDE_DIRS'}`;
 let clients = {};
 let compiledFiles = {};
 //end pure operations
@@ -52,35 +55,50 @@ if (buildStatic) {
 
         shopt -s globstar
         for file in **/*.html; do
-            wget -q -x -nH "http://localhost:${nodePort}/$file"
+            if [[ ! $file =~ ${excludeDirsRegex} ]]
+            then
+                wget -q -x -nH "http://localhost:${nodePort}/$file"
+            fi
         done
 
         echo "Download and save all .js files from Zwitterion"
 
         shopt -s globstar
         for file in **/*.js; do
-            wget -q -x -nH "http://localhost:${nodePort}/$\{file%.*\}.js"
+            if [[ ! $file =~ ${excludeDirsRegex} ]]
+            then
+                wget -q -x -nH "http://localhost:${nodePort}/$\{file%.*\}.js"
+            fi
         done
 
         echo "Download and save all .ts files from Zwitterion"
 
         shopt -s globstar
         for file in **/*.ts; do
-            wget -q -x -nH "http://localhost:${nodePort}/$\{file%.*\}.js"
+            if [[ ! $file =~ ${excludeDirsRegex} ]]
+            then
+                wget -q -x -nH "http://localhost:${nodePort}/$\{file%.*\}.js"
+            fi
         done
 
         echo "Download and save all .tsx files from Zwitterion"
 
         shopt -s globstar
         for file in **/*.tsx; do
-            wget -q -x -nH "http://localhost:${nodePort}/$\{file%.*\}.js"
+            if [[ ! $file =~ ${excludeDirsRegex} ]]
+            then
+                wget -q -x -nH "http://localhost:${nodePort}/$\{file%.*\}.js"
+            fi
         done
 
         echo "Download and save all .jsx files from Zwitterion"
 
         shopt -s globstar
         for file in **/*.jsx; do
-            wget -q -x -nH "http://localhost:${nodePort}/$\{file%.*\}.js"
+            if [[ ! $file =~ ${excludeDirsRegex} ]]
+            then
+                wget -q -x -nH "http://localhost:${nodePort}/$\{file%.*\}.js"
+            fi
         done
 
         echo "Copy ZWITTERION_TEMP to dist directory in the project root directory"
