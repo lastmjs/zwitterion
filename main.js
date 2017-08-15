@@ -10,7 +10,7 @@ const WebSocket = require('ws');
 const chokidar = require('chokidar');
 const esprima = require('esprima');
 program
-    .version('0.16.0')
+    .version('0.16.1')
     .option('-p, --port [port]', 'Specify the server\'s port')
     .option('-w, --watch-files', 'Watch files in current directory and reload browser on changes')
     .option('--ts-warning', 'Report TypeScript errors in the browser console as warnings')
@@ -139,7 +139,8 @@ function createNodeServer(http, nodePort, webSocketPort, watchFiles, tsWarning, 
                         res.end(getModifiedText(fs.readFileSync(`./index.html`).toString(), directoryPath, watchFiles, webSocketPort));
                     }
                     else {
-                        res.end('404 File Not Found');
+                        res.statusCode = 404;
+                        res.end();
                     }
                     return;
                 }
@@ -214,7 +215,8 @@ function createNodeServer(http, nodePort, webSocketPort, watchFiles, tsWarning, 
                             res.end(getModifiedText(fs.readFileSync(`./index.html`).toString(), directoryPath, watchFiles, webSocketPort));
                         }
                         else {
-                            res.end('404 File Not Found');
+                            res.statusCode = 404;
+                            res.end();
                         }
                         return;
                     }
@@ -231,7 +233,8 @@ function createNodeServer(http, nodePort, webSocketPort, watchFiles, tsWarning, 
                         res.end(getModifiedText(fs.readFileSync(`./index.html`).toString(), directoryPath, watchFiles, webSocketPort));
                     }
                     else {
-                        res.end('404 File Not Found');
+                        res.statusCode = 404;
+                        res.end();
                     }
                     return;
                 }
