@@ -17,6 +17,7 @@ program
     .option('--ts-error', 'Report TypeScript errors in the browser console as errors')
     .option('--build-static', 'Create a static build of the current working directory. The output will be in a directory called dist in the current working directory')
     .option('--target [target]', 'The ECMAScript version to compile to; if omitted, defaults to ES5. Any targets supported by the TypeScript compiler are supported here (ES3, ES5, ES6/ES2015, ES2016, ES2017, ESNext)')
+    .option('--disable-spa', 'Disable the SPA redirect to index.html')
     .option('--exclude-dirs', 'A space-separated list of directories to exclude from the static build') //TODO I know this is wrong, I need to figure out how to do variadic arguments
     .parse(process.argv);
 // end side-causes
@@ -33,6 +34,7 @@ const nodeHttpServer = createNodeServer(http, nodePort, webSocketPort, watchFile
 const webSocketServer = createWebSocketServer(webSocketPort, watchFiles);
 const excludeDirs = program.excludeDirs;
 const excludeDirsRegex = `^${excludeDirs ? program.args.join('|') : 'NO_EXCLUDE_DIRS'}`;
+const disableSpa = program.disableSpa;
 let clients = {};
 let compiledFiles = {};
 //end pure operations
@@ -133,7 +135,12 @@ function createNodeServer(http, nodePort, webSocketPort, watchFiles, tsWarning, 
                     return;
                 }
                 else {
-                    res.end(getModifiedText(fs.readFileSync(`./index.html`).toString(), directoryPath, watchFiles, webSocketPort));
+                    if (!disableSpa) {
+                        res.end(getModifiedText(fs.readFileSync(`./index.html`).toString(), directoryPath, watchFiles, webSocketPort));
+                    }
+                    else {
+                        res.end('404 File Not Found');
+                    }
                     return;
                 }
             }
@@ -203,7 +210,12 @@ function createNodeServer(http, nodePort, webSocketPort, watchFiles, tsWarning, 
                         return;
                     }
                     else {
-                        res.end(getModifiedText(fs.readFileSync(`./index.html`).toString(), directoryPath, watchFiles, webSocketPort));
+                        if (!disableSpa) {
+                            res.end(getModifiedText(fs.readFileSync(`./index.html`).toString(), directoryPath, watchFiles, webSocketPort));
+                        }
+                        else {
+                            res.end('404 File Not Found');
+                        }
                         return;
                     }
                 }
@@ -215,7 +227,12 @@ function createNodeServer(http, nodePort, webSocketPort, watchFiles, tsWarning, 
                     return;
                 }
                 else {
-                    res.end(getModifiedText(fs.readFileSync(`./index.html`).toString(), directoryPath, watchFiles, webSocketPort));
+                    if (!disableSpa) {
+                        res.end(getModifiedText(fs.readFileSync(`./index.html`).toString(), directoryPath, watchFiles, webSocketPort));
+                    }
+                    else {
+                        res.end('404 File Not Found');
+                    }
                     return;
                 }
             }
