@@ -2,7 +2,7 @@
 
 # Zwitterion
 
-Zwitterion is a server for web applications that provides automatic transpilation, live-reload, and SPA (single-page application) support out of the box. It allows you to develop JavaScript, JSX, TypeScript, and TSX applications without a complicated build step. Just include files directly in `<script>` tags, for example `<script src="hello-world.ts"></script>`. All features that the TypeScript compiler provides are automatically available, including ES modules, async/await, and Object spread.
+Zwitterion is a server for web applications that provides automatic transpilation, live-reload, and SPA (single-page application) support out of the box. It allows you to develop JavaScript, JSX, TypeScript, TSX, C, and C++ web platform applications without a complicated build step. Just include files directly in `<script>` tags, for example `<script src="hello-world.ts"></script>`. All features that the TypeScript compiler provides are automatically available, including ES modules, async/await, and Object spread.
 
 ## Installation and Basic Use
 
