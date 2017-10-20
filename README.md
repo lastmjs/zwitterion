@@ -2,7 +2,7 @@
 
 # Zwitterion
 
-Zwitterion is a server for web applications that provides automatic transpilation, live-reload, and SPA (single-page application) support out of the box. It allows you to develop JavaScript, JSX, TypeScript, TSX, C, and C++ web platform applications without a complicated build step. Just include files directly in `<script>` tags, for example `<script src="hello-world.ts"></script>`. All features that the TypeScript compiler provides are automatically available, including ES modules, async/await, and Object spread.
+Zwitterion is a server for web applications that provides automatic transpilation, live-reload, and SPA (single-page application) support out of the box. It allows you to develop JavaScript, JSX, TypeScript, TSX, C, and C++ web platform applications without a complicated build step. Just include files directly in `<script>` tags, for example `<script src="hello-world.ts"></script>`, or as ES module imports, for example `import {hello} from './hello-world';`. All features that the TypeScript compiler provides are automatically available, including ES modules, async/await, and Object spread.
 
 ## Installation and Basic Use
 
@@ -110,7 +110,8 @@ To support an ES module (import/export syntax), you must add the `type="module"`
 <script type="module" src="amazing-module.jsx"></script>
 ```
 
-Any supported file type can be an ES module and can therefore import other ES modules. For Zwitterion's purposes, an ES module must have at least one import statement or one export statement. Zwitterion uses SystemJS under the hood to emulate native ES module behavior.
+//TODO make sure this paragraph is correct for C/C++ files
+Any supported file type can be an ES module and can therefore import other ES modules. For Zwitterion's purposes, an ES module must have at least one import statement or one export statement. File paths must be unique to file extensions. For example, if your file path is `./hello-world.ts`, there must be only one `./hello-world` file with any of the supported extensions. Zwitterion uses SystemJS under the hood to emulate native ES module behavior.
 
 ### Performance
 
