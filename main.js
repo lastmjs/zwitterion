@@ -9,6 +9,7 @@ const path = require('path');
 const WebSocket = require('ws');
 const chokidar = require('chokidar');
 const esprima = require('esprima');
+
 program
     .version('0.16.1')
     .option('-p, --port [port]', 'Specify the server\'s port')
@@ -121,7 +122,7 @@ if (buildStatic) {
 }
 // end side-effects
 function createNodeServer(http, nodePort, webSocketPort, watchFiles, tsWarning, tsError, target) {
-    return http.createServer((req, res) => {
+    return http.createServer(async (req, res) => {
         const normalizedReqUrl = req.url === '/' ? '/index.html' : req.url;
         const filePathWithDot = normalizedReqUrl.slice(0, normalizedReqUrl.lastIndexOf('.') + 1);
         const fileExtensionWithoutDot = normalizedReqUrl.slice(normalizedReqUrl.lastIndexOf('.') + 1);
@@ -193,6 +194,39 @@ function createNodeServer(http, nodePort, webSocketPort, watchFiles, tsWarning, 
                     const compiledSourceText = compileToJs(sourceText, moduleFormat, target, 'react');
                     compiledFiles[`.${filePathWithDot}jsx`] = compiledSourceText;
                     res.end(compiledSourceText);
+                    return;
+                }
+                else if (compiledFiles[`.${filePathWithDot}c`]) {
+                    res.end(compiledFiles[`.${filePathWithDot}c`]);
+                    return;
+                }
+                else if (fs.existsSync(`.${filePathWithDot}c`)) {
+                    watchFile(`.${filePathWithDot}c`, watchFiles);
+                    const wasmJsCompiledSourceText = await compileToWasmJs(`.${filePathWithDot}c`);
+                    compiledFiles[`.${filePathWithDot}c`] = wasmJsCompiledSourceText;
+                    res.end(wasmJsCompiledSourceText);
+                    return;
+                }
+                else if (compiledFiles[`.${filePathWithDot}cc`]) {
+                    res.end(compiledFiles[`.${filePathWithDot}cc`]);
+                    return;
+                }
+                else if (fs.existsSync(`.${filePathWithDot}cc`)) {
+                    watchFile(`.${filePathWithDot}cc`, watchFiles);
+                    const wasmJsCompiledSourceText = await compileToWasmJs(`.${filePathWithDot}cc`);
+                    compiledFiles[`.${filePathWithDot}cc`] = wasmJsCompiledSourceText;
+                    res.end(wasmJsCompiledSourceText);
+                    return;
+                }
+                else if (compiledFiles[`.${filePathWithDot}cpp`]) {
+                    res.end(compiledFiles[`.${filePathWithDot}cpp`]);
+                    return;
+                }
+                else if (fs.existsSync(`.${filePathWithDot}cpp`)) {
+                    watchFile(`.${filePathWithDot}cpp`, watchFiles);
+                    const wasmJsCompiledSourceText = await compileToWasmJs(`.${filePathWithDot}cpp`);
+                    compiledFiles[`.${filePathWithDot}cpp`] = wasmJsCompiledSourceText;
+                    res.end(wasmJsCompiledSourceText);
                     return;
                 }
                 else if (compiledFiles[`.${normalizedReqUrl}`]) {
@@ -277,7 +311,13 @@ function watchFile(filePath, watchFiles) {
         chokidar.watch(filePath).on('change', () => {
             compiledFiles[filePath] = null;
             Object.values(clients).forEach((client) => {
-                client.send('RELOAD_MESSAGE');
+                try {
+                    client.send('RELOAD_MESSAGE');
+                }
+                catch(error) {
+                    //TODO something should be done about this. What's happening I believe is that if two files are changed in a very short period of time, one file will start the browser reloading, and the other file will try to send a message to the browser while it is reloading, and thus the websocket connection will not be established with the browser. This is a temporary solution
+                    console.log(error);
+                }
             });
         });
     }
@@ -342,7 +382,7 @@ function getModifiedText(originalText, directoryPath, watchFiles, webSocketPort)
                 });
             </script>
         `) : originalText;
-    const tsScriptTagRegex = /(<script(\s.*)src\s*=\s*["|'](.*)(\.ts|\.tsx|\.jsx|\.js)["|'](.*)>\s*<\/script>)/g;
+    const tsScriptTagRegex = /(<script(\s.*)src\s*=\s*["|'](.*)(\.ts|\.tsx|\.jsx|\.js|\.c|\.cpp|\.cc)["|'](.*)>\s*<\/script>)/g;
     const matches = getMatches(text, tsScriptTagRegex, []);
     return matches.reduce((result, match) => {
         const typeIsModule = (match[2].includes('type') && match[2].includes('module')) || (match[5].includes('type') && match[5].includes('module'));
@@ -354,6 +394,7 @@ function getModifiedText(originalText, directoryPath, watchFiles, webSocketPort)
         }
     }, text);
 }
+
 function getMatches(text, regex, matches) {
     const match = regex.exec(text);
     if (match === null) {
@@ -372,6 +413,7 @@ function compileToJs(text, moduleFormat, target, jsx) {
     });
     return transpileOutput.outputText;
 }
+
 function createWebSocketServer(webSocketPort, watchFiles) {
     if (watchFiles) {
         const webSocketServer = new WebSocket.Server({
@@ -385,4 +427,11 @@ function createWebSocketServer(webSocketPort, watchFiles) {
     else {
         return null;
     }
+}
+
+async function compileToWasmJs(filePath) {
+    const filename = filePath.substring(filePath.lastIndexOf('/') + 1, filePath.lastIndexOf('.'));
+    execSync(`emcc ${filePath} -s WASM=1 -o ${filename}.js`);
+    const compiledText = fs.readFileSync(`${filename}.js`).toString();
+    return compiledText;
 }
