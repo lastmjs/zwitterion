@@ -11,12 +11,13 @@ const chokidar = require('chokidar');
 const esprima = require('esprima');
 
 program
-    .version('0.16.1')
+    .version('0.17.0')
     .option('-p, --port [port]', 'Specify the server\'s port')
     .option('-w, --watch-files', 'Watch files in current directory and reload browser on changes')
     .option('--ts-warning', 'Report TypeScript errors in the browser console as warnings')
     .option('--ts-error', 'Report TypeScript errors in the browser console as errors')
     .option('--build-static', 'Create a static build of the current working directory. The output will be in a directory called dist in the current working directory')
+    .option('--install-wasm', 'Install the WebAssembly toolchain to allow importing of C/C++ files')
     .option('--target [target]', 'The ECMAScript version to compile to; if omitted, defaults to ES5. Any targets supported by the TypeScript compiler are supported here (ES3, ES5, ES6/ES2015, ES2016, ES2017, ESNext)')
     .option('--disable-spa', 'Disable the SPA redirect to index.html')
     .option('--exclude-dirs', 'A space-separated list of directories to exclude from the static build') //TODO I know this is wrong, I need to figure out how to do variadic arguments
@@ -24,6 +25,7 @@ program
 // end side-causes
 // start pure operations, generate the data
 const buildStatic = program.buildStatic;
+const installWasm = program.installWasm;
 const watchFiles = program.watchFiles;
 // const spaRoot = program.spaRoot || 'index.html';
 const nodePort = +(program.port || 5000);
@@ -40,6 +42,23 @@ let clients = {};
 let compiledFiles = {};
 //end pure operations
 // start side-effects, change the world
+if (installWasm) {
+    const asyncExec = execAsync(`
+        echo "Installing WebAssembly toolchain (this could take a long time)"
+        git clone https://github.com/juj/emsdk.git
+        cd emsdk
+        ./emsdk install --build=Release sdk-incoming-64bit binaryen-master-64bit
+        ./emsdk activate --build=Release sdk-incoming-64bit binaryen-master-64bit
+    `, {
+        shell: '/bin/bash'
+    }, () => {
+        process.exit();
+    });
+    asyncExec.stdout.pipe(process.stdout);
+    asyncExec.stderr.pipe(process.stderr);
+    return;
+}
+
 nodeHttpServer.listen(nodePort);
 console.log(`Zwitterion listening on port ${nodePort}`);
 if (buildStatic) {
@@ -104,6 +123,46 @@ if (buildStatic) {
             fi
         done
 
+        echo "Download and save all .c files from Zwitterion"
+
+        shopt -s globstar
+        for file in **/*.c; do
+            if [[ ! $file =~ ${excludeDirsRegex} ]]
+            then
+                wget -q -x -nH "http://localhost:${nodePort}/$\{file%.*\}.js"
+            fi
+        done
+
+        echo "Download and save all .cc files from Zwitterion"
+
+        shopt -s globstar
+        for file in **/*.cc; do
+            if [[ ! $file =~ ${excludeDirsRegex} ]]
+            then
+                wget -q -x -nH "http://localhost:${nodePort}/$\{file%.*\}.js"
+            fi
+        done
+
+        echo "Download and save all .cpp files from Zwitterion"
+
+        shopt -s globstar
+        for file in **/*.cpp; do
+            if [[ ! $file =~ ${excludeDirsRegex} ]]
+            then
+                wget -q -x -nH "http://localhost:${nodePort}/$\{file%.*\}.js"
+            fi
+        done
+
+        echo "Download and save all .wasm files from Zwitterion"
+
+        shopt -s globstar
+        for file in **/*.wasm; do
+            if [[ ! $file =~ ${excludeDirsRegex} ]]
+            then
+                wget -q -x -nH "http://localhost:${nodePort}/$\{file%.*\}.js"
+            fi
+        done
+
         echo "Copy ZWITTERION_TEMP to dist directory in the project root directory"
 
         cd ..
@@ -120,6 +179,7 @@ if (buildStatic) {
     asyncExec.stderr.pipe(process.stderr);
     return;
 }
+
 // end side-effects
 function createNodeServer(http, nodePort, webSocketPort, watchFiles, tsWarning, tsError, target) {
     return http.createServer(async (req, res) => {
@@ -431,7 +491,7 @@ function createWebSocketServer(webSocketPort, watchFiles) {
 
 async function compileToWasmJs(filePath) {
     const filename = filePath.substring(filePath.lastIndexOf('/') + 1, filePath.lastIndexOf('.'));
-    execSync(`emcc ${filePath} -s WASM=1 -o ${filename}.js`);
+    execSync(`cd emsdk && source ./emsdk_env.sh --build=Release && cd .. && emcc ${filePath} -s WASM=1 -o ${filename}.js`, {shell: '/bin/bash'});
     const compiledText = fs.readFileSync(`${filename}.js`).toString();
     return compiledText;
 }
