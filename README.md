@@ -111,7 +111,7 @@ To support an ES module (import/export syntax), you must add the `type="module"`
 ```
 
 //TODO make sure this paragraph is correct for C/C++ files
-Any supported file type can be an ES module and can therefore import other ES modules. For Zwitterion's purposes, an ES module must have at least one import statement or one export statement. File paths must be unique to file extensions. For example, if your file path is `./hello-world.ts`, there must be only one `./hello-world` file with any of the supported extensions. Zwitterion uses SystemJS under the hood to emulate native ES module behavior.
+Any supported file type can be an ES module and can therefore import other ES modules. For Zwitterion's purposes, an ES module must have at least one import statement or one export statement. File extensions are left out of all import statements. File paths must be unique to file extensions. For example, if your file path is `./hello-world.ts`, there must be only one `./hello-world` file with any of the supported extensions. Zwitterion uses SystemJS under the hood to emulate native ES module behavior.
 
 ### Performance
 
