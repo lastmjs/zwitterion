@@ -60,7 +60,7 @@ or from an npm script:
 
 ### WebAssembly Installation and Use
 
-To provide support for C/C++ files, you must install the WebAssembly toolchain. Zwitterion will take care of this for you, installing the toolchain into the `emsdk` directory in the directory that you run the installation command from:
+To provide support for C/C++ files, you must install the WebAssembly toolchain. Zwitterion will take care of this for you, installing the toolchain into the `emsdk` directory in the directory that you run the installation command from. Please note that the installation will take a long time for now. These are early days, and a more optimized installation process will come in the future:
 
 If you installed locally:
 ```bash
