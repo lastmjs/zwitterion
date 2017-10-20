@@ -58,6 +58,22 @@ or from an npm script:
 }
 ```
 
+### WebAssembly Installation and Use
+
+To provide support for C/C++ files, you must install the WebAssembly toolchain. Zwitterion will take care of this for you, installing the toolchain into the `emsdk` directory in the directory that you run the installation command from:
+
+If you installed locally:
+```bash
+node_modules/.bin/zwitterion --install-wasm
+```
+
+If you installed Zwitterion globally:
+```bash
+zwitterion --install-wasm
+```
+
+Now you can include C/C++ files just like any other file. The supported file types are `.c`, `.cc`, and `.cpp`.
+
 ## Production Use
 
 To create a static build suitable for uploading to a CDN (content delivery network), run Zwitterion with the `--build-static` option. The static files will be created in a directory called `dist` in the directory Zwitterion is started from. The [Zwitterion Example project](https://github.com/lastmjs/zwitterion-example) has a [live demo in production](https://zwitterion-example.netlify.com/). 
@@ -190,4 +206,12 @@ Disable the SPA redirect to index.html:
 
 ```bash
 --disable-spa
+```
+
+### Install Wasm
+
+Install the WebAssembly toolchain to allow importing of C/C++ files:
+
+```bash
+--install-wasm
 ```
