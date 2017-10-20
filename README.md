@@ -96,13 +96,13 @@ From an npm script:
 }
 ```
 
-### Special Considerations
+## Special Considerations
 
-#### Root File
+### Root File
 
 It's important to note that Zwitterion assumes that the root file (the file found at `/`) of your web application is always an `index.html` file. That `index.html` file must have a `<head>` element.
 
-#### ES Modules
+### ES Modules
 
 To support an ES module (import/export syntax), you must add the `type="module"` attribute to your script tags, for example:
 
@@ -112,7 +112,7 @@ To support an ES module (import/export syntax), you must add the `type="module"`
 
 Any supported file type can be an ES module and can therefore import other ES modules. For Zwitterion's purposes, an ES module must have at least one import statement or one export statement. Zwitterion uses SystemJS under the hood to emulate native ES module behavior.
 
-#### Performance
+### Performance
 
 It's important to note that Zwitterion does not bundle files nor engage in tree shaking. This may impact the performance of your application. HTTP2 and ES modules may help with performance, but at this point in time signs tend to point toward worse performance. Zwitterion has plans to improve performance by automatically generating HTTP2 server push information from the static build, and looking into tree shaking, but it is unclear what affect this will have. Stay tuned for more information about performance as Zwitterion matures.
 
@@ -129,6 +129,13 @@ Read the following for more information on bundling versus not bundling with HTT
 * https://www.sitepoint.com/file-bundling-and-http2/
 * https://medium.freecodecamp.org/javascript-modules-part-2-module-bundling-5020383cf306
 * https://css-tricks.com/musings-on-http2-and-bundling/
+
+## The Future
+
+Here's a rough roadmap of the big future plans:
+
+- [ ] Investigate performance, make sure Zwitterion can beat out the complicated bundlers (tree shaking and bundling)
+- [ ] Add support for wasm, Rust, and any other popular language that can compile to wasm
 
 ## Command-line Options
 
