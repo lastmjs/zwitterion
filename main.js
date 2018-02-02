@@ -11,7 +11,7 @@ const chokidar = require('chokidar');
 const esprima = require('esprima');
 
 program
-    .version('0.17.0')
+    .version('0.17.1')
     .option('-p, --port [port]', 'Specify the server\'s port')
     .option('-w, --watch-files', 'Watch files in current directory and reload browser on changes')
     .option('--ts-warning', 'Report TypeScript errors in the browser console as warnings')
@@ -410,7 +410,7 @@ function getModifiedText(originalText, directoryPath, watchFiles, webSocketPort)
             });
         </script>
         <script>
-            const socket = new WebSocket('ws://localhost:${webSocketPort}');
+            let socket = new WebSocket('ws://localhost:${webSocketPort}');
             socket.addEventListener('message', (message) => {
                 window.location.reload();
             });
@@ -491,7 +491,7 @@ function createWebSocketServer(webSocketPort, watchFiles) {
 
 async function compileToWasmJs(filePath) {
     const filename = filePath.substring(filePath.lastIndexOf('/') + 1, filePath.lastIndexOf('.'));
-    execSync(`cd emsdk && source ./emsdk_env.sh --build=Release && cd .. && emcc ${filePath} -s WASM=1 -o ${filename}.js`, {shell: '/bin/bash'});
+    execSync(`cd emsdk && source ./emsdk_env.sh --build=Release && cd .. && emcc ${filePath} -s WASM=1 -o ${filename}.wasm`, {shell: '/bin/bash'});
     const compiledText = fs.readFileSync(`${filename}.js`).toString();
     return compiledText;
 }
