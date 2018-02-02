@@ -2,7 +2,7 @@
 
 # Zwitterion
 
-Zwitterion is a server for web applications that provides automatic transpilation, live-reload, and SPA (single-page application) support out of the box. It allows you to develop JavaScript, JSX, TypeScript, and TSX applications without a complicated build step. Just include files directly in `<script>` tags, for example `<script src="hello-world.ts"></script>`. All features that the TypeScript compiler provides are automatically available, including ES modules, async/await, and Object spread.
+Zwitterion is a server for web applications that provides automatic transpilation, live-reload, and SPA (single-page application) support out of the box. It allows you to develop JavaScript, JSX, TypeScript, TSX, C, and C++ web platform applications without a complicated build step. Just include files directly in `<script>` tags, for example `<script src="hello-world.ts"></script>`, or as ES module imports, for example `import {hello} from './hello-world';`. All features that the TypeScript compiler provides are automatically available, including ES modules, async/await, and Object spread.
 
 ## Installation and Basic Use
 
@@ -58,6 +58,22 @@ or from an npm script:
 }
 ```
 
+### WebAssembly Installation and Use
+
+To provide support for C/C++ files, you must install the WebAssembly toolchain. Zwitterion will take care of this for you, installing the toolchain into the `emsdk` directory in the directory that you run the installation command from. Please note that the installation will take a long time for now. These are early days, and a more optimized installation process will come in the future:
+
+If you installed locally:
+```bash
+node_modules/.bin/zwitterion --install-wasm
+```
+
+If you installed Zwitterion globally:
+```bash
+zwitterion --install-wasm
+```
+
+Now you can include C/C++ files just like any other file. The supported file types are `.c`, `.cc`, and `.cpp`.
+
 ## Production Use
 
 To create a static build suitable for uploading to a CDN (content delivery network), run Zwitterion with the `--build-static` option. The static files will be created in a directory called `dist` in the directory Zwitterion is started from. The [Zwitterion Example project](https://github.com/lastmjs/zwitterion-example) has a [live demo in production](https://zwitterion-example.netlify.com/). 
@@ -80,13 +96,13 @@ From an npm script:
 }
 ```
 
-### Special Considerations
+## Special Considerations
 
-#### Root File
+### Root File
 
 It's important to note that Zwitterion assumes that the root file (the file found at `/`) of your web application is always an `index.html` file. That `index.html` file must have a `<head>` element.
 
-#### ES Modules
+### ES Modules
 
 To support an ES module (import/export syntax), you must add the `type="module"` attribute to your script tags, for example:
 
@@ -94,9 +110,16 @@ To support an ES module (import/export syntax), you must add the `type="module"`
 <script type="module" src="amazing-module.jsx"></script>
 ```
 
-Any supported file type can be an ES module and can therefore import other ES modules. For Zwitterion's purposes, an ES module must have at least one import statement or one export statement. Zwitterion uses SystemJS under the hood to emulate native ES module behavior.
+Or from a non-html file (file extensions are left out in this case):
 
-#### Performance
+```
+import {amazingFunction} from './amazing-module';
+```
+
+//TODO make sure this paragraph is correct for C/C++ files
+Any supported file type can be an ES module and can therefore import other ES modules. For Zwitterion's purposes, an ES module must have at least one import statement or one export statement. File extensions are left out of all import statements. File paths must be unique to file extensions. For example, if your file path is `./hello-world.ts`, there must be only one `./hello-world` file with any of the supported extensions. Zwitterion uses SystemJS under the hood to emulate native ES module behavior.
+
+### Performance
 
 It's important to note that Zwitterion does not bundle files nor engage in tree shaking. This may impact the performance of your application. HTTP2 and ES modules may help with performance, but at this point in time signs tend to point toward worse performance. Zwitterion has plans to improve performance by automatically generating HTTP2 server push information from the static build, and looking into tree shaking, but it is unclear what affect this will have. Stay tuned for more information about performance as Zwitterion matures.
 
@@ -113,6 +136,13 @@ Read the following for more information on bundling versus not bundling with HTT
 * https://www.sitepoint.com/file-bundling-and-http2/
 * https://medium.freecodecamp.org/javascript-modules-part-2-module-bundling-5020383cf306
 * https://css-tricks.com/musings-on-http2-and-bundling/
+
+## The Future
+
+Here's a rough roadmap of the big future plans:
+
+- [ ] Investigate performance, make sure Zwitterion can beat out the complicated bundlers (tree shaking and bundling)
+- [ ] Add support for wasm, Rust, and any other popular language that can compile to wasm
 
 ## Command-line Options
 
@@ -190,4 +220,12 @@ Disable the SPA redirect to index.html:
 
 ```bash
 --disable-spa
+```
+
+### Install Wasm
+
+Install the WebAssembly toolchain to allow importing of C/C++ files:
+
+```bash
+--install-wasm
 ```
