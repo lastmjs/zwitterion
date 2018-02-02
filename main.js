@@ -123,45 +123,45 @@ if (buildStatic) {
             fi
         done
 
-        echo "Download and save all .c files from Zwitterion"
+        #echo "Download and save all .c files from Zwitterion"
 
-        shopt -s globstar
-        for file in **/*.c; do
-            if [[ ! $file =~ ${excludeDirsRegex} ]]
-            then
-                wget -q -x -nH "http://localhost:${nodePort}/$\{file%.*\}.js"
-            fi
-        done
+        #shopt -s globstar
+        #for file in **/*.c; do
+        #    if [[ ! $file =~ ${excludeDirsRegex} ]]
+        #    then
+        #        wget -q -x -nH "http://localhost:${nodePort}/$\{file%.*\}.js"
+        #    fi
+        #done
 
-        echo "Download and save all .cc files from Zwitterion"
+        #echo "Download and save all .cc files from Zwitterion"
 
-        shopt -s globstar
-        for file in **/*.cc; do
-            if [[ ! $file =~ ${excludeDirsRegex} ]]
-            then
-                wget -q -x -nH "http://localhost:${nodePort}/$\{file%.*\}.js"
-            fi
-        done
+        #shopt -s globstar
+        #for file in **/*.cc; do
+        #    if [[ ! $file =~ ${excludeDirsRegex} ]]
+        #    then
+        #        wget -q -x -nH "http://localhost:${nodePort}/$\{file%.*\}.js"
+        #    fi
+        #done
 
-        echo "Download and save all .cpp files from Zwitterion"
+        #echo "Download and save all .cpp files from Zwitterion"
 
-        shopt -s globstar
-        for file in **/*.cpp; do
-            if [[ ! $file =~ ${excludeDirsRegex} ]]
-            then
-                wget -q -x -nH "http://localhost:${nodePort}/$\{file%.*\}.js"
-            fi
-        done
+        #shopt -s globstar
+        #for file in **/*.cpp; do
+        #    if [[ ! $file =~ ${excludeDirsRegex} ]]
+        #    then
+        #        wget -q -x -nH "http://localhost:${nodePort}/$\{file%.*\}.js"
+        #    fi
+        #done
 
-        echo "Download and save all .wasm files from Zwitterion"
+        #echo "Download and save all .wasm files from Zwitterion"
 
-        shopt -s globstar
-        for file in **/*.wasm; do
-            if [[ ! $file =~ ${excludeDirsRegex} ]]
-            then
-                wget -q -x -nH "http://localhost:${nodePort}/$\{file%.*\}.js"
-            fi
-        done
+        #shopt -s globstar
+        #for file in **/*.wasm; do
+        #    if [[ ! $file =~ ${excludeDirsRegex} ]]
+        #    then
+        #        wget -q -x -nH "http://localhost:${nodePort}/$\{file%.*\}.js"
+        #    fi
+        #done
 
         echo "Copy ZWITTERION_TEMP to dist directory in the project root directory"
 
