@@ -1,6 +1,6 @@
 {
   "name": "zwitterion",
-  "version": "0.17.3",
+  "version": "0.17.4",
   "description": "Auto-transpiling, live-reloading, and SPA-ing server for JavaScript, JSX, TypeScript, and TSX.",
   "scripts": {
     "start": "node main.js"

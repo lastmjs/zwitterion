@@ -481,6 +481,9 @@ function createWebSocketServer(webSocketPort, watchFiles) {
         });
         webSocketServer.on('connection', (client, request) => {
             clients[request.connection.remoteAddress] = client;
+	    client.on('error', (error) => {
+	    	console.log('web socket client error', error);
+	    });
         });
         return webSocketServer;
     }
