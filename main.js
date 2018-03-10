@@ -9,6 +9,7 @@ const path = require('path');
 const WebSocket = require('ws');
 const chokidar = require('chokidar');
 const esprima = require('esprima');
+const resolveBareSpecifier = require('./resolve-bare-specifier');
 
 program
     .version('0.17.1')
@@ -183,7 +184,8 @@ if (buildStatic) {
 // end side-effects
 function createNodeServer(http, nodePort, webSocketPort, watchFiles, tsWarning, tsError, target) {
     return http.createServer(async (req, res) => {
-        const normalizedReqUrl = req.url === '/' ? '/index.html' : req.url;
+        const resolvedBareSpecifier = resolveBareSpecifier(req.url);
+        const normalizedReqUrl = req.url === '/' ? '/index.html' : resolvedBareSpecifier || req.url;
         const filePathWithDot = normalizedReqUrl.slice(0, normalizedReqUrl.lastIndexOf('.') + 1);
         const fileExtensionWithoutDot = normalizedReqUrl.slice(normalizedReqUrl.lastIndexOf('.') + 1);
         const directoryPath = normalizedReqUrl.slice(0, normalizedReqUrl.lastIndexOf('/')) || '/';
