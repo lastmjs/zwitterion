@@ -9,7 +9,8 @@ import {
     arbPort,
     loadZwitterion,
     getPromisePieces,
-    arbScriptElementsInfo
+    arbScriptElementsInfo,
+    wait
 } from './test-utilities';
 
 class ZwitterionTest extends HTMLElement {
@@ -38,7 +39,8 @@ class ZwitterionTest extends HTMLElement {
                                 if (e.data === '${GET_RESULT}') {
                                     window.opener.postMessage({
                                         type: '${RESULT}',
-                                        body: document.body.innerText
+                                        body: document.body.innerText,
+                                        zwitterionTest: window.ZWITTERION_TEST
                                     });
                                 }
                             });
@@ -56,13 +58,24 @@ class ZwitterionTest extends HTMLElement {
 
             const zwitterionProcess = await loadZwitterion(arbPort);
             const {thePromise, theResolve} = getPromisePieces();
-            window.addEventListener('message', (e) => {
+            window.addEventListener('message', async (e) => {
                 if (e.data.type === PAGE_LOADED) {
+                    // await wait(5000);
                     testWindow.postMessage(GET_RESULT, `http://localhost:${arbPort}`);
                 }
 
                 if (e.data.type === RESULT) {
-                    if (+e.data.body === arbNumber) {
+                    //TODO we really need to remove this event listener
+                    const bodyHasCorrectContent = +e.data.body === arbNumber;
+                    const allScriptsExecuted = (e.data.zwitterionTest === undefined && arbScriptElementsInfo.length === 0) ||
+                                                e.data.zwitterionTest && arbScriptElementsInfo.filter((arbScriptElementInfo: any) => {
+                                                                                return !e.data.zwitterionTest[arbScriptElementInfo.path];
+                                                                            }).length === 0;
+
+                    if (
+                        bodyHasCorrectContent &&
+                        allScriptsExecuted
+                    ) {
                         theResolve(true);
                     }
                     else {

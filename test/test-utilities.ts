@@ -91,7 +91,7 @@ const arbPathInfo = jsverify.bless({
 
 export const arbScriptElementsInfo = jsverify.bless({
     generator: () => {
-        const numScriptElements = jsverify.sampler(jsverify.integer(1, 10))();
+        const numScriptElements = jsverify.sampler(jsverify.integer(0, 10))();
         // const module = jsverify.sampler(jsverify.boolean)();
 
         return new Array(numScriptElements).fill(0).map((x) => {
@@ -105,7 +105,11 @@ export const arbScriptElementsInfo = jsverify.bless({
                 path,
                 element: `<script src="${path}"></script>`,
                 contents: `
-                    window['${path}'] = '${path}';
+                    if (!window.ZWITTERION_TEST) {
+                        window.ZWITTERION_TEST = {};
+                    }
+
+                    window.ZWITTERION_TEST['${path}'] = '${path}';
                 `
             };
         });

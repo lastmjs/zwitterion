@@ -209,7 +209,7 @@ function createNodeServer(http, nodePort, webSocketPort, watchFiles, tsWarning, 
 
                 if (await fs.exists(nodeFilePath)) {
                     watchFile(nodeFilePath, watchFiles);
-                    const sourceText = await fs.readFile(nodeFilePath).toString();
+                    const sourceText = (await fs.readFile(nodeFilePath)).toString();
                     const isModule = determineIfModule(sourceText);
                     const moduleFormat = isModule ? 'system' : 'es2015';
                     const compiledSourceText = compileToJs(sourceText, moduleFormat, target, null);
