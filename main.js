@@ -219,7 +219,23 @@ function createNodeServer(http, nodePort, webSocketPort, watchFiles, tsWarning, 
                 }
             }
             case 'ts': {
-                return;
+                const nodeFilePath = `.${req.url}`;
+
+                if (compiledFiles[nodeFilePath]) {
+                    res.end(compiledFiles[nodeFilePath]);
+                    return;
+                }
+
+                if (await fs.exists(nodeFilePath)) {
+                    watchFile(nodeFilePath, watchFiles);
+                    const sourceText = (await fs.readFile(nodeFilePath)).toString();
+                    const isModule = determineIfModule(sourceText);
+                    const moduleFormat = isModule ? 'system' : 'es2015';
+                    const compiledSourceText = compileToJs(sourceText, moduleFormat, target, null);
+                    compiledFiles[nodeFilePath] = compiledSourceText;
+                    res.end(compiledSourceText);
+                    return;
+                }
             }
             case req.url: {
                 throw new Error('No suitable extension found');
@@ -524,10 +540,10 @@ function modifyHTML(originalText, directoryPath, watchFiles, webSocketPort) {
     return matches.reduce((result, match) => {
         const typeIsModule = (match[2].includes('type') && match[2].includes('module')) || (match[5].includes('type') && match[5].includes('module'));
         if (typeIsModule) {
-            return result.replace(match[0], `<script>System.import('${path.resolve(directoryPath, match[3])}.js');</script>`);
+            return result.replace(match[0], `<script>System.import('${path.resolve(directoryPath, match[3])}${match[4]}');</script>`);
         }
         else {
-            return result.replace(match[0], `<script src="${match[3]}.js"></script>`);
+            return result.replace(match[0], `<script src="${match[3]}${match[4]}"></script>`);
         }
     }, text);
 }

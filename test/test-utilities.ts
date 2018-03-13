@@ -96,7 +96,7 @@ export const arbScriptElementsInfo = jsverify.bless({
 
         return new Array(numScriptElements).fill(0).map((x) => {
             const currentArbPathInfo = jsverify.sampler(arbPathInfo)();
-            const extension = jsverify.sampler(jsverify.oneof([jsverify.constant('js')]))();
+            const extension = jsverify.sampler(jsverify.oneof([jsverify.constant('js'), jsverify.constant('ts')]))();
             const path = `${currentArbPathInfo.pathWithoutExtension}.${extension}`;
 
             return {
