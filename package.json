@@ -4,7 +4,7 @@
   "description": "Auto-transpiling, live-reloading, and SPA-ing server for JavaScript, JSX, TypeScript, and TSX.",
   "scripts": {
     "start": "node main.js",
-    "test": "node test/test.js"
+    "test-window": "electron --enable-loggin node_modules/scram-engine/main.js --entry-file test/index.html --window"
   },
   "bin": {
     "zwitterion": "./main.js"
@@ -29,7 +29,9 @@
     "ws": "^5.0.0"
   },
   "devDependencies": {
+    "guesswork": "^0.5.3",
     "jsverify": "^0.8.3",
-    "node-fetch": "^2.1.1"
+    "node-fetch": "^2.1.1",
+    "scram-engine": "^0.6.22"
   }
 }

@@ -1,0 +1,13 @@
+{
+    "compilerOptions": {
+        "noImplicitAny": true,
+        "strictNullChecks": true,
+        "target": "es5",
+        "lib": ["ES2015", "dom"],
+        "allowJs": true,
+        "checkJs": true
+    },
+    "exclude": [
+        "node_modules"
+    ]
+}

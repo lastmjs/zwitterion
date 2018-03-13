@@ -1,4 +1,4 @@
-throw new Error('Think of a few all-inclusive test cases that will be able to test everything with powerful arbitraries');
+// throw new Error('Think of a few all-inclusive test cases that will be able to test everything with powerful arbitraries');
 //TODO Arbitrary index.html file with arbitrary script tags in the head and body
 //TODO the arbitrary script tags will have arbitrary extensions (ts, js, bare?)
 //TODO Arbitrary html files with arbitrary script tags like createWebSocketServer
