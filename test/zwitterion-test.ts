@@ -8,13 +8,19 @@ const RESULT = 'RESULT';
 import {
     arbPort,
     loadZwitterion,
-    getPromisePieces
+    getPromisePieces,
+    arbScriptElementsInfo
 } from './test-utilities';
 
 class ZwitterionTest extends HTMLElement {
     prepareTests(test: any) {
-        test('test', [jsverify.number, arbPort], async (arbNumber: number, arbPort: number) => {
-            await loadZwitterion(arbPort);
+        test('test loading an arbitrary index html file', [jsverify.number, arbPort, arbScriptElementsInfo], async (arbNumber: number, arbPort: number, arbScriptElementsInfo: any) => {
+            console.log(arbScriptElementsInfo);
+
+            for (let i=0; i < arbScriptElementsInfo.length; i++) {
+                const arbScriptElementInfo = arbScriptElementsInfo[i];
+                await fs.outputFile(arbScriptElementInfo.path, arbScriptElementInfo.contents);
+            }
 
             const html = `
                 <!DOCTYPE html>
@@ -37,13 +43,18 @@ class ZwitterionTest extends HTMLElement {
                                 }
                             });
                         </script>
+
+                        ${arbScriptElementsInfo.map((arbScriptElementInfo: any) => {
+                            return arbScriptElementInfo.element;
+                        }).join('\n')}
                     </head>
 
                     <body>${arbNumber}</body>
                 </html>
             `;
-            fs.writeFileSync('./index.html', html);
+            await fs.writeFile('./index.html', html);
 
+            const zwitterionProcess = await loadZwitterion(arbPort);
             const {thePromise, theResolve} = getPromisePieces();
             window.addEventListener('message', (e) => {
                 if (e.data.type === PAGE_LOADED) {
@@ -62,7 +73,16 @@ class ZwitterionTest extends HTMLElement {
 
             const testWindow = window.open(`http://localhost:${arbPort}`, '_blank');
 
-            return await thePromise;
+            const result = await thePromise;
+
+            zwitterionProcess.kill('SIGINT');
+            await fs.unlink('./index.html');
+            for (let i=0; i < arbScriptElementsInfo.length; i++) {
+                const arbScriptElementInfo = arbScriptElementsInfo[i];
+                await fs.remove(arbScriptElementInfo.topLevelDirectory || `./${arbScriptElementInfo.fileNameWithExtension}`);
+            }
+
+            return result;
         });
     }
 }

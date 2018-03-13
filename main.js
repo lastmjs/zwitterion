@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-const fs = require('fs');
+const fs = require('fs-extra');
 const program = require('commander');
 const http = require('http');
 const execSync = require('child_process').execSync;
@@ -62,7 +62,7 @@ if (installWasm) {
 
 nodeHttpServer.listen(nodePort);
 console.log(`Zwitterion listening on port ${nodePort}`);
-process.send('ZWITTERION_LISTENING');
+process.send && process.send('ZWITTERION_LISTENING');
 
 if (buildStatic) {
     const asyncExec = execAsync(`
@@ -186,11 +186,57 @@ if (buildStatic) {
 // end side-effects
 function createNodeServer(http, nodePort, webSocketPort, watchFiles, tsWarning, tsError, target) {
     return http.createServer(async (req, res) => {
-        const rootPathResult = handleRootPath(req.url, watchFiles, webSocketPort, fs, modifyHTML);
-        if (rootPathResult) {
-            res.end(rootPathResult);
-            return;
+        const fileExtension = req.url.slice(req.url.lastIndexOf('.') + 1);
+
+        switch (fileExtension) {
+            case '/': {
+                const indexFileContents = (await fs.readFile(`./index.html`)).toString();
+                const modifiedIndexFileContents = modifyHTML(indexFileContents, 'index.html', watchFiles, webSocketPort);
+                res.end(modifiedIndexFileContents);
+                return;
+            }
+            case 'html': {
+                throw new Error('html file extension not implemented');
+                return;
+            }
+            case 'js': {
+                const nodeFilePath = `.${req.url}`;
+
+                if (compiledFiles[nodeFilePath]) {
+                    res.end(compiledFiles[nodeFilePath]);
+                    return;
+                }
+
+                if (await fs.exists(nodeFilePath)) {
+                    watchFile(nodeFilePath, watchFiles);
+                    const sourceText = await fs.readFile(nodeFilePath).toString();
+                    const isModule = determineIfModule(sourceText);
+                    const moduleFormat = isModule ? 'system' : 'es2015';
+                    const compiledSourceText = compileToJs(sourceText, moduleFormat, target, null);
+                    compiledFiles[nodeFilePath] = compiledSourceText;
+                    res.end(compiledSourceText);
+                    return;
+                }
+            }
+            case 'ts': {
+                return;
+            }
+            case req.url: {
+                throw new Error('No suitable extension found');
+                return;
+            }
+            default: {
+                throw new Error('There is a major problem. This should never happen');
+                return;
+            }
         }
+
+        // if (rootPathResult) {
+        // }
+
+        // const extension = req.url.
+
+        // const jsExtensionResult = handleExtension(req.url);
         // handleHTMLExtension;
         // handleJSExtension;
         // handleNoExtension;
@@ -363,14 +409,27 @@ function createNodeServer(http, nodePort, webSocketPort, watchFiles, tsWarning, 
     });
 }
 
-function handleRootPath(url, watchFiles, webSocketPort, fs, modifyHTML) {
-    if (url === '/') {
-        return modifyHTML(fs.readFileSync(`./index.html`).toString(), 'index.html', watchFiles, webSocketPort);
-    }
-    else {
-        return null;
-    }
-}
+// function handleExtension(req.url, extension) {
+//     const filePath =
+//
+//     if (compiledFiles[`.${filePathWithDot}ts`]) {
+//         res.end(compiledFiles[`.${filePathWithDot}ts`]);
+//         return;
+//     }
+//     else if (fs.existsSync(`.${filePathWithDot}ts`)) {
+//         const typeScriptErrorsString = getTypeScriptErrorsString(`.${filePathWithDot}ts`, tsWarning, tsError);
+//         watchFile(`.${filePathWithDot}ts`, watchFiles);
+//         const sourceText = fs.readFileSync(`.${filePathWithDot}ts`).toString();
+//         const esModuleCompiledSourceText = compileToJs(sourceText, 'es2015', target, null);
+//         const isModule = determineIfModule(esModuleCompiledSourceText);
+//         const moduleFormat = isModule ? 'system' : 'es2015';
+//         const compiledSourceText = compileToJs(sourceText, moduleFormat, target, null);
+//         const compiledSourceTextWithErrorsString = `${compiledSourceText}${typeScriptErrorsString}`;
+//         compiledFiles[`.${filePathWithDot}ts`] = compiledSourceTextWithErrorsString;
+//         res.end(compiledSourceTextWithErrorsString);
+//         return;
+//     }
+// }
 
 // if the source text has import or export syntax, we consider it a module. This is not standard and there is a battle going on about this between Node.js and TC-39...kind of. This could become standard in the future
 function determineIfModule(sourceText) {
