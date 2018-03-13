@@ -1,23 +1,20 @@
 declare var jsverify: any;
-declare var child_process: any;
 declare var fs: any;
 
 const PAGE_LOADED = 'PAGE_LOADED';
 const GET_RESULT = 'GET_RESULT';
 const RESULT = 'RESULT';
 
+import {
+    arbPort,
+    loadZwitterion,
+    getPromisePieces
+} from './test-utilities';
+
 class ZwitterionTest extends HTMLElement {
     prepareTests(test: any) {
-        test('test', [jsverify.number], async (arbNumber: number) => {
-
-            const zwitterionProcess = child_process.execFile('./main.js');
-            zwitterionProcess.on('error', (error: any) => {
-                console.log(error);
-            });
-            zwitterionProcess.stdout.on('data', (data: any) => {
-                console.log(data);
-            });
-            await wait(1000);
+        test('test', [jsverify.number, arbPort], async (arbNumber: number, arbPort: number) => {
+            await loadZwitterion(arbPort);
 
             const html = `
                 <!DOCTYPE html>
@@ -48,10 +45,9 @@ class ZwitterionTest extends HTMLElement {
             fs.writeFileSync('./index.html', html);
 
             const {thePromise, theResolve} = getPromisePieces();
-
             window.addEventListener('message', (e) => {
                 if (e.data.type === PAGE_LOADED) {
-                    testWindow.postMessage(GET_RESULT, 'http://localhost:5000');
+                    testWindow.postMessage(GET_RESULT, `http://localhost:${arbPort}`);
                 }
 
                 if (e.data.type === RESULT) {
@@ -64,7 +60,7 @@ class ZwitterionTest extends HTMLElement {
                 }
             });
 
-            const testWindow = window.open('http://localhost:5000', '_blank');
+            const testWindow = window.open(`http://localhost:${arbPort}`, '_blank');
 
             return await thePromise;
         });
@@ -72,23 +68,3 @@ class ZwitterionTest extends HTMLElement {
 }
 
 window.customElements.define('zwitterion-test', ZwitterionTest);
-
-
-function wait(time: number) {
-    return new Promise((resolve, reject) => {
-        setTimeout(() => {
-            resolve();
-        }, time);
-    });
-}
-
-function getPromisePieces() {
-    let theResolve: (value?: {} | PromiseLike<{}> | undefined) => void;
-    const thePromise = new Promise((resolve, reject) => {
-        theResolve = resolve;
-    });
-    return {
-        thePromise,
-        theResolve
-    };
-}

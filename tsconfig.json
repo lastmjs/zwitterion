@@ -3,7 +3,7 @@
         "noImplicitAny": true,
         "strictNullChecks": true,
         "target": "es5",
-        "lib": ["ES2015", "dom"],
+        "lib": ["ES2015", "ES2016", "dom"],
         "allowJs": true,
         "checkJs": true
     },

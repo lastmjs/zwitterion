@@ -62,6 +62,8 @@ if (installWasm) {
 
 nodeHttpServer.listen(nodePort);
 console.log(`Zwitterion listening on port ${nodePort}`);
+process.send('ZWITTERION_LISTENING');
+
 if (buildStatic) {
     const asyncExec = execAsync(`
         echo "Copy current working directory to ZWITTERION_TEMP directory"
