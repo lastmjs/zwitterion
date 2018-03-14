@@ -92,24 +92,29 @@ const arbPathInfo = jsverify.bless({
 export const arbScriptElementsInfo = jsverify.bless({
     generator: () => {
         const numScriptElements = jsverify.sampler(jsverify.integer(0, 10))();
-        // const module = jsverify.sampler(jsverify.boolean)();
 
         return new Array(numScriptElements).fill(0).map((x) => {
             const currentArbPathInfo = jsverify.sampler(arbPathInfo)();
-            const extension = jsverify.sampler(jsverify.oneof([jsverify.constant('js'), jsverify.constant('ts')]))();
-            const path = `${currentArbPathInfo.pathWithoutExtension}.${extension}`;
+            const extension = jsverify.sampler(jsverify.oneof([jsverify.constant('.js'), jsverify.constant('.ts')/*, jsverify.constant('')*/]))();
+            // const module = jsverify.sampler(jsverify.bool)();
+            // const nodeModule = jsverify.sampler(jsverify.bool)();
+            // const tsFileFromBareSpecifier = extension === '' && jsverify.sampler(jsverify.bool)();
+            const srcPath = `${currentArbPathInfo.pathWithoutExtension}${extension}`;
+            // const filePath = `${currentArbPathInfo.pathWithoutExtension}${tsFileFromBareSpecifier ? '.ts' : extension}`;
+            const filePath = srcPath;
 
             return {
                 ...currentArbPathInfo,
-                fileNameWithExtension: `${currentArbPathInfo.fileName}.${extension}`,
-                path,
-                element: `<script src="${path}"></script>`,
+                fileNameWithExtension: `${currentArbPathInfo.fileName}${extension}`,
+                filePath,
+                srcPath,
+                element: `<script src="${srcPath}"></script>`,
                 contents: `
                     if (!window.ZWITTERION_TEST) {
                         window.ZWITTERION_TEST = {};
                     }
 
-                    window.ZWITTERION_TEST['${path}'] = '${path}';
+                    window.ZWITTERION_TEST['${filePath}'] = '${filePath}';
                 `
             };
         });

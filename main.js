@@ -200,45 +200,15 @@ function createNodeServer(http, nodePort, webSocketPort, watchFiles, tsWarning, 
                 return;
             }
             case 'js': {
-                const nodeFilePath = `.${req.url}`;
-
-                if (compiledFiles[nodeFilePath]) {
-                    res.end(compiledFiles[nodeFilePath]);
-                    return;
-                }
-
-                if (await fs.exists(nodeFilePath)) {
-                    watchFile(nodeFilePath, watchFiles);
-                    const sourceText = (await fs.readFile(nodeFilePath)).toString();
-                    const isModule = determineIfModule(sourceText);
-                    const moduleFormat = isModule ? 'system' : 'es2015';
-                    const compiledSourceText = compileToJs(sourceText, moduleFormat, target, null);
-                    compiledFiles[nodeFilePath] = compiledSourceText;
-                    res.end(compiledSourceText);
-                    return;
-                }
+                await handleExplicitScriptExtension(req, res);
+                return;
             }
             case 'ts': {
-                const nodeFilePath = `.${req.url}`;
-
-                if (compiledFiles[nodeFilePath]) {
-                    res.end(compiledFiles[nodeFilePath]);
-                    return;
-                }
-
-                if (await fs.exists(nodeFilePath)) {
-                    watchFile(nodeFilePath, watchFiles);
-                    const sourceText = (await fs.readFile(nodeFilePath)).toString();
-                    const isModule = determineIfModule(sourceText);
-                    const moduleFormat = isModule ? 'system' : 'es2015';
-                    const compiledSourceText = compileToJs(sourceText, moduleFormat, target, null);
-                    compiledFiles[nodeFilePath] = compiledSourceText;
-                    res.end(compiledSourceText);
-                    return;
-                }
+                await handleExplicitScriptExtension(req, res);
+                return;
             }
             case req.url: {
-                throw new Error('No suitable extension found');
+                await handleBareSpecifier(req, res);
                 return;
             }
             default: {
@@ -423,6 +393,116 @@ function createNodeServer(http, nodePort, webSocketPort, watchFiles, tsWarning, 
         //     }
         // }
     });
+}
+
+async function handleExplicitScriptExtension(req, res) {
+    const nodeFilePath = `.${req.url}`;
+
+    if (compiledFiles[nodeFilePath]) {
+        res.end(compiledFiles[nodeFilePath]);
+        return;
+    }
+
+    if (await fs.exists(nodeFilePath)) {
+        watchFile(nodeFilePath, watchFiles);
+        const sourceText = (await fs.readFile(nodeFilePath)).toString();
+        const isModule = determineIfModule(sourceText);
+        const moduleFormat = isModule ? 'system' : 'es2015';
+        const compiledSourceText = compileToJs(sourceText, moduleFormat, target, null);
+        compiledFiles[nodeFilePath] = compiledSourceText;
+        res.end(compiledSourceText);
+        return;
+    }
+
+    if (!disableSpa) {
+        const indexFileContents = (await fs.readFile(`./index.html`)).toString();
+        const modifiedIndexFileContents = modifyHTML(indexFileContents, 'index.html', watchFiles, webSocketPort);
+        const directoryPath = req.url.slice(0, req.url.lastIndexOf('/')) || '/';
+        res.end(modifyHTML(modifiedIndexFileContents, directoryPath, watchFiles, webSocketPort));
+        return;
+    }
+    else {
+        res.statusCode = 404;
+        res.end();
+        return;
+    }
+}
+
+//TODO there is a lot of repeat code between this function and the handleExplicitScriptExtension function
+async function handleBareSpecifier(req, res) {
+    //first we check for if the file exists without the extension
+    const nodeFilePath = `.${req.url}`;
+
+    if (compiledFiles[nodeFilePath]) {
+        res.end(compiledFiles[nodeFilePath]);
+        return;
+    }
+
+    if (await fs.exists(nodeFilePath)) {
+        watchFile(nodeFilePath, watchFiles);
+        const sourceText = (await fs.readFile(nodeFilePath)).toString();
+        const isModule = determineIfModule(sourceText);
+        const moduleFormat = isModule ? 'system' : 'es2015';
+        const compiledSourceText = compileToJs(sourceText, moduleFormat, target, null);
+        compiledFiles[nodeFilePath] = compiledSourceText;
+        res.end(compiledSourceText);
+        return;
+    }
+
+    //second we check if the file is a TS file (extensions are omitted from imports)
+    const tsNodeFilePath = `.${req.url}.ts`;
+
+    if (compiledFiles[tsNodeFilePath]) {
+        res.end(compiledFiles[tsNodeFilePath]);
+        return;
+    }
+
+    if (await fs.exists(tsNodeFilePath)) {
+        watchFile(tsNodeFilePath, watchFiles);
+        const sourceText = (await fs.readFile(tsNodeFilePath)).toString();
+        const isModule = determineIfModule(sourceText);
+        const moduleFormat = isModule ? 'system' : 'es2015';
+        const compiledSourceText = compileToJs(sourceText, moduleFormat, target, null);
+        compiledFiles[tsNodeFilePath] = compiledSourceText;
+        res.end(compiledSourceText);
+        return;
+    }
+
+    //finally we check if it is a node module
+    try {
+        const resolvedNodeFilePath = resolveBareSpecifier(req.url.slice(1));
+
+        if (compiledFiles[resolvedNodeFilePath]) {
+            res.end(compiledFiles[resolvedNodeFilePath]);
+            return;
+        }
+
+        if (await fs.exists(resolvedNodeFilePath)) {
+            watchFile(resolvedNodeFilePath, watchFiles);
+            const sourceText = (await fs.readFile(resolvedNodeFilePath)).toString();
+            const isModule = determineIfModule(sourceText);
+            const moduleFormat = isModule ? 'system' : 'es2015';
+            const compiledSourceText = compileToJs(sourceText, moduleFormat, target, null);
+            compiledFiles[resolvedNodeFilePath] = compiledSourceText;
+            res.end(compiledSourceText);
+            return;
+        }
+
+    }
+    catch(error) {
+        if (!disableSpa) {
+            const indexFileContents = (await fs.readFile(`./index.html`)).toString();
+            const modifiedIndexFileContents = modifyHTML(indexFileContents, 'index.html', watchFiles, webSocketPort);
+            const directoryPath = req.url.slice(0, req.url.lastIndexOf('/')) || '/';
+            res.end(modifyHTML(modifiedIndexFileContents, directoryPath, watchFiles, webSocketPort));
+            return;
+        }
+        else {
+            res.statusCode = 404;
+            res.end();
+            return;
+        }
+    }
 }
 
 // function handleExtension(req.url, extension) {

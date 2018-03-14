@@ -1,3 +1,9 @@
+//TODO arbitrary script tags in body
+//TODO bare specifiers should load the file first, the ts file second, and then the node module
+//TODO importing modules
+//TODO Have one test for loading arbitrary html files that aren't the index.html file, and all of their dependencies
+//TODO fix the directory overlap that is most likely causing the failures
+
 declare var jsverify: any;
 declare var fs: any;
 
@@ -15,12 +21,23 @@ import {
 
 class ZwitterionTest extends HTMLElement {
     prepareTests(test: any) {
-        test('test loading an arbitrary index html file', [jsverify.number, arbPort, arbScriptElementsInfo], async (arbNumber: number, arbPort: number, arbScriptElementsInfo: any) => {
-            console.log(arbScriptElementsInfo);
-
+        test('Load an arbitrary index html file and all of its scripts', [jsverify.number, arbPort, arbScriptElementsInfo], async (arbNumber: number, arbPort: number, arbScriptElementsInfo: any) => {
             for (let i=0; i < arbScriptElementsInfo.length; i++) {
                 const arbScriptElementInfo = arbScriptElementsInfo[i];
-                await fs.outputFile(arbScriptElementInfo.path, arbScriptElementInfo.contents);
+                // if (arbScriptElementInfo.extension === '' && arbScriptElementInfo.nodeModule) {
+                //     await fs.outputFile(`./node_modules/${arbScriptElementInfo.fileName}/${arbScriptElementInfo.fileName}.js`, arbScriptElementInfo.contents);
+                //     await fs.outputFile(`./node_modules/${arbScriptElementInfo.fileName}/package.json`, `
+                //         {
+                //             "main": "./${arbScriptElementInfo.fileName}.js"
+                //         }
+                //     `);
+                //
+                //     console.log('arbScriptElementInfo', arbScriptElementInfo);
+                //     throw new Error('it occurred');
+                // }
+                // else {
+                    await fs.outputFile(arbScriptElementInfo.filePath, arbScriptElementInfo.contents);
+                // }
             }
 
             const html = `
@@ -69,7 +86,7 @@ class ZwitterionTest extends HTMLElement {
                     const bodyHasCorrectContent = +e.data.body === arbNumber;
                     const allScriptsExecuted = (e.data.zwitterionTest === undefined && arbScriptElementsInfo.length === 0) ||
                                                 e.data.zwitterionTest && arbScriptElementsInfo.filter((arbScriptElementInfo: any) => {
-                                                                                return !e.data.zwitterionTest[arbScriptElementInfo.path];
+                                                                                return !e.data.zwitterionTest[arbScriptElementInfo.filePath];
                                                                             }).length === 0;
 
                     if (
@@ -97,6 +114,9 @@ class ZwitterionTest extends HTMLElement {
 
             return result;
         });
+
+        // test('Load a file that does not exist');
+        // test('Load a file that does not exist with SPA support disabled');
     }
 }
 
