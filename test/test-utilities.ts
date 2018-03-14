@@ -1,6 +1,7 @@
 declare var jsverify: any;
 declare var child_process: any;
 declare var uuid: any;
+declare var path: any;
 
 let pastValues: number[] = [];
 export const arbPort = jsverify.bless({
@@ -68,37 +69,52 @@ const arbPathInfo = jsverify.bless({
         const pathWithoutExtension = `${pathWithoutFileName}${fileNameWithoutExtension}`;
         return {
             pathWithoutExtension,
+            pathWithoutFileName,
             fileNameWithoutExtension,
             topLevelDirectory
         };
     }
 });
 
-export const arbScriptElementsInfo = jsverify.bless({
-    generator: () => {
-        const numScriptElements = jsverify.sampler(jsverify.integer(0, 10))();
-        return new Array(numScriptElements).fill(0).map((x) => {
-            const currentArbPathInfo = jsverify.sampler(arbPathInfo)();
-            const extension = jsverify.sampler(jsverify.oneof([jsverify.constant('.js'), jsverify.constant('.ts')/*, jsverify.constant('')*/]))();
-            const srcPath = `${currentArbPathInfo.pathWithoutExtension}${extension}`;
-            const esModule = jsverify.sampler(jsverify.bool)();
-            // const nodeModule = jsverify.sampler(jsverify.bool)();
-            // const tsFileFromBareSpecifier = extension === '' && jsverify.sampler(jsverify.bool)();
-            // const filePath = `${currentArbPathInfo.pathWithoutExtension}${tsFileFromBareSpecifier ? '.ts' : extension}`;
+export const arbScriptElementsInfo = (hasModuleDependencies: boolean) => {
+    return jsverify.bless({
+        generator: () => {
+            const numScriptElements = jsverify.sampler(jsverify.integer(0, 1))(); //TODO try to make more scripts without running out of stack space
+            return new Array(numScriptElements).fill(0).map((x) => {
+                const currentArbPathInfo = jsverify.sampler(arbPathInfo)();
+                const extension = jsverify.sampler(jsverify.oneof([jsverify.constant('.js'), jsverify.constant('.ts')/*, jsverify.constant('')*/]))();
+                const srcPath = `${currentArbPathInfo.pathWithoutExtension}${extension}`;
+                const esModule = jsverify.sampler(jsverify.bool)();
+                // const nodeModule = jsverify.sampler(jsverify.bool)();
+                // const tsFileFromBareSpecifier = extension === '' && jsverify.sampler(jsverify.bool)();
+                // const filePath = `${currentArbPathInfo.pathWithoutExtension}${tsFileFromBareSpecifier ? '.ts' : extension}`;
+                const moduleDependencies = esModule ? !hasModuleDependencies ? jsverify.sampler(arbScriptElementsInfo(false))() : [] : [];
 
-            return {
-                ...currentArbPathInfo,
-                fileName: `${currentArbPathInfo.fileNameWithoutExtension}${extension}`,
-                srcPath,
-                element: `<script${esModule ? ' type="module" ' : ' '}src="${srcPath}"></script>`,
-                contents: `
-                    if (!window.ZWITTERION_TEST) {
-                        window.ZWITTERION_TEST = {};
-                    }
+                return {
+                    ...currentArbPathInfo,
+                    fileName: `${currentArbPathInfo.fileNameWithoutExtension}${extension}`,
+                    srcPath,
+                    moduleDependencies,
+                    element: `<script${esModule ? ' type="module" ' : ' '}src="${srcPath}"></script>`,
+                    contents: `
+                        ${moduleDependencies.map((moduleDependency: any, index: number) => {
+                            const relativePath = path.relative(currentArbPathInfo.pathWithoutFileName, moduleDependency.srcPath);
+                            const normalizedRelativePath = relativePath[0] === '.' ? relativePath : `./${relativePath}`;
 
-                    window.ZWITTERION_TEST['${srcPath}'] = '${srcPath}';
-                `
-            };
-        });
-    }
-});
+                            return `
+                                import * as Dependency${index} from '${normalizedRelativePath}';
+                                Dependency${index}; //This makes it so the import doesn't get compiled away
+                            `;
+                        }).join('\n')}
+
+                        if (!window.ZWITTERION_TEST) {
+                            window.ZWITTERION_TEST = {};
+                        }
+
+                        window.ZWITTERION_TEST['${srcPath}'] = '${srcPath}';
+                    `
+                };
+            });
+        }
+    });
+};

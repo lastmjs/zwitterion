@@ -19,7 +19,7 @@ import {
 
 class ZwitterionTest extends HTMLElement {
     prepareTests(test: any) {
-        test('Load an arbitrary index html file and all of its scripts', [jsverify.number, arbPort, arbScriptElementsInfo], async (arbNumber: number, arbPort: number, arbScriptElementsInfo: any) => {
+        test('Load an arbitrary index html file and all of its scripts', [jsverify.number, arbPort, arbScriptElementsInfo(true)], async (arbNumber: number, arbPort: number, arbScriptElementsInfo: any) => {
             for (let i=0; i < arbScriptElementsInfo.length; i++) {
                 //TODO if this works, make sure to delete the node_modules created
                 const arbScriptElementInfo = arbScriptElementsInfo[i];
@@ -33,6 +33,11 @@ class ZwitterionTest extends HTMLElement {
                 // }
                 // else {
                     await fs.outputFile(arbScriptElementInfo.srcPath, arbScriptElementInfo.contents);
+
+                    for (let j=0; j < arbScriptElementInfo.moduleDependencies.length; j++) {
+                        const moduleDependency = arbScriptElementInfo.moduleDependencies[j];
+                        await fs.outputFile(moduleDependency.srcPath, moduleDependency.contents);
+                    }
                 // }
             }
 
@@ -80,10 +85,15 @@ class ZwitterionTest extends HTMLElement {
                 if (e.data.type === RESULT) {
                     //TODO we really need to remove this event listener
                     const bodyHasCorrectContent = +e.data.body === arbNumber;
+
+                    //TODO clean this up so that it is more declarative and understandable
                     const allScriptsExecuted = (e.data.zwitterionTest === undefined && arbScriptElementsInfo.length === 0) ||
                                                 e.data.zwitterionTest && arbScriptElementsInfo.filter((arbScriptElementInfo: any) => {
-                                                                                return !e.data.zwitterionTest[arbScriptElementInfo.srcPath];
-                                                                            }).length === 0;
+                                                                                return e.data.zwitterionTest[arbScriptElementInfo.srcPath] &&
+                                                                                        arbScriptElementInfo.moduleDependencies.filter((moduleDependency: any) => {
+                                                                                            return e.data.zwitterionTest[moduleDependency.srcPath];
+                                                                                        }).length === arbScriptElementInfo.moduleDependencies.length;
+                                                                            }).length === arbScriptElementsInfo.length;
 
                     if (
                         bodyHasCorrectContent &&
@@ -101,11 +111,20 @@ class ZwitterionTest extends HTMLElement {
 
             const result = await thePromise;
 
-            (<any> zwitterionProcess).kill('SIGINT');
-            await fs.unlink('./index.html');
-            for (let i=0; i < arbScriptElementsInfo.length; i++) {
-                const arbScriptElementInfo = arbScriptElementsInfo[i];
-                await fs.remove(`./${arbScriptElementInfo.topLevelDirectory || arbScriptElementInfo.srcPath}`);
+            // if a test case fails, the last files to be tested will not be deleted
+            // You can then go inspect them and manually run them through Zwitterion to find out what happened
+            if (result) {
+                (<any> zwitterionProcess).kill('SIGINT');
+                await fs.unlink('./index.html');
+                for (let i=0; i < arbScriptElementsInfo.length; i++) {
+                    const arbScriptElementInfo = arbScriptElementsInfo[i];
+                    await fs.remove(`./${arbScriptElementInfo.topLevelDirectory || arbScriptElementInfo.srcPath}`);
+
+                    for (let j=0; j < arbScriptElementInfo.moduleDependencies.length; j++) {
+                        const moduleDependency = arbScriptElementInfo.moduleDependencies[j];
+                        await fs.remove(`./${moduleDependency.topLevelDirectory || moduleDependency.srcPath}`);
+                    }
+                }
             }
 
             return result;

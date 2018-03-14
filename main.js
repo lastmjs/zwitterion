@@ -10,6 +10,7 @@ const WebSocket = require('ws');
 const chokidar = require('chokidar');
 const esprima = require('esprima');
 const resolveBareSpecifier = require('./resolve-bare-specifier');
+const babel = require('babel-core');
 
 program
     .version('0.17.1')
@@ -596,7 +597,10 @@ function compileToJs(source, target, jsx) {
 }
 
 function compileToESModules(source) {
-    return source;
+    return babel.transform(source, {
+        babelrc: false,
+        plugins: ['transform-commonjs-es2015-modules']
+    }).code;
 }
 
 function transformSpecifiers(source) {
