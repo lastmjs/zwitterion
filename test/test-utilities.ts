@@ -10,7 +10,7 @@ export const arbPort = jsverify.bless({
 });
 
 function getNewValue(): number {
-    const potentialValue = jsverify.sampler(jsverify.integer(5000, 10000))();
+    const potentialValue = jsverify.sampler(jsverify.integer(6000, 10000))();
 
     if (pastValues.includes(potentialValue)) {
         return getNewValue();
@@ -59,16 +59,16 @@ export function loadZwitterion(port: number) {
 const arbPathInfo = jsverify.bless({
     generator: () => {
         const numLevels = jsverify.sampler(jsverify.integer(0, 10))();
-        const fileName = uuid();
+        const fileNameWithoutExtension = uuid();
         const pathWithoutFileNamePieces = new Array(numLevels).fill(0).map((x) => {
             return uuid();
         });
         const pathWithoutFileName = pathWithoutFileNamePieces.join('/') ? pathWithoutFileNamePieces.join('/') + '/' : '';
         const topLevelDirectory = pathWithoutFileNamePieces[0];
-        const pathWithoutExtension = `${pathWithoutFileName}${fileName}`;
+        const pathWithoutExtension = `${pathWithoutFileName}${fileNameWithoutExtension}`;
         return {
             pathWithoutExtension,
-            fileName,
+            fileNameWithoutExtension,
             topLevelDirectory
         };
     }
@@ -77,30 +77,26 @@ const arbPathInfo = jsverify.bless({
 export const arbScriptElementsInfo = jsverify.bless({
     generator: () => {
         const numScriptElements = jsverify.sampler(jsverify.integer(0, 10))();
-
         return new Array(numScriptElements).fill(0).map((x) => {
             const currentArbPathInfo = jsverify.sampler(arbPathInfo)();
-            const extension = jsverify.sampler(jsverify.oneof([jsverify.constant('.js'), jsverify.constant('.ts'), jsverify.constant('')]))();
-            // const module = jsverify.sampler(jsverify.bool)();
-            const nodeModule = jsverify.sampler(jsverify.bool)();
-            const tsFileFromBareSpecifier = extension === '' && jsverify.sampler(jsverify.bool)();
+            const extension = jsverify.sampler(jsverify.oneof([jsverify.constant('.js'), jsverify.constant('.ts')/*, jsverify.constant('')*/]))();
             const srcPath = `${currentArbPathInfo.pathWithoutExtension}${extension}`;
-            const filePath = `${currentArbPathInfo.pathWithoutExtension}${tsFileFromBareSpecifier ? '.ts' : extension}`;
+            const esModule = jsverify.sampler(jsverify.bool)();
+            // const nodeModule = jsverify.sampler(jsverify.bool)();
+            // const tsFileFromBareSpecifier = extension === '' && jsverify.sampler(jsverify.bool)();
+            // const filePath = `${currentArbPathInfo.pathWithoutExtension}${tsFileFromBareSpecifier ? '.ts' : extension}`;
 
             return {
                 ...currentArbPathInfo,
-                fileNameWithExtension: `${currentArbPathInfo.fileName}${extension}`,
-                filePath,
+                fileName: `${currentArbPathInfo.fileNameWithoutExtension}${extension}`,
                 srcPath,
-                nodeModule,
-                extension,
-                element: `<script src="${srcPath}"></script>`,
+                element: `<script${esModule ? ' type="module" ' : ' '}src="${srcPath}"></script>`,
                 contents: `
                     if (!window.ZWITTERION_TEST) {
                         window.ZWITTERION_TEST = {};
                     }
 
-                    window.ZWITTERION_TEST['${filePath}'] = '${filePath}';
+                    window.ZWITTERION_TEST['${srcPath}'] = '${srcPath}';
                 `
             };
         });

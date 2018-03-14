@@ -1,6 +1,5 @@
 //TODO arbitrary script tags in body
 //TODO bare specifiers should load the file first, the ts file second, and then the node module
-//TODO importing modules
 //TODO Have one test for loading arbitrary html files that aren't the index.html file, and all of their dependencies
 
 declare var jsverify: any;
@@ -24,17 +23,17 @@ class ZwitterionTest extends HTMLElement {
             for (let i=0; i < arbScriptElementsInfo.length; i++) {
                 //TODO if this works, make sure to delete the node_modules created
                 const arbScriptElementInfo = arbScriptElementsInfo[i];
-                if (arbScriptElementInfo.extension === '' && arbScriptElementInfo.nodeModule) {
-                    await fs.outputFile(`./node_modules/${arbScriptElementInfo.fileName}/${arbScriptElementInfo.fileName}.js`, arbScriptElementInfo.contents);
-                    await fs.outputFile(`./node_modules/${arbScriptElementInfo.fileName}/package.json`, `
-                        {
-                            "main": "./${arbScriptElementInfo.fileName}.js"
-                        }
-                    `);
-                }
-                else {
-                    await fs.outputFile(arbScriptElementInfo.filePath, arbScriptElementInfo.contents);
-                }
+                // if (arbScriptElementInfo.extension === '' && arbScriptElementInfo.nodeModule) {
+                //     await fs.outputFile(`./node_modules/${arbScriptElementInfo.fileName}/${arbScriptElementInfo.fileName}.js`, arbScriptElementInfo.contents);
+                //     await fs.outputFile(`./node_modules/${arbScriptElementInfo.fileName}/package.json`, `
+                //         {
+                //             "main": "./${arbScriptElementInfo.fileName}.js"
+                //         }
+                //     `);
+                // }
+                // else {
+                    await fs.outputFile(arbScriptElementInfo.srcPath, arbScriptElementInfo.contents);
+                // }
             }
 
             const html = `
@@ -83,7 +82,7 @@ class ZwitterionTest extends HTMLElement {
                     const bodyHasCorrectContent = +e.data.body === arbNumber;
                     const allScriptsExecuted = (e.data.zwitterionTest === undefined && arbScriptElementsInfo.length === 0) ||
                                                 e.data.zwitterionTest && arbScriptElementsInfo.filter((arbScriptElementInfo: any) => {
-                                                                                return !e.data.zwitterionTest[arbScriptElementInfo.filePath];
+                                                                                return !e.data.zwitterionTest[arbScriptElementInfo.srcPath];
                                                                             }).length === 0;
 
                     if (
@@ -106,14 +105,7 @@ class ZwitterionTest extends HTMLElement {
             await fs.unlink('./index.html');
             for (let i=0; i < arbScriptElementsInfo.length; i++) {
                 const arbScriptElementInfo = arbScriptElementsInfo[i];
-
-                if (arbScriptElementInfo.topLevelDirectory) {
-                    await fs.remove(`./${arbScriptElementInfo.topLevelDirectory}`);
-                }
-                else {
-                    await fs.unlink(`./${arbScriptElementInfo.filePath}`);
-                }
-
+                await fs.remove(`./${arbScriptElementInfo.topLevelDirectory || arbScriptElementInfo.srcPath}`);
             }
 
             return result;
