@@ -22,21 +22,19 @@ class ZwitterionTest extends HTMLElement {
     prepareTests(test: any) {
         test('Load an arbitrary index html file and all of its scripts', [jsverify.number, arbPort, arbScriptElementsInfo], async (arbNumber: number, arbPort: number, arbScriptElementsInfo: any) => {
             for (let i=0; i < arbScriptElementsInfo.length; i++) {
+                //TODO if this works, make sure to delete the node_modules created
                 const arbScriptElementInfo = arbScriptElementsInfo[i];
-                // if (arbScriptElementInfo.extension === '' && arbScriptElementInfo.nodeModule) {
-                //     await fs.outputFile(`./node_modules/${arbScriptElementInfo.fileName}/${arbScriptElementInfo.fileName}.js`, arbScriptElementInfo.contents);
-                //     await fs.outputFile(`./node_modules/${arbScriptElementInfo.fileName}/package.json`, `
-                //         {
-                //             "main": "./${arbScriptElementInfo.fileName}.js"
-                //         }
-                //     `);
-                //
-                //     console.log('arbScriptElementInfo', arbScriptElementInfo);
-                //     throw new Error('it occurred');
-                // }
-                // else {
+                if (arbScriptElementInfo.extension === '' && arbScriptElementInfo.nodeModule) {
+                    await fs.outputFile(`./node_modules/${arbScriptElementInfo.fileName}/${arbScriptElementInfo.fileName}.js`, arbScriptElementInfo.contents);
+                    await fs.outputFile(`./node_modules/${arbScriptElementInfo.fileName}/package.json`, `
+                        {
+                            "main": "./${arbScriptElementInfo.fileName}.js"
+                        }
+                    `);
+                }
+                else {
                     await fs.outputFile(arbScriptElementInfo.filePath, arbScriptElementInfo.contents);
-                // }
+                }
             }
 
             const html = `

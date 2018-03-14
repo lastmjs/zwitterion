@@ -82,7 +82,7 @@ export const arbScriptElementsInfo = jsverify.bless({
             const currentArbPathInfo = jsverify.sampler(arbPathInfo)();
             const extension = jsverify.sampler(jsverify.oneof([jsverify.constant('.js'), jsverify.constant('.ts'), jsverify.constant('')]))();
             // const module = jsverify.sampler(jsverify.bool)();
-            // const nodeModule = jsverify.sampler(jsverify.bool)();
+            const nodeModule = jsverify.sampler(jsverify.bool)();
             const tsFileFromBareSpecifier = extension === '' && jsverify.sampler(jsverify.bool)();
             const srcPath = `${currentArbPathInfo.pathWithoutExtension}${extension}`;
             const filePath = `${currentArbPathInfo.pathWithoutExtension}${tsFileFromBareSpecifier ? '.ts' : extension}`;
@@ -92,6 +92,8 @@ export const arbScriptElementsInfo = jsverify.bless({
                 fileNameWithExtension: `${currentArbPathInfo.fileName}${extension}`,
                 filePath,
                 srcPath,
+                nodeModule,
+                extension,
                 element: `<script src="${srcPath}"></script>`,
                 contents: `
                     if (!window.ZWITTERION_TEST) {
