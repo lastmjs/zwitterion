@@ -1,5 +1,6 @@
 declare var jsverify: any;
 declare var child_process: any;
+declare var uuid: any;
 
 let pastValues: number[] = [];
 export const arbPort = jsverify.bless({
@@ -58,25 +59,9 @@ export function loadZwitterion(port: number) {
 const arbPathInfo = jsverify.bless({
     generator: () => {
         const numLevels = jsverify.sampler(jsverify.integer(0, 10))();
-        const fileName = jsverify.sampler(jsverify.oneof([
-            jsverify.constant('a'),
-            jsverify.constant('b'),
-            jsverify.constant('c'),
-            jsverify.constant('d'),
-            jsverify.constant('e'),
-            jsverify.constant('f'),
-            jsverify.constant('g')
-        ]))();
+        const fileName = uuid();
         const pathWithoutFileNamePieces = new Array(numLevels).fill(0).map((x) => {
-            return jsverify.sampler(jsverify.oneof([
-                jsverify.constant('a'),
-                jsverify.constant('b'),
-                jsverify.constant('c'),
-                jsverify.constant('d'),
-                jsverify.constant('e'),
-                jsverify.constant('f'),
-                jsverify.constant('g')
-            ]))();
+            return uuid();
         });
         const pathWithoutFileName = pathWithoutFileNamePieces.join('/') ? pathWithoutFileNamePieces.join('/') + '/' : '';
         const topLevelDirectory = pathWithoutFileNamePieces[0];
@@ -95,13 +80,12 @@ export const arbScriptElementsInfo = jsverify.bless({
 
         return new Array(numScriptElements).fill(0).map((x) => {
             const currentArbPathInfo = jsverify.sampler(arbPathInfo)();
-            const extension = jsverify.sampler(jsverify.oneof([jsverify.constant('.js'), jsverify.constant('.ts')/*, jsverify.constant('')*/]))();
+            const extension = jsverify.sampler(jsverify.oneof([jsverify.constant('.js'), jsverify.constant('.ts'), jsverify.constant('')]))();
             // const module = jsverify.sampler(jsverify.bool)();
             // const nodeModule = jsverify.sampler(jsverify.bool)();
-            // const tsFileFromBareSpecifier = extension === '' && jsverify.sampler(jsverify.bool)();
+            const tsFileFromBareSpecifier = extension === '' && jsverify.sampler(jsverify.bool)();
             const srcPath = `${currentArbPathInfo.pathWithoutExtension}${extension}`;
-            // const filePath = `${currentArbPathInfo.pathWithoutExtension}${tsFileFromBareSpecifier ? '.ts' : extension}`;
-            const filePath = srcPath;
+            const filePath = `${currentArbPathInfo.pathWithoutExtension}${tsFileFromBareSpecifier ? '.ts' : extension}`;
 
             return {
                 ...currentArbPathInfo,

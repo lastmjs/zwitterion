@@ -2,7 +2,6 @@
 //TODO bare specifiers should load the file first, the ts file second, and then the node module
 //TODO importing modules
 //TODO Have one test for loading arbitrary html files that aren't the index.html file, and all of their dependencies
-//TODO fix the directory overlap that is most likely causing the failures
 
 declare var jsverify: any;
 declare var fs: any;
@@ -105,11 +104,18 @@ class ZwitterionTest extends HTMLElement {
 
             const result = await thePromise;
 
-            zwitterionProcess.kill('SIGINT');
+            (<any> zwitterionProcess).kill('SIGINT');
             await fs.unlink('./index.html');
             for (let i=0; i < arbScriptElementsInfo.length; i++) {
                 const arbScriptElementInfo = arbScriptElementsInfo[i];
-                await fs.remove(arbScriptElementInfo.topLevelDirectory || `./${arbScriptElementInfo.fileNameWithExtension}`);
+
+                if (arbScriptElementInfo.topLevelDirectory) {
+                    await fs.remove(`./${arbScriptElementInfo.topLevelDirectory}`);
+                }
+                else {
+                    await fs.unlink(`./${arbScriptElementInfo.filePath}`);
+                }
+
             }
 
             return result;
