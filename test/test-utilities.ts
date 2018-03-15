@@ -85,10 +85,11 @@ export const arbScriptElementsInfo = (hasModuleDependencies: boolean) => {
                 const extension = jsverify.sampler(jsverify.oneof([jsverify.constant('.js'), jsverify.constant('.ts')/*, jsverify.constant('')*/]))();
                 const srcPath = `${currentArbPathInfo.pathWithoutExtension}${extension}`;
                 const esModule = jsverify.sampler(jsverify.bool)();
+                const commonJSInput = jsverify.sampler(jsverify.bool)();
                 // const nodeModule = jsverify.sampler(jsverify.bool)();
                 // const tsFileFromBareSpecifier = extension === '' && jsverify.sampler(jsverify.bool)();
                 // const filePath = `${currentArbPathInfo.pathWithoutExtension}${tsFileFromBareSpecifier ? '.ts' : extension}`;
-                const moduleDependencies = esModule ? !hasModuleDependencies ? jsverify.sampler(arbScriptElementsInfo(false))() : [] : [];
+                const moduleDependencies = esModule ? hasModuleDependencies ? jsverify.sampler(arbScriptElementsInfo(false))() : [] : [];
 
                 return {
                     ...currentArbPathInfo,
@@ -102,7 +103,7 @@ export const arbScriptElementsInfo = (hasModuleDependencies: boolean) => {
                             const normalizedRelativePath = relativePath[0] === '.' ? relativePath : `./${relativePath}`;
 
                             return `
-                                import * as Dependency${index} from '${normalizedRelativePath}';
+                                ${commonJSInput ? `const Dependency${index} = require('${normalizedRelativePath}');` : `import * as Dependency${index} from '${normalizedRelativePath}';`}
                                 Dependency${index}; //This makes it so the import doesn't get compiled away
                             `;
                         }).join('\n')}
@@ -112,6 +113,8 @@ export const arbScriptElementsInfo = (hasModuleDependencies: boolean) => {
                         }
 
                         window.ZWITTERION_TEST['${srcPath}'] = '${srcPath}';
+
+                        ${!hasModuleDependencies ? 'export default {}' : ''}
                     `
                 };
             });

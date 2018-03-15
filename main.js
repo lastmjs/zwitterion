@@ -397,8 +397,6 @@ function createNodeServer(http, nodePort, webSocketPort, watchFiles, tsWarning, 
 }
 
 async function handleScriptExtension(req, res) {
-    //TODO First we compile to ES2015
-    //TODO Second we convert all requires to ES modules
     //TODO Third we parse and change all URLS to be path URLS with file extensions
 
     const nodeFilePath = `.${req.url}`;
