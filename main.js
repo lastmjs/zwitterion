@@ -8,7 +8,6 @@ const tsc = require('typescript');
 const path = require('path');
 const WebSocket = require('ws');
 const chokidar = require('chokidar');
-const esprima = require('esprima');
 const resolveBareSpecifiers = require('./resolve-bare-specifier.js');
 const addTSExtensionToImportPath = require('./add-ts-extension-to-import-path.js');
 const babel = require('babel-core');
