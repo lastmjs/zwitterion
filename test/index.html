@@ -15,8 +15,16 @@
     </head>
 
     <body>
-        <test-runner>
+        <test-runner id="testRunner">
             <zwitterion-test></zwitterion-test>
         </test-runner>
+
+        <script>
+            if (window.ELECTRON_CONSOLE_ARGUMENTS.autoRun) {
+                setTimeout(() => {
+                    document.getElementById('testRunner').autoRun = true;
+                }, 5000);
+            }
+        </script>
     </body>
 </html>

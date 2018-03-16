@@ -14,7 +14,7 @@ const addTSExtensionToImportPath = require('./add-ts-extension-to-import-path.js
 const babel = require('babel-core');
 
 program
-    .version('0.17.1')
+    .version('0.19.0')
     .option('-p, --port [port]', 'Specify the server\'s port')
     .option('-w, --watch-files', 'Watch files in current directory and reload browser on changes')
     .option('--ts-warning', 'Report TypeScript errors in the browser console as warnings')
@@ -189,7 +189,6 @@ if (buildStatic) {
 function createNodeServer(http, nodePort, webSocketPort, watchFiles, tsWarning, tsError, target) {
     return http.createServer(async (req, res) => {
         const fileExtension = req.url.slice(req.url.lastIndexOf('.') + 1);
-
         switch (fileExtension) {
             case '/': {
                 const indexFileContents = (await fs.readFile(`./index.html`)).toString();
@@ -210,186 +209,10 @@ function createNodeServer(http, nodePort, webSocketPort, watchFiles, tsWarning, 
                 return;
             }
             default: {
-                throw new Error('There is a major problem. This should never happen');
+                await handleGenericFile(req, res);
                 return;
             }
         }
-
-        // if (rootPathResult) {
-        // }
-
-        // const extension = req.url.
-
-        // const jsExtensionResult = handleExtension(req.url);
-        // handleHTMLExtension;
-        // handleJSExtension;
-        // handleNoExtension;
-
-
-        // const normalizedReqURL = req.url === '/' ? '/index.html' : req.url;
-
-        // if (handleRootPath(req.url, watchFile, watchFiles, fs, modifyHTML)) return;
-        //
-        // if (req.url === '/') {
-        //     return;
-        // }
-
-        // const normalizedReqUrl = req.url === '/' ? '/index.html' : req.url;
-        // const filePathWithDot = normalizedReqUrl.slice(0, normalizedReqUrl.lastIndexOf('.') + 1);
-        // const resolvedBareSpecifier = resolveBareSpecifier(normalizedReqUrl === '/index.html' ? '/index.html' : normalizedReqUrl.slice(1));
-        // console.log('resolvedBareSpecifier', resolvedBareSpecifier)
-        // // const resolvedBareSpecifierWithDot = resolvedBareSpecifier.slice(0, resolvedBareSpecifier.lastIndexOf('.') + 1);
-        // // console.log('resolvedBareSpecifier', resolvedBareSpecifier);
-        // const fileExtensionWithoutDot = normalizedReqUrl.slice(normalizedReqUrl.lastIndexOf('.') + 1);
-        // console.log('fileExtensionWithoutDot', fileExtensionWithoutDot)
-        // const directoryPath = normalizedReqUrl.slice(0, normalizedReqUrl.lastIndexOf('/')) || '/';
-        // switch (fileExtensionWithoutDot) {
-        //     case 'html': {
-        //         if (fs.existsSync(`.${normalizedReqUrl}`)) {
-        //             watchFile(`.${normalizedReqUrl}`, watchFiles);
-        //             const fileText = fs.readFileSync(`.${normalizedReqUrl}`).toString();
-        //             res.end(modifyHTML(fileText, directoryPath, watchFiles, webSocketPort));
-        //             return;
-        //         }
-        //         else {
-        //             if (!disableSpa) {
-        //                 res.end(modifyHTML(fs.readFileSync(`./index.html`).toString(), directoryPath, watchFiles, webSocketPort));
-        //             }
-        //             else {
-        //                 res.statusCode = 404;
-        //                 res.end();
-        //             }
-        //             return;
-        //         }
-        //     }
-        //     case 'js': {
-        //         if (compiledFiles[`.${filePathWithDot}ts`]) {
-        //             res.end(compiledFiles[`.${filePathWithDot}ts`]);
-        //             return;
-        //         }
-        //         else if (fs.existsSync(`.${filePathWithDot}ts`)) {
-        //             const typeScriptErrorsString = getTypeScriptErrorsString(`.${filePathWithDot}ts`, tsWarning, tsError);
-        //             watchFile(`.${filePathWithDot}ts`, watchFiles);
-        //             const sourceText = fs.readFileSync(`.${filePathWithDot}ts`).toString();
-        //             const esModuleCompiledSourceText = compileToJs(sourceText, 'es2015', target, null);
-        //             const isModule = determineIfModule(esModuleCompiledSourceText);
-        //             const moduleFormat = isModule ? 'system' : 'es2015';
-        //             const compiledSourceText = compileToJs(sourceText, moduleFormat, target, null);
-        //             const compiledSourceTextWithErrorsString = `${compiledSourceText}${typeScriptErrorsString}`;
-        //             compiledFiles[`.${filePathWithDot}ts`] = compiledSourceTextWithErrorsString;
-        //             res.end(compiledSourceTextWithErrorsString);
-        //             return;
-        //         }
-        //         else if (compiledFiles[`.${filePathWithDot}tsx`]) {
-        //             res.end(compiledFiles[`.${filePathWithDot}tsx`]);
-        //             return;
-        //         }
-        //         else if (fs.existsSync(`.${filePathWithDot}tsx`)) {
-        //             const typeScriptErrorsString = getTypeScriptErrorsString(`.${filePathWithDot}tsx`, tsWarning, tsError);
-        //             watchFile(`.${filePathWithDot}tsx`, watchFiles);
-        //             const sourceText = fs.readFileSync(`.${filePathWithDot}tsx`).toString();
-        //             const esModuleCompiledSourceText = compileToJs(sourceText, 'es2015', target, 'react');
-        //             const isModule = determineIfModule(esModuleCompiledSourceText);
-        //             const moduleFormat = isModule ? 'system' : 'es2015';
-        //             const compiledSourceText = compileToJs(sourceText, moduleFormat, target, 'react');
-        //             const compiledSourceTextWithErrorsString = `${compiledSourceText}${typeScriptErrorsString}`;
-        //             compiledFiles[`.${filePathWithDot}tsx`] = compiledSourceTextWithErrorsString;
-        //             res.end(compiledSourceTextWithErrorsString);
-        //             return;
-        //         }
-        //         else if (compiledFiles[`.${filePathWithDot}jsx`]) {
-        //             res.end(compiledFiles[`.${filePathWithDot}jsx`]);
-        //             return;
-        //         }
-        //         else if (fs.existsSync(`.${filePathWithDot}jsx`)) {
-        //             watchFile(`.${filePathWithDot}jsx`, watchFiles);
-        //             const sourceText = fs.readFileSync(`.${filePathWithDot}jsx`).toString();
-        //             const esModuleCompiledSourceText = compileToJs(sourceText, 'es2015', target, 'react');
-        //             const isModule = determineIfModule(esModuleCompiledSourceText);
-        //             const moduleFormat = isModule ? 'system' : 'es2015';
-        //             const compiledSourceText = compileToJs(sourceText, moduleFormat, target, 'react');
-        //             compiledFiles[`.${filePathWithDot}jsx`] = compiledSourceText;
-        //             res.end(compiledSourceText);
-        //             return;
-        //         }
-        //         else if (compiledFiles[`.${filePathWithDot}c`]) {
-        //             res.end(compiledFiles[`.${filePathWithDot}c`]);
-        //             return;
-        //         }
-        //         else if (fs.existsSync(`.${filePathWithDot}c`)) {
-        //             watchFile(`.${filePathWithDot}c`, watchFiles);
-        //             const wasmJsCompiledSourceText = await compileToWasmJs(`.${filePathWithDot}c`);
-        //             compiledFiles[`.${filePathWithDot}c`] = wasmJsCompiledSourceText;
-        //             res.end(wasmJsCompiledSourceText);
-        //             return;
-        //         }
-        //         else if (compiledFiles[`.${filePathWithDot}cc`]) {
-        //             res.end(compiledFiles[`.${filePathWithDot}cc`]);
-        //             return;
-        //         }
-        //         else if (fs.existsSync(`.${filePathWithDot}cc`)) {
-        //             watchFile(`.${filePathWithDot}cc`, watchFiles);
-        //             const wasmJsCompiledSourceText = await compileToWasmJs(`.${filePathWithDot}cc`);
-        //             compiledFiles[`.${filePathWithDot}cc`] = wasmJsCompiledSourceText;
-        //             res.end(wasmJsCompiledSourceText);
-        //             return;
-        //         }
-        //         else if (compiledFiles[`.${filePathWithDot}cpp`]) {
-        //             res.end(compiledFiles[`.${filePathWithDot}cpp`]);
-        //             return;
-        //         }
-        //         else if (fs.existsSync(`.${filePathWithDot}cpp`)) {
-        //             watchFile(`.${filePathWithDot}cpp`, watchFiles);
-        //             const wasmJsCompiledSourceText = await compileToWasmJs(`.${filePathWithDot}cpp`);
-        //             compiledFiles[`.${filePathWithDot}cpp`] = wasmJsCompiledSourceText;
-        //             res.end(wasmJsCompiledSourceText);
-        //             return;
-        //         }
-        //         else if (compiledFiles[`.${normalizedReqUrl}`]) {
-        //             res.end(compiledFiles[`.${normalizedReqUrl}`]);
-        //             return;
-        //         }
-        //         else {
-        //             if (fs.existsSync(`.${normalizedReqUrl}`)) {
-        //                 watchFile(`.${normalizedReqUrl}`, watchFiles);
-        //                 const sourceText = fs.readFileSync(`.${normalizedReqUrl}`).toString();
-        //                 const isModule = determineIfModule(sourceText);
-        //                 const moduleFormat = isModule ? 'system' : 'es2015';
-        //                 const compiledSourceText = compileToJs(sourceText, moduleFormat, target, null);
-        //                 compiledFiles[`.${normalizedReqUrl}`] = compiledSourceText;
-        //                 res.end(compiledSourceText);
-        //                 return;
-        //             }
-        //             else {
-        //                 if (!disableSpa) {
-        //                     res.end(modifyHTML(fs.readFileSync(`./index.html`).toString(), directoryPath, watchFiles, webSocketPort));
-        //                 }
-        //                 else {
-        //                     res.statusCode = 404;
-        //                     res.end();
-        //                 }
-        //                 return;
-        //             }
-        //         }
-        //     }
-        //     default: {
-        //         if (fs.existsSync(`.${normalizedReqUrl}`)) {
-        //             watchFile(`.${normalizedReqUrl}`, watchFiles);
-        //             res.end(fs.readFileSync(`.${normalizedReqUrl}`));
-        //             return;
-        //         }
-        //         else {
-        //             if (!disableSpa) {
-        //                 res.end(modifyHTML(fs.readFileSync(`./index.html`).toString(), directoryPath, watchFiles, webSocketPort));
-        //             }
-        //             else {
-        //                 res.statusCode = 404;
-        //                 res.end();
-        //             }
-        //             return;
-        //         }
-        //     }
-        // }
     });
 }
 
@@ -434,104 +257,42 @@ async function handleScriptExtension(req, res) {
     }
 }
 
-//TODO there is a lot of repeat code between this function and the handleExplicitScriptExtension function
-// async function handleBareSpecifier(req, res) {
-//     //first we check for if the file exists without the extension
-//     const nodeFilePath = `.${req.url}`;
-//
-//     if (compiledFiles[nodeFilePath]) {
-//         res.end(compiledFiles[nodeFilePath]);
-//         return;
-//     }
-//
-//     if (await fs.exists(nodeFilePath)) {
-//         watchFile(nodeFilePath, watchFiles);
-//         const sourceText = (await fs.readFile(nodeFilePath)).toString();
-//         const isModule = determineIfModule(sourceText);
-//         const moduleFormat = isModule ? 'system' : 'es2015';
-//         const compiledSourceText = compileToJs(sourceText, moduleFormat, target, null);
-//         compiledFiles[nodeFilePath] = compiledSourceText;
-//         res.end(compiledSourceText);
-//         return;
-//     }
-//
-//     //second we check if the file is a TS file (extensions are omitted from imports)
-//     const tsNodeFilePath = `.${req.url}.ts`;
-//
-//     if (compiledFiles[tsNodeFilePath]) {
-//         res.end(compiledFiles[tsNodeFilePath]);
-//         return;
-//     }
-//
-//     if (await fs.exists(tsNodeFilePath)) {
-//         watchFile(tsNodeFilePath, watchFiles);
-//         const sourceText = (await fs.readFile(tsNodeFilePath)).toString();
-//         const isModule = determineIfModule(sourceText);
-//         const moduleFormat = isModule ? 'system' : 'es2015';
-//         const compiledSourceText = compileToJs(sourceText, moduleFormat, target, null);
-//         compiledFiles[tsNodeFilePath] = compiledSourceText;
-//         res.end(compiledSourceText);
-//         return;
-//     }
-//
-//     //finally we check if it is a node module
-//     try {
-//         const resolvedNodeFilePath = resolveBareSpecifier(req.url.slice(1));
-//
-//         if (compiledFiles[resolvedNodeFilePath]) {
-//             res.end(compiledFiles[resolvedNodeFilePath]);
-//             return;
-//         }
-//
-//         if (await fs.exists(resolvedNodeFilePath)) {
-//             watchFile(resolvedNodeFilePath, watchFiles);
-//             const sourceText = (await fs.readFile(resolvedNodeFilePath)).toString();
-//             const isModule = determineIfModule(sourceText);
-//             const moduleFormat = isModule ? 'system' : 'es2015';
-//             const compiledSourceText = compileToJs(sourceText, moduleFormat, target, null);
-//             compiledFiles[resolvedNodeFilePath] = compiledSourceText;
-//             res.end(compiledSourceText);
-//             return;
-//         }
-//
-//     }
-//     catch(error) {
-//         if (!disableSpa) {
-//             const indexFileContents = (await fs.readFile(`./index.html`)).toString();
-//             const modifiedIndexFileContents = modifyHTML(indexFileContents, 'index.html', watchFiles, webSocketPort);
-//             const directoryPath = req.url.slice(0, req.url.lastIndexOf('/')) || '/';
-//             res.end(modifyHTML(modifiedIndexFileContents, directoryPath, watchFiles, webSocketPort));
-//             return;
-//         }
-//         else {
-//             res.statusCode = 404;
-//             res.end();
-//             return;
-//         }
-//     }
-// }
+//TODO this code is very similar to handleScriptExtension
+async function handleGenericFile(req, res) {
+    const nodeFilePath = `.${req.url}`;
 
-// function handleExtension(req.url, extension) {
-//     const filePath =
-//
-//     if (compiledFiles[`.${filePathWithDot}ts`]) {
-//         res.end(compiledFiles[`.${filePathWithDot}ts`]);
-//         return;
-//     }
-//     else if (fs.existsSync(`.${filePathWithDot}ts`)) {
-//         const typeScriptErrorsString = getTypeScriptErrorsString(`.${filePathWithDot}ts`, tsWarning, tsError);
-//         watchFile(`.${filePathWithDot}ts`, watchFiles);
-//         const sourceText = fs.readFileSync(`.${filePathWithDot}ts`).toString();
-//         const esModuleCompiledSourceText = compileToJs(sourceText, 'es2015', target, null);
-//         const isModule = determineIfModule(esModuleCompiledSourceText);
-//         const moduleFormat = isModule ? 'system' : 'es2015';
-//         const compiledSourceText = compileToJs(sourceText, moduleFormat, target, null);
-//         const compiledSourceTextWithErrorsString = `${compiledSourceText}${typeScriptErrorsString}`;
-//         compiledFiles[`.${filePathWithDot}ts`] = compiledSourceTextWithErrorsString;
-//         res.end(compiledSourceTextWithErrorsString);
-//         return;
-//     }
-// }
+    // check if the file is in the cache
+    if (compiledFiles[nodeFilePath]) {
+        res.end(compiledFiles[nodeFilePath]);
+        return;
+    }
+
+    // the file is not in the cache
+    // watch the file if necessary
+    // compile the file and return the compiled source
+    if (await fs.exists(nodeFilePath)) {
+        watchFile(nodeFilePath, watchFiles);
+        const source = (await fs.readFile(nodeFilePath)).toString();
+        compiledFiles[nodeFilePath] = source;
+        res.end(source);
+        return;
+    }
+
+    // if SPA is enabled, return the contents to index.html
+    // if SPA is not enabled, return a 404 error
+    if (!disableSpa) {
+        const indexFileContents = (await fs.readFile(`./index.html`)).toString();
+        const modifiedIndexFileContents = modifyHTML(indexFileContents, 'index.html', watchFiles, webSocketPort);
+        const directoryPath = req.url.slice(0, req.url.lastIndexOf('/')) || '/';
+        res.end(modifyHTML(modifiedIndexFileContents, directoryPath, watchFiles, webSocketPort));
+        return;
+    }
+    else {
+        res.statusCode = 404;
+        res.end();
+        return;
+    }
+}
 
 function getTypeScriptErrorsString(filePath, tsWarning, tsError) {
     if (tsWarning || tsError) {

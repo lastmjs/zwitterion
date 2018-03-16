@@ -1,10 +1,12 @@
 {
   "name": "zwitterion",
-  "version": "0.18.0",
+  "version": "0.19.0",
   "description": "Auto-transpiling, live-reloading, and SPA-ing server for JavaScript, JSX, TypeScript, and TSX.",
   "scripts": {
     "start": "node main.js",
-    "test-window": "electron --enable-logging node_modules/scram-engine/main.js --entry-file test/index.html --window"
+    "test": "xvfb-run electron --enable-logging node_modules/scram-engine/main.js --entry-file test/index.html --auto-run",
+    "test-window": "electron --enable-logging node_modules/scram-engine/main.js --entry-file test/index.html --window",
+    "test-auto": "electron --enable-logging node_modules/scram-engine/main.js --entry-file test/index.html --auto-run"
   },
   "bin": {
     "zwitterion": "./main.js"
