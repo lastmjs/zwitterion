@@ -84,6 +84,7 @@ export const arbScriptElementsInfo = (hasModuleDependencies: boolean) => {
                 const currentArbPathInfo = jsverify.sampler(arbPathInfo)();
                 const extension = jsverify.sampler(jsverify.oneof([jsverify.constant('.js'), jsverify.constant('.ts')/*, jsverify.constant('')*/]))();
                 const srcPath = `${currentArbPathInfo.pathWithoutExtension}${extension}`;
+                const modulePath = `${currentArbPathInfo.pathWithoutExtension}${extension === '.ts' ? '' : extension}`;
                 const esModule = jsverify.sampler(jsverify.bool)();
                 const commonJSInput = jsverify.sampler(jsverify.bool)();
                 // const nodeModule = jsverify.sampler(jsverify.bool)();
@@ -95,11 +96,12 @@ export const arbScriptElementsInfo = (hasModuleDependencies: boolean) => {
                     ...currentArbPathInfo,
                     fileName: `${currentArbPathInfo.fileNameWithoutExtension}${extension}`,
                     srcPath,
+                    modulePath,
                     moduleDependencies,
                     element: `<script${esModule ? ' type="module" ' : ' '}src="${srcPath}"></script>`,
                     contents: `
                         ${moduleDependencies.map((moduleDependency: any, index: number) => {
-                            const relativePath = path.relative(currentArbPathInfo.pathWithoutFileName, moduleDependency.srcPath);
+                            const relativePath = path.relative(currentArbPathInfo.pathWithoutFileName, moduleDependency.modulePath);
                             const normalizedRelativePath = relativePath[0] === '.' ? relativePath : `./${relativePath}`;
 
                             return `

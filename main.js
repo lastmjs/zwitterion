@@ -9,7 +9,8 @@ const path = require('path');
 const WebSocket = require('ws');
 const chokidar = require('chokidar');
 const esprima = require('esprima');
-const resolveBareSpecifier = require('./resolve-bare-specifier');
+const resolveBareSpecifiers = require('./resolve-bare-specifier.js');
+const addTSExtensionToImportPath = require('./add-ts-extension-to-import-path.js');
 const babel = require('babel-core');
 
 program
@@ -208,10 +209,6 @@ function createNodeServer(http, nodePort, webSocketPort, watchFiles, tsWarning, 
                 await handleScriptExtension(req, res);
                 return;
             }
-            case req.url: {
-                await handleBareSpecifier(req, res);
-                return;
-            }
             default: {
                 throw new Error('There is a major problem. This should never happen');
                 return;
@@ -397,8 +394,6 @@ function createNodeServer(http, nodePort, webSocketPort, watchFiles, tsWarning, 
 }
 
 async function handleScriptExtension(req, res) {
-    //TODO Third we parse and change all URLS to be path URLS with file extensions
-
     const nodeFilePath = `.${req.url}`;
 
     // check if the file is in the cache
@@ -416,7 +411,7 @@ async function handleScriptExtension(req, res) {
         const source = (await fs.readFile(nodeFilePath)).toString();
         const compiledToJS = compileToJs(source, target, null);
         const compiledToESModules = compileToESModules(compiledToJS);
-        const transformedSpecifiers = transformSpecifiers(compiledToESModules);
+        const transformedSpecifiers = transformSpecifiers(compiledToESModules, nodeFilePath);
         compiledFiles[nodeFilePath] = transformedSpecifiers;
         res.setHeader('Content-Type', 'application/javascript');
         res.end(transformedSpecifiers);
@@ -601,8 +596,11 @@ function compileToESModules(source) {
     }).code;
 }
 
-function transformSpecifiers(source) {
-    return source;
+function transformSpecifiers(source, filePath) {
+    return babel.transform(source, {
+        babelrc: false,
+        plugins: [resolveBareSpecifiers(filePath, false), addTSExtensionToImportPath]
+    }).code;
 }
 
 function createWebSocketServer(webSocketPort, watchFiles) {

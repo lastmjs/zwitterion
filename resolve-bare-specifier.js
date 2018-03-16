@@ -14,65 +14,73 @@
 
 const {dirname, relative} = require('path');
 const resolve = require('resolve');
+const {NodePath} = require('babel-traverse');
+const isWindows = require('is-windows');
+const whatwgUrl = require('whatwg-url');
+const {ImportDeclaration, ExportNamedDeclaration, ExportAllDeclaration} = require('babel-types');
+
+const exportExtensions = require('babel-plugin-syntax-export-extensions');
+
 const isPathSpecifier = (s) => /^\.{0,2}\//.test(s);
 
 /**
  * Rewrites so-called "bare module specifiers" to be web-compatible paths.
  */
-module.exports = (filePath) => {
-    const specifier = filePath;
+const resolveBareSpecifiers =
+    (filePath, isComponentRequest) => ({
+      inherits: exportExtensions,
+      visitor: {
+        'ImportDeclaration|ExportNamedDeclaration|ExportAllDeclaration'(
+            path) {
+          const node = path.node;
 
-    if (isPathSpecifier(specifier)) {
-        return;
-    }
+          // An export without a 'from' clause
+          if (node.source == null) {
+            return;
+          }
 
-    const resolvedSpecifier = resolve.sync(specifier, {basedir: filePath});
+          const specifier = node.source.value;
 
-    let relativeSpecifierUrl = relative(dirname(filePath), resolvedSpecifier);
+          if (whatwgUrl.parseURL(specifier) !== null) {
+            return;
+          }
 
-    if (!isPathSpecifier(relativeSpecifierUrl)) {
-        relativeSpecifierUrl = './' + relativeSpecifierUrl;
-    }
+          if (isPathSpecifier(specifier)) {
+            return;
+          }
 
-    return relativeSpecifierUrl;
-};
+          const resolvedSpecifier = resolve.sync(specifier, {
+            basedir: filePath,
+            // Some packages use a non-standard alternative to the "main" field
+            // in their package.json to differentiate their ES module version.
+            packageFilter: (packageJson) => {
+              packageJson.main = packageJson.module ||
+                  packageJson['jsnext:main'] || packageJson.main;
+              return packageJson;
+            },
+          });
 
-// module.exports =
-//     (filePath, isComponentRequest) => ({
-//       inherits: exportExtensions,
-//       visitor: {
-//         'ImportDeclaration|ExportNamedDeclaration|ExportAllDeclaration'(
-//             path) {
-//
-//           const node = path.node;
-//
-//           // An export without a 'from' clause
-//           if (node.source == null) {
-//             return;
-//           }
-//
-//           const specifier = node.source.value;
-//
-//           if (isPathSpecifier(specifier)) {
-//             return;
-//           }
-//
-//           const resolvedSpecifier =
-//               resolve.sync(specifier, {basedir: filePath});
-//
-//           let relativeSpecifierUrl =
-//               relative(dirname(filePath), resolvedSpecifier);
-//
-//           if (!isPathSpecifier(relativeSpecifierUrl)) {
-//             relativeSpecifierUrl = './' + relativeSpecifierUrl;
-//           }
-//           if (isComponentRequest &&
-//               relativeSpecifierUrl.startsWith('../node_modules/')) {
-//             // Remove ../node_modules for component serving
-//             relativeSpecifierUrl = '../' +
-//                 relativeSpecifierUrl.substring('../node_modules/'.length);
-//           }
-//           node.source.value = relativeSpecifierUrl;
-//         }
-//       }
-//     });
+          console.log('resolvedSpecifier', resolvedSpecifier);
+
+          let relativeSpecifierUrl =
+              relative(dirname(filePath), resolvedSpecifier);
+
+          if (isWindows()) {
+            relativeSpecifierUrl = relativeSpecifierUrl.replace(/\\/g, '/');
+          }
+
+          if (!isPathSpecifier(relativeSpecifierUrl)) {
+            relativeSpecifierUrl = './' + relativeSpecifierUrl;
+          }
+          if (isComponentRequest &&
+              relativeSpecifierUrl.startsWith('../node_modules/')) {
+            // Remove ../node_modules for component serving
+            relativeSpecifierUrl = '../' +
+                relativeSpecifierUrl.substring('../node_modules/'.length);
+          }
+          node.source.value = relativeSpecifierUrl;
+        }
+      }
+    });
+
+module.exports = resolveBareSpecifiers;
