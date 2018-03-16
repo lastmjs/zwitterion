@@ -13,7 +13,7 @@ const addTSExtensionToImportPath = require('./add-ts-extension-to-import-path.js
 const babel = require('babel-core');
 
 program
-    .version('0.19.2')
+    .version('0.19.3')
     .option('-p, --port [port]', 'Specify the server\'s port')
     .option('-w, --watch-files', 'Watch files in current directory and reload browser on changes')
     .option('--ts-warning', 'Report TypeScript errors in the browser console as warnings')
