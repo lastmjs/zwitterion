@@ -196,10 +196,6 @@ function createNodeServer(http, nodePort, webSocketPort, watchFiles, tsWarning, 
                 res.end(modifiedIndexFileContents);
                 return;
             }
-            case 'html': {
-                throw new Error('html file extension not implemented');
-                return;
-            }
             case 'js': {
                 await handleScriptExtension(req, res);
                 return;
@@ -272,7 +268,7 @@ async function handleGenericFile(req, res) {
     // compile the file and return the compiled source
     if (await fs.exists(nodeFilePath)) {
         watchFile(nodeFilePath, watchFiles);
-        const source = (await fs.readFile(nodeFilePath)).toString();
+        const source = await fs.readFile(nodeFilePath);
         compiledFiles[nodeFilePath] = source;
         res.end(source);
         return;
