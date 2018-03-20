@@ -21,6 +21,8 @@ All features that the TypeScript compiler provides are automatically available, 
 import {createStore} from 'redux';
 ```
 
+Zwitterion lets you get back to the good old days of web development. Just write your source code and run it in the browser.
+
 ## Current Features
 
 * Automatic JavaScript transpilation (JS -> JS)
@@ -84,7 +86,7 @@ or from an npm script:
 
 ## Production Use
 
-To create a static build suitable for uploading to a CDN (content delivery network), run Zwitterion with the `--build-static` option. The static files will be created in a directory called `dist` in the directory Zwitterion is started from. The [Zwitterion Example project](https://github.com/lastmjs/zwitterion-example) has a [live demo in production](https://zwitterion-example.netlify.com/).
+To create a static build suitable for uploading to a CDN (content delivery network), run Zwitterion with the `--build-static` option. The static files will be created in a directory called `dist` in the directory Zwitterion is started from. You may need to add the `application/javascript` MIME type to your hosting provider for your TypeScript files.
 
 From the terminal:
 
@@ -210,3 +212,6 @@ Disable the SPA redirect to index.html:
 ```bash
 --disable-spa
 ```
+
+## How it Works
+
