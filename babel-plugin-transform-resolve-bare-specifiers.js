@@ -60,8 +60,6 @@ const resolveBareSpecifiers =
             },
           });
 
-          console.log('resolvedSpecifier', resolvedSpecifier);
-
           let relativeSpecifierUrl =
               relative(dirname(filePath), resolvedSpecifier);
 

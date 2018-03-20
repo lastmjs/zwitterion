@@ -8,9 +8,12 @@ const tsc = require('typescript');
 const path = require('path');
 const WebSocket = require('ws');
 const chokidar = require('chokidar');
-const resolveBareSpecifiers = require('./resolve-bare-specifier.js');
-const addTSExtensionToImportPath = require('./add-ts-extension-to-import-path.js');
+const resolveBareSpecifiers = require('./babel-plugin-transform-resolve-bare-specifiers.js');
+const addTSExtensionToImportPath = require('./babel-plugin-transform-add-ts-extension-to-import-path.js');
+const removeRollupImports = require('./babel-plugin-transform-remove-rollup-imports.js');
 const babel = require('babel-core');
+const rollup = require('rollup');
+const commonJSPlugin = require('rollup-plugin-commonjs');
 
 program
     .version('0.19.3')
@@ -187,26 +190,31 @@ if (buildStatic) {
 // end side-effects
 function createNodeServer(http, nodePort, webSocketPort, watchFiles, tsWarning, tsError, target) {
     return http.createServer(async (req, res) => {
-        const fileExtension = req.url.slice(req.url.lastIndexOf('.') + 1);
-        switch (fileExtension) {
-            case '/': {
-                const indexFileContents = (await fs.readFile(`./index.html`)).toString();
-                const modifiedIndexFileContents = modifyHTML(indexFileContents, 'index.html', watchFiles, webSocketPort);
-                res.end(modifiedIndexFileContents);
-                return;
+        try {
+            const fileExtension = req.url.slice(req.url.lastIndexOf('.') + 1);
+            switch (fileExtension) {
+                case '/': {
+                    const indexFileContents = (await fs.readFile(`./index.html`)).toString();
+                    const modifiedIndexFileContents = modifyHTML(indexFileContents, 'index.html', watchFiles, webSocketPort);
+                    res.end(modifiedIndexFileContents);
+                    return;
+                }
+                case 'js': {
+                    await handleScriptExtension(req, res);
+                    return;
+                }
+                case 'ts': {
+                    await handleScriptExtension(req, res);
+                    return;
+                }
+                default: {
+                    await handleGenericFile(req, res);
+                    return;
+                }
             }
-            case 'js': {
-                await handleScriptExtension(req, res);
-                return;
-            }
-            case 'ts': {
-                await handleScriptExtension(req, res);
-                return;
-            }
-            default: {
-                await handleGenericFile(req, res);
-                return;
-            }
+        }
+        catch(error) {
+            console.log(error);
         }
     });
 }
@@ -228,7 +236,7 @@ async function handleScriptExtension(req, res) {
         watchFile(nodeFilePath, watchFiles);
         const source = (await fs.readFile(nodeFilePath)).toString();
         const compiledToJS = compileToJs(source, target, null);
-        const compiledToESModules = compileToESModules(compiledToJS);
+        const compiledToESModules = await compileToESModules(compiledToJS, nodeFilePath);
         const transformedSpecifiers = transformSpecifiers(compiledToESModules, nodeFilePath);
         compiledFiles[nodeFilePath] = transformedSpecifiers;
         res.setHeader('Content-Type', 'application/javascript');
@@ -345,17 +353,30 @@ function compileToJs(source, target, jsx) {
     return transpileOutput.outputText;
 }
 
-function compileToESModules(source) {
-    return babel.transform(source, {
-        babelrc: false,
-        plugins: ['transform-commonjs-es2015-modules']
-    }).code;
+async function compileToESModules(source, nodeFilePath) {
+    const bundle = await rollup.rollup({
+        experimentalPreserveModules: true,
+        input: nodeFilePath,
+        plugins: [commonJSPlugin({
+            sourceMap: false
+        })]
+    });
+
+    const result = await bundle.generate({
+        format: 'es'
+    });
+
+    const fileNamePath = `.${nodeFilePath.slice(nodeFilePath.lastIndexOf('/'))}`;
+    const absoluteNodeFilePath = `.${path.resolve(nodeFilePath)}`;
+    const filePathResult = result[fileNamePath] || result[nodeFilePath] || result[absoluteNodeFilePath];
+
+    return filePathResult.code;
 }
 
 function transformSpecifiers(source, filePath) {
     return babel.transform(source, {
         babelrc: false,
-        plugins: [resolveBareSpecifiers(filePath, false), addTSExtensionToImportPath]
+        plugins: [removeRollupImports(filePath), resolveBareSpecifiers(filePath, false), addTSExtensionToImportPath]
     }).code;
 }
 

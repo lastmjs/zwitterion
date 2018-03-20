@@ -24,12 +24,14 @@
   "dependencies": {
     "babel-core": "^6.26.0",
     "babel-plugin-syntax-export-extensions": "^6.13.0",
-    "babel-plugin-transform-commonjs-es2015-modules": "^4.0.1",
     "chokidar": "^1.7.0",
     "commander": "^2.11.0",
     "fs-extra": "^5.0.0",
     "is-windows": "^1.0.2",
     "resolve": "^1.5.0",
+    "rollup": "^0.57.1",
+    "rollup-commonjs-helpers": "0.0.1",
+    "rollup-plugin-commonjs": "^9.1.0",
     "typescript": "^2.4.2",
     "whatwg-url": "^6.4.0",
     "ws": "^5.0.0"
