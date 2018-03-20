@@ -2,7 +2,7 @@
 
 # Zwitterion
 
-Zwitterion is a server for web applications that provides automatic transpilation, live-reload, and SPA (single-page application) support out of the box. It allows you to develop web platform applications using the latest versions of JavaScript or TypeScript without a complicated build step.
+Zwitterion is a server for web applications that provides automatic transpilation, live-reload, and SPA (single-page application) support out of the box. It allows you to develop web platform applications using the latest versions of JavaScript, TypeScript, JSX, or TSX without a complicated build step.
 
 Just include files directly in `<script>` tags:
 
@@ -27,6 +27,8 @@ Zwitterion lets you get back to the good old days of web development. Just write
 
 * Automatic JavaScript transpilation (JS -> JS)
 * Automatic TypeScript transpilation (TS -> JS)
+* Automatic JSX transpilation (JSX -> JS)
+* Automatic TSX transpilation (TSX -> JS)
 * Automatic CommonJS transpilation (CommonJS -> ES Modules)
 * Bare specifiers (`import * as stuff from 'library';` instead of `import * as stuff from '../node_modules/library/index.js';`)
 
@@ -149,7 +151,7 @@ Read the following for more information on bundling versus not bundling with HTT
 Here's a rough roadmap of the big future plans:
 
 - [ ] Investigate performance, make sure Zwitterion can beat out the complicated bundlers (tree shaking and bundling)
-- [ ] Add support for TSX, JSX, wasm, Rust, C, C++ and any other popular language that can compile to wasm
+- [ ] Add support for WebAssembly, Rust, C, C++ and any other popular language that can compile to WebAssembly
 
 ## Command-line Options
 
@@ -199,7 +201,7 @@ A space-separated list of directories to exclude from the static build:
 
 ### Target
 
-The ECMAScript version to compile to; if omitted, defaults to ES5. Any targets supported by the TypeScript compiler are supported here (ES3, ES5, ES6/ES2015, ES2016, ES2017, ESNext):
+The ECMAScript version to compile to; if omitted, defaults to ES2015. Any targets supported by the TypeScript compiler are supported here (ES3, ES5, ES6/ES2015, ES2016, ES2017, ESNext):
 
 ```bash
 --target [target]

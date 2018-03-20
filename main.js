@@ -37,7 +37,7 @@ const nodePort = +(program.port || 5000);
 const webSocketPort = nodePort + 1;
 const tsWarning = program.tsWarning;
 const tsError = program.tsError;
-const target = program.target || 'ES5';
+const target = program.target || 'ES2015';
 const nodeHttpServer = createNodeServer(http, nodePort, webSocketPort, watchFiles, tsWarning, tsError, target);
 const webSocketServer = createWebSocketServer(webSocketPort, watchFiles);
 const excludeDirs = program.excludeDirs;
@@ -200,15 +200,23 @@ function createNodeServer(http, nodePort, webSocketPort, watchFiles, tsWarning, 
                     return;
                 }
                 case 'js': {
-                    await handleScriptExtension(req, res);
+                    await handleScriptExtension(req, res, fileExtension);
                     return;
                 }
                 case 'ts': {
-                    await handleScriptExtension(req, res);
+                    await handleScriptExtension(req, res, fileExtension);
+                    return;
+                }
+                case 'tsx': {
+                    await handleScriptExtension(req, res, fileExtension);
+                    return;
+                }
+                case 'jsx': {
+                    await handleScriptExtension(req, res, fileExtension);
                     return;
                 }
                 default: {
-                    await handleGenericFile(req, res);
+                    await handleGenericFile(req, res, fileExtension);
                     return;
                 }
             }
@@ -219,7 +227,7 @@ function createNodeServer(http, nodePort, webSocketPort, watchFiles, tsWarning, 
     });
 }
 
-async function handleScriptExtension(req, res) {
+async function handleScriptExtension(req, res, fileExtension) {
     const nodeFilePath = `.${req.url}`;
 
     // check if the file is in the cache
@@ -235,7 +243,7 @@ async function handleScriptExtension(req, res) {
     if (await fs.exists(nodeFilePath)) {
         watchFile(nodeFilePath, watchFiles);
         const source = (await fs.readFile(nodeFilePath)).toString();
-        const compiledToJS = compileToJs(source, target, null);
+        const compiledToJS = compileToJs(source, target, fileExtension === '.jsx' || fileExtension === '.tsx');
         const compiledToESModules = await compileToESModules(transformSpecifiers(compiledToJS, nodeFilePath), nodeFilePath);
         const transformedSpecifiers = transformSpecifiers(compiledToESModules, nodeFilePath);
         compiledFiles[nodeFilePath] = transformedSpecifiers;
@@ -261,7 +269,7 @@ async function handleScriptExtension(req, res) {
 }
 
 //TODO this code is very similar to handleScriptExtension
-async function handleGenericFile(req, res) {
+async function handleGenericFile(req, res, fileExtension) {
     const nodeFilePath = `.${req.url}`;
 
     // check if the file is in the cache
