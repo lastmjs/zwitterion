@@ -14,8 +14,6 @@ const removeRollupImports = require('./babel-plugin-transform-remove-rollup-impo
 const babel = require('babel-core');
 const rollup = require('rollup');
 const commonJSPlugin = require('rollup-plugin-commonjs');
-const virtualPlugin = require('rollup-plugin-virtual');
-const resolvePlugin = require('rollup-plugin-node-resolve');
 
 program
     .version('0.19.3')
@@ -365,13 +363,8 @@ async function compileToESModules(source, nodeFilePath) {
 
     const bundle = await rollup.rollup({
         experimentalPreserveModules: true,
-        // input: '__entry__',
         input: tempFilePath,
-        plugins: [/*virtualPlugin({
-            __entry__: source
-        }), *//*resolvePlugin({
-            extensions: ['.js', '.ts']
-        }), */commonJSPlugin({
+        plugins: [commonJSPlugin({
             sourceMap: false
         })]
     });

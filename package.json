@@ -32,8 +32,6 @@
     "rollup": "^0.57.1",
     "rollup-commonjs-helpers": "0.0.1",
     "rollup-plugin-commonjs": "^9.1.0",
-    "rollup-plugin-node-resolve": "^3.3.0",
-    "rollup-plugin-virtual": "^1.0.1",
     "typescript": "^2.4.2",
     "whatwg-url": "^6.4.0",
     "ws": "^5.0.0"
