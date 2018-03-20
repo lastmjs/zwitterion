@@ -2,7 +2,24 @@
 
 # Zwitterion
 
-Zwitterion is a server for web applications that provides automatic transpilation, live-reload, and SPA (single-page application) support out of the box. It allows you to develop web platform applications using the latest versions of JavaScript or TypeScript without a complicated build step. Just include files directly in `<script>` tags, for example `<script src="hello-world.ts"></script>`, or as ES module imports, for example `import {hello} from './hello-world';`. All features that the TypeScript compiler provides are automatically available, including ES modules, async/await, and Object spread. Zwitterion even provides support for bare specifiers, for example `import {createStore} from 'redux';`.
+Zwitterion is a server for web applications that provides automatic transpilation, live-reload, and SPA (single-page application) support out of the box. It allows you to develop web platform applications using the latest versions of JavaScript or TypeScript without a complicated build step.
+
+Just include files directly in `<script>` tags:
+
+```html
+<script src="hello-world.ts"></script>
+```
+
+or as ES module imports:
+```javascript
+import {hello} from './hello-world';
+```
+
+All features that the TypeScript compiler provides are automatically available, including ES modules, async/await, and Object spread. Zwitterion even provides support for bare specifiers:
+
+```javascript
+import {createStore} from 'redux';
+```
 
 ## Current Features
 
