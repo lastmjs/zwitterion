@@ -14,6 +14,8 @@ const removeRollupImports = require('./babel-plugin-transform-remove-rollup-impo
 const babel = require('babel-core');
 const rollup = require('rollup');
 const commonJSPlugin = require('rollup-plugin-commonjs');
+const virtualPlugin = require('rollup-plugin-virtual');
+const resolvePlugin = require('rollup-plugin-node-resolve');
 
 program
     .version('0.19.3')
@@ -236,7 +238,7 @@ async function handleScriptExtension(req, res) {
         watchFile(nodeFilePath, watchFiles);
         const source = (await fs.readFile(nodeFilePath)).toString();
         const compiledToJS = compileToJs(source, target, null);
-        const compiledToESModules = await compileToESModules(compiledToJS, nodeFilePath);
+        const compiledToESModules = await compileToESModules(transformSpecifiers(compiledToJS, nodeFilePath), nodeFilePath);
         const transformedSpecifiers = transformSpecifiers(compiledToESModules, nodeFilePath);
         compiledFiles[nodeFilePath] = transformedSpecifiers;
         res.setHeader('Content-Type', 'application/javascript');
@@ -354,21 +356,40 @@ function compileToJs(source, target, jsx) {
 }
 
 async function compileToESModules(source, nodeFilePath) {
+    const tempFilePath =
+        nodeFilePath.indexOf('.js') !== -1 ? nodeFilePath.replace('.js', '-transpiled.js') :
+        nodeFilePath.indexOf('.ts') !== -1 ? nodeFilePath.replace('.ts', '-transpiled.js') :
+        `${tempFilePath}-transpiled.js`;
+
+    await fs.writeFile(tempFilePath, source);
+
     const bundle = await rollup.rollup({
         experimentalPreserveModules: true,
-        input: nodeFilePath,
-        plugins: [commonJSPlugin({
+        // input: '__entry__',
+        input: tempFilePath,
+        plugins: [/*virtualPlugin({
+            __entry__: source
+        }), *//*resolvePlugin({
+            extensions: ['.js', '.ts']
+        }), */commonJSPlugin({
             sourceMap: false
         })]
     });
+
+    await fs.unlink(tempFilePath);
 
     const result = await bundle.generate({
         format: 'es'
     });
 
-    const fileNamePath = `.${nodeFilePath.slice(nodeFilePath.lastIndexOf('/'))}`;
-    const absoluteNodeFilePath = `.${path.resolve(nodeFilePath)}`;
-    const filePathResult = result[fileNamePath] || result[nodeFilePath] || result[absoluteNodeFilePath];
+    const fileNamePath = `.${tempFilePath.slice(tempFilePath.lastIndexOf('/'))}`;
+    const absoluteNodeFilePath = `.${path.resolve(tempFilePath)}`;
+    const filePathResult = result[fileNamePath] ||
+                            result[`${fileNamePath}.js`] ||
+                            result[tempFilePath] ||
+                            result[`${tempFilePath}.js`] ||
+                            result[absoluteNodeFilePath] ||
+                            result[`${absoluteNodeFilePath}.js`];
 
     return filePathResult.code;
 }

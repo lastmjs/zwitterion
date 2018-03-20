@@ -84,9 +84,10 @@ export const arbScriptElementsInfo = (hasModuleDependencies: boolean) => {
                 const currentArbPathInfo = jsverify.sampler(arbPathInfo)();
                 const extension = jsverify.sampler(jsverify.oneof([jsverify.constant('.js'), jsverify.constant('.ts')/*, jsverify.constant('')*/]))();
                 const srcPath = `${currentArbPathInfo.pathWithoutExtension}${extension}`;
-                const modulePath = `${currentArbPathInfo.pathWithoutExtension}${extension === '.ts' ? '' : extension}`;
+                const modulePath = `${currentArbPathInfo.pathWithoutExtension}`;
                 const esModule = jsverify.sampler(jsverify.bool)();
                 const commonJSInput = jsverify.sampler(jsverify.bool)();
+                // const commonJSInput = true;
                 // const nodeModule = jsverify.sampler(jsverify.bool)();
                 // const tsFileFromBareSpecifier = extension === '' && jsverify.sampler(jsverify.bool)();
                 // const filePath = `${currentArbPathInfo.pathWithoutExtension}${tsFileFromBareSpecifier ? '.ts' : extension}`;
@@ -98,6 +99,7 @@ export const arbScriptElementsInfo = (hasModuleDependencies: boolean) => {
                     srcPath,
                     modulePath,
                     moduleDependencies,
+                    extension,
                     element: `<script${esModule ? ' type="module" ' : ' '}src="${srcPath}"></script>`,
                     contents: `
                         ${moduleDependencies.map((moduleDependency: any, index: number) => {
@@ -105,8 +107,8 @@ export const arbScriptElementsInfo = (hasModuleDependencies: boolean) => {
                             const normalizedRelativePath = relativePath[0] === '.' ? relativePath : `./${relativePath}`;
 
                             return `
-                                ${commonJSInput ? `const Dependency${index} = require('${normalizedRelativePath}');` : `import * as Dependency${index} from '${normalizedRelativePath}';`}
-                                Dependency${index}; //This makes it so the import doesn't get compiled away
+                                ${commonJSInput ? `const Dependency${index} = require('${normalizedRelativePath}${moduleDependency.extension}');` : `import Dependency${index} from '${moduleDependency.extension === '.ts' ? normalizedRelativePath : `${normalizedRelativePath}.js` }';`}
+                                console.log(Dependency${index}); //This makes it so the import doesn't get compiled away
                             `;
                         }).join('\n')}
 
