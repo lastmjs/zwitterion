@@ -375,16 +375,13 @@ async function compileToESModules(source, nodeFilePath) {
         format: 'es'
     });
 
-    const fileNamePath = `.${tempFilePath.slice(tempFilePath.lastIndexOf('/'))}`;
-    const absoluteNodeFilePath = `.${path.resolve(tempFilePath)}`;
-    const filePathResult = result[fileNamePath] ||
-                            result[`${fileNamePath}.js`] ||
-                            result[tempFilePath] ||
-                            result[`${tempFilePath}.js`] ||
-                            result[absoluteNodeFilePath] ||
-                            result[`${absoluteNodeFilePath}.js`];
+    const fileName = `${tempFilePath.slice(tempFilePath.lastIndexOf('/') + 1)}`
+    const filePathResultKey = Object.keys(result).filter((resultKey) => {
+        return resultKey.indexOf(fileName) !== -1;
+    })[0];
+    const filePathResultValue = result[filePathResultKey];
 
-    return filePathResult.code;
+    return filePathResultValue.code;
 }
 
 function transformSpecifiers(source, filePath) {
