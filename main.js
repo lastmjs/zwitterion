@@ -245,7 +245,7 @@ async function handleScriptExtension(req, res, fileExtension) {
         watchFile(nodeFilePath, watchFiles);
         const source = (await fs.readFile(nodeFilePath)).toString();
         const compiledToJS = compileToJs(source, target, fileExtension === '.jsx' || fileExtension === '.tsx');
-        const compiledToESModules = await compileToESModules(transformSpecifiers(compiledToJS, nodeFilePath), nodeFilePath);
+        const compiledToESModules = await compileToESModules(compiledToJS, nodeFilePath);
         const transformedSpecifiers = transformSpecifiers(compiledToESModules, nodeFilePath);
         compiledFiles[nodeFilePath] = transformedSpecifiers;
         res.setHeader('Content-Type', 'application/javascript');
@@ -364,7 +364,7 @@ function compileToJs(source, target, jsx) {
 
 async function compileToESModules(source, nodeFilePath) {
     //TODO look into the virtual plugin again to see if we can get it to work now that we're using the bable/typescript plugin
-    //TODO once babel 7 comes out, we might be able to get rid of the rollup typescript plugin and just use the rollup babel plugin itself
+    //TODO we might not need to do any of this saving transpiled stuff, and perhaps we can even get rid of the transpilation to typescript before this function is called
     const tempFilePath =
         nodeFilePath.indexOf('.js') !== -1 ? nodeFilePath.replace('.js', '-zwitterion-transpiled.js') :
         nodeFilePath.indexOf('.ts') !== -1 ? nodeFilePath.replace('.ts', '-zwitterion-transpiled.js') :
@@ -376,7 +376,8 @@ async function compileToESModules(source, nodeFilePath) {
         experimentalPreserveModules: true,
         input: tempFilePath,
         plugins: [rollupPluginBabel({
-            presets: ['typescript']
+            presets: ['typescript'],
+            plugins: [addTSExtensionToImportPath]
         }), commonJSPlugin({
             sourceMap: false
         })]
@@ -387,9 +388,6 @@ async function compileToESModules(source, nodeFilePath) {
     const result = await bundle.generate({
         format: 'es'
     });
-
-    //TODO hopefully the typescript2plugin will get rid of the need for this directory: https://github.com/ezolenko/rollup-plugin-typescript2/issues/68
-    await fs.remove('.rpt2_cache');
 
     const fileName = `${tempFilePath.slice(tempFilePath.lastIndexOf('/') + 1)}`
     const filePathResultKey = Object.keys(result).filter((resultKey) => {
