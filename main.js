@@ -17,7 +17,7 @@ const commonJSPlugin = require('rollup-plugin-commonjs');
 const rollupPluginTypescript2 = require('rollup-plugin-typescript2');
 
 program
-    .version('0.20.2')
+    .version('0.20.3')
     .option('-p, --port [port]', 'Specify the server\'s port')
     .option('-w, --watch-files', 'Watch files in current directory and reload browser on changes')
     .option('--ts-warning', 'Report TypeScript errors in the browser console as warnings')
