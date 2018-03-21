@@ -79,7 +79,7 @@ const arbPathInfo = jsverify.bless({
 export const arbScriptElementsInfo = (hasModuleDependencies: boolean) => {
     return jsverify.bless({
         generator: () => {
-            const numScriptElements = jsverify.sampler(jsverify.integer(0, 1))(); //TODO try to make more scripts without running out of stack space
+            const numScriptElements = jsverify.sampler(jsverify.integer(0, 3))(); //TODO try to make more scripts without running out of stack space
             return new Array(numScriptElements).fill(0).map((x) => {
                 const currentArbPathInfo = jsverify.sampler(arbPathInfo)();
                 const extension = jsverify.sampler(jsverify.oneof([jsverify.constant('.js'), jsverify.constant('.ts')/*, jsverify.constant('')*/]))();

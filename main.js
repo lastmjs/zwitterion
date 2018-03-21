@@ -14,10 +14,10 @@ const removeRollupImports = require('./babel-plugin-transform-remove-rollup-impo
 const babel = require('babel-core');
 const rollup = require('rollup');
 const commonJSPlugin = require('rollup-plugin-commonjs');
-const rollupPluginTypescript2 = require('rollup-plugin-typescript2');
+const rollupPluginBabel = require('rollup-plugin-babel');
 
 program
-    .version('0.20.3')
+    .version('0.20.4')
     .option('-p, --port [port]', 'Specify the server\'s port')
     .option('-w, --watch-files', 'Watch files in current directory and reload browser on changes')
     .option('--ts-warning', 'Report TypeScript errors in the browser console as warnings')
@@ -375,9 +375,8 @@ async function compileToESModules(source, nodeFilePath) {
     const bundle = await rollup.rollup({
         experimentalPreserveModules: true,
         input: tempFilePath,
-        plugins: [rollupPluginTypescript2({
-            abortOnError: false,
-            check: false
+        plugins: [rollupPluginBabel({
+            presets: ['typescript']
         }), commonJSPlugin({
             sourceMap: false
         })]
