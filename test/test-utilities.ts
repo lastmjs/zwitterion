@@ -112,6 +112,8 @@ export const arbScriptElementsInfo = (hasModuleDependencies: boolean) => {
                             `;
                         }).join('\n')}
 
+                        ${extension === '.ts' ? 'const typeScriptValue: number = 5;' : 'const javaScriptValue = 5;'}
+
                         if (!window.ZWITTERION_TEST) {
                             window.ZWITTERION_TEST = {};
                         }

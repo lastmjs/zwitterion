@@ -14,6 +14,7 @@ const removeRollupImports = require('./babel-plugin-transform-remove-rollup-impo
 const babel = require('babel-core');
 const rollup = require('rollup');
 const commonJSPlugin = require('rollup-plugin-commonjs');
+const rollupPluginTypescript2 = require('rollup-plugin-typescript2');
 
 program
     .version('0.20.2')
@@ -362,17 +363,22 @@ function compileToJs(source, target, jsx) {
 }
 
 async function compileToESModules(source, nodeFilePath) {
+    //TODO look into the virtual plugin again to see if we can get it to work now that we're using the bable/typescript plugin
+    //TODO once babel 7 comes out, we might be able to get rid of the rollup typescript plugin and just use the rollup babel plugin itself
     const tempFilePath =
-        nodeFilePath.indexOf('.js') !== -1 ? nodeFilePath.replace('.js', '-transpiled.js') :
-        nodeFilePath.indexOf('.ts') !== -1 ? nodeFilePath.replace('.ts', '-transpiled.js') :
-        `${tempFilePath}-transpiled.js`;
+        nodeFilePath.indexOf('.js') !== -1 ? nodeFilePath.replace('.js', '-zwitterion-transpiled.js') :
+        nodeFilePath.indexOf('.ts') !== -1 ? nodeFilePath.replace('.ts', '-zwitterion-transpiled.js') :
+        `${tempFilePath}-zwitterion-transpiled.js`;
 
     await fs.writeFile(tempFilePath, source);
 
     const bundle = await rollup.rollup({
         experimentalPreserveModules: true,
         input: tempFilePath,
-        plugins: [commonJSPlugin({
+        plugins: [rollupPluginTypescript2({
+            abortOnError: false,
+            check: false
+        }), commonJSPlugin({
             sourceMap: false
         })]
     });
@@ -382,6 +388,9 @@ async function compileToESModules(source, nodeFilePath) {
     const result = await bundle.generate({
         format: 'es'
     });
+
+    //TODO hopefully the typescript2plugin will get rid of the need for this directory: https://github.com/ezolenko/rollup-plugin-typescript2/issues/68
+    await fs.remove('.rpt2_cache');
 
     const fileName = `${tempFilePath.slice(tempFilePath.lastIndexOf('/') + 1)}`
     const filePathResultKey = Object.keys(result).filter((resultKey) => {
