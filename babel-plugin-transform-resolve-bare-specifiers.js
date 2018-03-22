@@ -63,7 +63,7 @@ const resolveBareSpecifiers =
                                 'tty' ? 'tty-browserify' :
                                 'vm' ? 'vm-browserify' :
                                 'zlib' ? 'browserify-zlib' :
-                                'fs' ? 'browserify-fs';
+                                'fs' ? 'browserify-fs' : specifier;
 
           const resolvedSpecifier = resolve.sync(newSpecifier, {
             basedir: filePath,
