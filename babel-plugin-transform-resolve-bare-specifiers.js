@@ -49,21 +49,21 @@ const resolveBareSpecifiers =
             return;
           }
 
-          const newSpecifier = specifier ===
-                                'console' ? 'console-browserify' :
-                                'constants' ? 'constants-browserify' :
-                                'crypto' ? 'crypto-browserify' :
-                                'domain' ? 'domain-browser' :
-                                'http' ? 'http-browserify' :
-                                'https' ? 'https-browserify' :
-                                'os' ? 'os-browserify' :
-                                'path' ? 'path-browserify' :
-                                'stream' ? 'stream-browserify' :
-                                'timers' ? 'timers-browserify' :
-                                'tty' ? 'tty-browserify' :
-                                'vm' ? 'vm-browserify' :
-                                'zlib' ? 'browserify-zlib' :
-                                'fs' ? 'browserify-fs' : specifier;
+          const newSpecifier =
+                                specifier === 'console' ? 'console-browserify' :
+                                specifier === 'constants' ? 'constants-browserify' :
+                                specifier === 'crypto' ? 'crypto-browserify' :
+                                specifier === 'domain' ? 'domain-browser' :
+                                specifier === 'http' ? 'http-browserify' :
+                                specifier === 'https' ? 'https-browserify' :
+                                specifier === 'os' ? 'os-browserify' :
+                                specifier === 'path' ? 'path-browserify' :
+                                specifier === 'stream' ? 'stream-browserify' :
+                                specifier === 'timers' ? 'timers-browserify' :
+                                specifier === 'tty' ? 'tty-browserify' :
+                                specifier === 'vm' ? 'vm-browserify' :
+                                specifier === 'zlib' ? 'browserify-zlib' :
+                                specifier === 'fs' ? 'browserify-fs' : specifier;
 
           const resolvedSpecifier = resolve.sync(newSpecifier, {
             basedir: filePath,

@@ -15,6 +15,7 @@ const babel = require('babel-core');
 const rollup = require('rollup');
 const commonJSPlugin = require('rollup-plugin-commonjs');
 const rollupPluginBabel = require('rollup-plugin-babel');
+const rollupPluginJSON = require('rollup-plugin-json');
 
 program
     .version('0.21.0')
@@ -375,9 +376,10 @@ async function compileToESModules(source, nodeFilePath) {
     const bundle = await rollup.rollup({
         experimentalPreserveModules: true,
         input: tempFilePath,
-        plugins: [rollupPluginBabel({
+        plugins: [rollupPluginJSON(), rollupPluginBabel({
             presets: ['typescript'],
-            plugins: [addTSExtensionToImportPath]
+            plugins: [addTSExtensionToImportPath],
+            babelrc: false
         }), commonJSPlugin({
             sourceMap: false
         })]
