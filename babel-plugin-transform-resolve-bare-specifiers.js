@@ -71,7 +71,8 @@ const resolveBareSpecifiers =
                                 specifier === 'util' ? 'util-es-module' :
                                 specifier === 'vm' ? 'vm-browserify-es-module' :
                                 specifier === 'zlib' ? 'browserify-zlib-es-module' :
-                                specifier === 'fs' ? 'browserify-fs-es-module' : specifier;
+                                specifier === 'fs' ? 'browserify-fs-es-module' :
+                                specifier === 'inherits' ? 'inherits-es-module' : specifier;
 
           const resolvedSpecifier = resolve.sync(newSpecifier, {
             basedir: filePath,
