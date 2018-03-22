@@ -49,7 +49,23 @@ const resolveBareSpecifiers =
             return;
           }
 
-          const resolvedSpecifier = resolve.sync(specifier, {
+          const newSpecifier = specifier ===
+                                'console' ? 'console-browserify' :
+                                'constants' ? 'constants-browserify' :
+                                'crypto' ? 'crypto-browserify' :
+                                'domain' ? 'domain-browser' :
+                                'http' ? 'http-browserify' :
+                                'https' ? 'https-browserify' :
+                                'os' ? 'os-browserify' :
+                                'path' ? 'path-browserify' :
+                                'stream' ? 'stream-browserify' :
+                                'timers' ? 'timers-browserify' :
+                                'tty' ? 'tty-browserify' :
+                                'vm' ? 'vm-browserify' :
+                                'zlib' ? 'browserify-zlib' :
+                                'fs' ? 'browserify-fs';
+
+          const resolvedSpecifier = resolve.sync(newSpecifier, {
             basedir: filePath,
             // Some packages use a non-standard alternative to the "main" field
             // in their package.json to differentiate their ES module version.
