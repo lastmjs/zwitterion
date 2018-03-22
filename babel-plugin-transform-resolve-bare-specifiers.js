@@ -50,20 +50,28 @@ const resolveBareSpecifiers =
           }
 
           const newSpecifier =
-                                specifier === 'console' ? 'console-browserify' :
-                                specifier === 'constants' ? 'constants-browserify' :
-                                specifier === 'crypto' ? 'crypto-browserify' :
-                                specifier === 'domain' ? 'domain-browser' :
-                                specifier === 'http' ? 'http-browserify' :
-                                specifier === 'https' ? 'https-browserify' :
-                                specifier === 'os' ? 'os-browserify' :
-                                specifier === 'path' ? 'path-browserify' :
-                                specifier === 'stream' ? 'stream-browserify' :
-                                specifier === 'timers' ? 'timers-browserify' :
-                                specifier === 'tty' ? 'tty-browserify' :
-                                specifier === 'vm' ? 'vm-browserify' :
-                                specifier === 'zlib' ? 'browserify-zlib' :
-                                specifier === 'fs' ? 'browserify-fs' : specifier;
+                                specifier === 'assert' ? 'assert-es-module' :
+                                specifier === 'buffer' ? 'buffer-es-module' :
+                                specifier === 'console' ? 'console-browserify-es-module' :
+                                specifier === 'constants' ? 'constants-browserify-es-module' :
+                                specifier === 'crypto' ? 'crypto-browserify-es-module' :
+                                specifier === 'domain' ? 'domain-browser-es-module' :
+                                specifier === 'events' ? 'events-es-module' :
+                                specifier === 'http' ? 'http-browserify-es-module' :
+                                specifier === 'https' ? 'https-browserify-es-module' :
+                                specifier === 'os' ? 'os-browserify-es-module' :
+                                specifier === 'path' ? 'path-browserify-es-module' :
+                                specifier === 'punycode' ? 'punycode-es-module' :
+                                specifier === 'querystring' ? 'querystring-es-module' :
+                                specifier === 'stream' ? 'stream-es-module' :
+                                specifier === 'string_decoder' ? 'string_decoder-es-module' :
+                                specifier === 'timers' ? 'timers-browserify-es-module' :
+                                specifier === 'tty' ? 'tty-browserify-es-module' :
+                                specifier === 'url' ? 'url-es-module' :
+                                specifier === 'util' ? 'util-es-module' :
+                                specifier === 'vm' ? 'vm-browserify-es-module' :
+                                specifier === 'zlib' ? 'browserify-zlib-es-module' :
+                                specifier === 'fs' ? 'browserify-fs-es-module' : specifier;
 
           const resolvedSpecifier = resolve.sync(newSpecifier, {
             basedir: filePath,
