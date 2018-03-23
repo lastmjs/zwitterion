@@ -18,7 +18,7 @@ const rollupPluginBabel = require('rollup-plugin-babel');
 const rollupPluginJSON = require('rollup-plugin-json');
 
 program
-    .version('0.21.6')
+    .version('0.21.7')
     .option('-p, --port [port]', 'Specify the server\'s port')
     .option('-w, --watch-files', 'Watch files in current directory and reload browser on changes')
     .option('--ts-warning', 'Report TypeScript errors in the browser console as warnings')
