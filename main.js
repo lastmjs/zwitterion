@@ -248,9 +248,10 @@ async function handleScriptExtension(req, res, fileExtension) {
         const compiledToJS = compileToJs(source, target, fileExtension === '.jsx' || fileExtension === '.tsx');
         const compiledToESModules = await compileToESModules(compiledToJS, nodeFilePath);
         const transformedSpecifiers = transformSpecifiers(compiledToESModules, nodeFilePath);
-        compiledFiles[nodeFilePath] = transformedSpecifiers;
+        const globalsAdded = addGlobals(transformedSpecifiers);
+        compiledFiles[nodeFilePath] = globalsAdded;
         res.setHeader('Content-Type', 'application/javascript');
-        res.end(transformedSpecifiers);
+        res.end(globalsAdded);
         return;
     }
 
@@ -405,6 +406,10 @@ function transformSpecifiers(source, filePath) {
         babelrc: false,
         plugins: [removeRollupImports(filePath), resolveBareSpecifiers(filePath, false), addTSExtensionToImportPath]
     }).code;
+}
+
+function addGlobals(source) {
+    return `var process = window.process;${source}`;
 }
 
 function createWebSocketServer(webSocketPort, watchFiles) {
