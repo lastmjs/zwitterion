@@ -5,7 +5,7 @@ module.exports = (filePath) => {
         visitor: {
             'ImportDeclaration': (path) => {
                 if (path.node.specifiers.length === 0) {
-                    path.node.source.value = path.node.source.value.indexOf('./') !== 0 ? `./${path.node.source.value}` : path.node.source.value;
+                    path.node.source.value = path.node.source.value.indexOf('../') === 0 ? `./${path.node.source.value}` : path.node.source.value;
                     return;
                 }
 
