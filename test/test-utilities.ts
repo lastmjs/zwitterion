@@ -86,8 +86,6 @@ export const arbScriptElementsInfo = (hasModuleDependencies: boolean) => {
                 const srcPath = `${currentArbPathInfo.pathWithoutExtension}${extension}`;
                 const modulePath = `${currentArbPathInfo.pathWithoutExtension}`;
                 const esModule = jsverify.sampler(jsverify.bool)();
-                const commonJSInput = jsverify.sampler(jsverify.bool)();
-                // const commonJSInput = true;
                 // const nodeModule = jsverify.sampler(jsverify.bool)();
                 // const tsFileFromBareSpecifier = extension === '' && jsverify.sampler(jsverify.bool)();
                 // const filePath = `${currentArbPathInfo.pathWithoutExtension}${tsFileFromBareSpecifier ? '.ts' : extension}`;
@@ -107,12 +105,12 @@ export const arbScriptElementsInfo = (hasModuleDependencies: boolean) => {
                             const normalizedRelativePath = relativePath[0] === '.' ? relativePath : `./${relativePath}`;
 
                             return `
-                                ${commonJSInput ? `const Dependency${index} = require('${normalizedRelativePath}${moduleDependency.extension}');` : `import Dependency${index} from '${moduleDependency.extension === '.ts' ? normalizedRelativePath : `${normalizedRelativePath}.js` }';`}
+                                import Dependency${index} from '${moduleDependency.extension === '.ts' ? normalizedRelativePath : `${normalizedRelativePath}.js` }';
                                 console.log(Dependency${index}); //This makes it so the import doesn't get compiled away
                             `;
                         }).join('\n')}
 
-                        ${extension === '.ts' ? 'const typeScriptValue: number = 5;' : 'const javaScriptValue = 5;'}
+                        ${extension === '.ts' ? 'var typeScriptValue: number = 5;' : 'var javaScriptValue = 5;'}
 
                         if (!window.ZWITTERION_TEST) {
                             window.ZWITTERION_TEST = {};

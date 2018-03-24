@@ -10,12 +10,7 @@ const WebSocket = require('ws');
 const chokidar = require('chokidar');
 const resolveBareSpecifiers = require('./babel-plugin-transform-resolve-bare-specifiers.js');
 const addTSExtensionToImportPath = require('./babel-plugin-transform-add-ts-extension-to-import-path.js');
-const removeRollupImports = require('./babel-plugin-transform-remove-rollup-imports.js');
 const babel = require('babel-core');
-const rollup = require('rollup');
-const commonJSPlugin = require('rollup-plugin-commonjs');
-const rollupPluginBabel = require('rollup-plugin-babel');
-const rollupPluginJSON = require('rollup-plugin-json');
 
 program
     .version('0.21.7')
@@ -246,8 +241,7 @@ async function handleScriptExtension(req, res, fileExtension) {
         watchFile(nodeFilePath, watchFiles);
         const source = (await fs.readFile(nodeFilePath)).toString();
         const compiledToJS = compileToJs(source, target, fileExtension === '.jsx' || fileExtension === '.tsx');
-        const compiledToESModules = await compileToESModules(compiledToJS, nodeFilePath);
-        const transformedSpecifiers = transformSpecifiers(compiledToESModules, nodeFilePath);
+        const transformedSpecifiers = transformSpecifiers(compiledToJS, nodeFilePath);
         const globalsAdded = addGlobals(transformedSpecifiers);
         compiledFiles[nodeFilePath] = globalsAdded;
         res.setHeader('Content-Type', 'application/javascript');
@@ -364,47 +358,10 @@ function compileToJs(source, target, jsx) {
     return transpileOutput.outputText;
 }
 
-async function compileToESModules(source, nodeFilePath) {
-    //TODO look into the virtual plugin again to see if we can get it to work now that we're using the bable/typescript plugin
-    //TODO we might not need to do any of this saving transpiled stuff, and perhaps we can even get rid of the transpilation to typescript before this function is called
-    const tempFilePath =
-        nodeFilePath.indexOf('.js') !== -1 ? nodeFilePath.replace('.js', '-zwitterion-transpiled.js') :
-        nodeFilePath.indexOf('.ts') !== -1 ? nodeFilePath.replace('.ts', '-zwitterion-transpiled.js') :
-        `${tempFilePath}-zwitterion-transpiled.js`;
-
-    await fs.writeFile(tempFilePath, source);
-
-    const bundle = await rollup.rollup({
-        experimentalPreserveModules: true,
-        input: tempFilePath,
-        plugins: [rollupPluginJSON(), rollupPluginBabel({
-            presets: ['typescript'],
-            plugins: [addTSExtensionToImportPath],
-            babelrc: false
-        }), commonJSPlugin({
-            sourceMap: false
-        })]
-    });
-
-    await fs.unlink(tempFilePath);
-
-    const result = await bundle.generate({
-        format: 'es'
-    });
-
-    const fileName = `${tempFilePath.slice(tempFilePath.lastIndexOf('/') + 1)}`
-    const filePathResultKey = Object.keys(result).filter((resultKey) => {
-        return resultKey.indexOf(fileName) !== -1;
-    })[0];
-    const filePathResultValue = result[filePathResultKey];
-
-    return filePathResultValue.code;
-}
-
 function transformSpecifiers(source, filePath) {
     return babel.transform(source, {
         babelrc: false,
-        plugins: [removeRollupImports(filePath), resolveBareSpecifiers(filePath, false), addTSExtensionToImportPath]
+        plugins: [resolveBareSpecifiers(filePath, false), addTSExtensionToImportPath]
     }).code;
 }
 
