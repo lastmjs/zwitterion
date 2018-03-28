@@ -1,9 +1,11 @@
 //TODO arbitrary script tags in body
 //TODO bare specifiers should load the file first, the ts file second, and then the node module
 //TODO Have one test for loading arbitrary html files that aren't the index.html file, and all of their dependencies
-
-declare var jsverify: any;
-declare var fs: any;
+import jsverify from 'jsverify-es-module';
+const child_process = require('child_process');
+const uuid = require('uuid/v1');
+const path = require('path');
+const fs = require('fs-extra');
 
 const PAGE_LOADED = 'PAGE_LOADED';
 const GET_RESULT = 'GET_RESULT';

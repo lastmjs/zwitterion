@@ -1,7 +1,14 @@
-declare var jsverify: any;
-declare var child_process: any;
-declare var uuid: any;
-declare var path: any;
+// This is to get require to work correctly
+const appPath = require('electron').remote.app.getAppPath();
+const newAppPath = require('path').resolve(appPath, '../../../../');
+module.paths = [newAppPath];
+// This is to get require to work correctly
+
+import jsverify from 'jsverify-es-module';
+const child_process = require('child_process');
+const uuid = require('uuid/v1');
+const path = require('path');
+const fs = require('fs-extra');
 
 let pastValues: number[] = [];
 export const arbPort = jsverify.bless({
