@@ -28,7 +28,7 @@ program
 // start pure operations, generate the data
 const buildStatic = program.buildStatic;
 const installWasm = program.installWasm;
-const watchFiles = program.watchFiles;
+const watchFiles = program.watchFiles || true; //TODO I think it should default to watching, not the other way around
 // const spaRoot = program.spaRoot || 'index.html';
 const nodePort = +(program.port || 5000);
 const webSocketPort = nodePort + 1;
@@ -193,6 +193,7 @@ function createNodeServer(http, nodePort, webSocketPort, watchFiles, tsWarning, 
                 case '/': {
                     const indexFileContents = (await fs.readFile(`./index.html`)).toString();
                     const modifiedIndexFileContents = modifyHTML(indexFileContents, 'index.html', watchFiles, webSocketPort);
+                    watchFile(`./index.html`, watchFiles);
                     res.end(modifiedIndexFileContents);
                     return;
                 }
@@ -335,16 +336,7 @@ function watchFile(filePath, watchFiles) {
 }
 
 function modifyHTML(originalText, directoryPath, watchFiles, webSocketPort) {
-    const text = originalText.includes('<head>') && watchFiles ? originalText.replace('<head>', `<head>
-        <script>
-            let socket = new WebSocket('ws://localhost:${webSocketPort}');
-            socket.addEventListener('message', (message) => {
-                window.location.reload();
-            });
-        </script>
-    `) : originalText;
-
-    return text;
+    return originalText;
 }
 
 function compileToJs(source, target, jsx) {
@@ -366,7 +358,16 @@ function transformSpecifiers(source, filePath) {
 }
 
 function addGlobals(source) {
-    return `var process = window.process;${source}`;
+    return `
+        var process = window.process;
+        if (!window.ZWITTERION_SOCKET) {
+            window.ZWITTERION_SOCKET = new WebSocket('ws://localhost:${webSocketPort}');
+            window.ZWITTERION_SOCKET.addEventListener('message', (message) => {
+                window.location.reload();
+            });
+        }
+        ${source}
+    `;
 }
 
 function createWebSocketServer(webSocketPort, watchFiles) {
