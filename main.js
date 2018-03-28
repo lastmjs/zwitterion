@@ -336,6 +336,7 @@ function watchFile(filePath, watchFiles) {
 }
 
 function modifyHTML(originalText, directoryPath, watchFiles, webSocketPort) {
+    //TODO we should probably put the web socket creation in the html files as well
     return originalText;
 }
 
