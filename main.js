@@ -103,7 +103,7 @@ if (buildStatic) {
         for file in **/*.ts; do
             if [[ ! $file =~ ${excludeDirsRegex} ]]
             then
-                wget -q -x -nH "http://localhost:${nodePort}/$\{file%.*\}.js"
+                wget -q -x -nH "http://localhost:${nodePort}/$\{file%.*\}.ts"
             fi
         done
 
@@ -113,7 +113,7 @@ if (buildStatic) {
         for file in **/*.tsx; do
             if [[ ! $file =~ ${excludeDirsRegex} ]]
             then
-                wget -q -x -nH "http://localhost:${nodePort}/$\{file%.*\}.js"
+                wget -q -x -nH "http://localhost:${nodePort}/$\{file%.*\}.tsx"
             fi
         done
 
@@ -123,7 +123,7 @@ if (buildStatic) {
         for file in **/*.jsx; do
             if [[ ! $file =~ ${excludeDirsRegex} ]]
             then
-                wget -q -x -nH "http://localhost:${nodePort}/$\{file%.*\}.js"
+                wget -q -x -nH "http://localhost:${nodePort}/$\{file%.*\}.jsx"
             fi
         done
 
@@ -133,7 +133,7 @@ if (buildStatic) {
         #for file in **/*.c; do
         #    if [[ ! $file =~ ${excludeDirsRegex} ]]
         #    then
-        #        wget -q -x -nH "http://localhost:${nodePort}/$\{file%.*\}.js"
+        #        wget -q -x -nH "http://localhost:${nodePort}/$\{file%.*\}.c"
         #    fi
         #done
 
@@ -143,7 +143,7 @@ if (buildStatic) {
         #for file in **/*.cc; do
         #    if [[ ! $file =~ ${excludeDirsRegex} ]]
         #    then
-        #        wget -q -x -nH "http://localhost:${nodePort}/$\{file%.*\}.js"
+        #        wget -q -x -nH "http://localhost:${nodePort}/$\{file%.*\}.cc"
         #    fi
         #done
 
@@ -153,7 +153,7 @@ if (buildStatic) {
         #for file in **/*.cpp; do
         #    if [[ ! $file =~ ${excludeDirsRegex} ]]
         #    then
-        #        wget -q -x -nH "http://localhost:${nodePort}/$\{file%.*\}.js"
+        #        wget -q -x -nH "http://localhost:${nodePort}/$\{file%.*\}.cpp"
         #    fi
         #done
 
@@ -163,7 +163,7 @@ if (buildStatic) {
         #for file in **/*.wasm; do
         #    if [[ ! $file =~ ${excludeDirsRegex} ]]
         #    then
-        #        wget -q -x -nH "http://localhost:${nodePort}/$\{file%.*\}.js"
+        #        wget -q -x -nH "http://localhost:${nodePort}/$\{file%.*\}.wasm"
         #    fi
         #done
 
