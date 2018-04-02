@@ -11,6 +11,7 @@ const chokidar = require('chokidar');
 const resolveBareSpecifiers = require('./babel-plugin-transform-resolve-bare-specifiers.js');
 const addTSExtensionToImportPath = require('./babel-plugin-transform-add-ts-extension-to-import-path.js');
 const babel = require('babel-core');
+const wast2wasm = require('wast2wasm');
 
 program
     .version('0.22.4')
@@ -213,6 +214,10 @@ function createNodeServer(http, nodePort, webSocketPort, watchFiles, tsWarning, 
                     await handleScriptExtension(req, res, fileExtension);
                     return;
                 }
+                case 'wast': {
+                    await handleWASTExtension(req, res, fileExtension);
+                    return;
+                }
                 case 'wasm': {
                     await handleWASMExtension(req, res, fileExtension);
                     return;
@@ -347,6 +352,51 @@ async function handleWASMExtension(req, res, fileExtension) {
         res.end();
         return;
     }
+}
+
+async function handleWASTExtension(req, res, fileExtension) {
+    const nodeFilePath = `.${req.url}`;
+
+    // check if the file is in the cache
+    if (compiledFiles[nodeFilePath]) {
+        res.setHeader('Content-Type', 'application/javascript');
+        res.end(compiledFiles[nodeFilePath]);
+        return;
+    }
+
+    // the file is not in the cache
+    // watch the file if necessary
+    // wrap the file and return the wrapped source
+    if (await fs.exists(nodeFilePath)) {
+        watchFile(nodeFilePath, watchFiles);
+        const source = (await fs.readFile(nodeFilePath)).toString();
+        const compiledToWASMBuffer = await compileToWASMBuffer(source);
+        const wrappedInJS = wrapWASMInJS(compiledToWASMBuffer);
+        compiledFiles[nodeFilePath] = wrappedInJS;
+        res.setHeader('Content-Type', 'application/javascript');
+        res.end(wrappedInJS);
+        return;
+    }
+
+    //TODO this code is repeated multiple times
+    // if SPA is enabled, return the contents to index.html
+    // if SPA is not enabled, return a 404 error
+    if (!disableSpa) {
+        const indexFileContents = (await fs.readFile(`./index.html`)).toString();
+        const modifiedIndexFileContents = modifyHTML(indexFileContents, 'index.html', watchFiles, webSocketPort);
+        const directoryPath = req.url.slice(0, req.url.lastIndexOf('/')) || '/';
+        res.end(modifyHTML(modifiedIndexFileContents, directoryPath, watchFiles, webSocketPort));
+        return;
+    }
+    else {
+        res.statusCode = 404;
+        res.end();
+        return;
+    }
+}
+
+async function compileToWASMBuffer(source) {
+    return (await wast2wasm(source)).buffer;
 }
 
 function wrapWASMInJS(sourceBuffer) {
