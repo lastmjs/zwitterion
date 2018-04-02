@@ -213,6 +213,10 @@ function createNodeServer(http, nodePort, webSocketPort, watchFiles, tsWarning, 
                     await handleScriptExtension(req, res, fileExtension);
                     return;
                 }
+                case 'wasm': {
+                    await handleWASMExtension(req, res, fileExtension);
+                    return;
+                }
                 default: {
                     await handleGenericFile(req, res, fileExtension);
                     return;
@@ -250,6 +254,7 @@ async function handleScriptExtension(req, res, fileExtension) {
         return;
     }
 
+    //TODO this code is repeated multiple times
     // if SPA is enabled, return the contents to index.html
     // if SPA is not enabled, return a 404 error
     if (!disableSpa) {
@@ -287,6 +292,7 @@ async function handleGenericFile(req, res, fileExtension) {
         return;
     }
 
+    //TODO this code is repeated multiple times
     // if SPA is enabled, return the contents to index.html
     // if SPA is not enabled, return a 404 error
     if (!disableSpa) {
@@ -301,6 +307,57 @@ async function handleGenericFile(req, res, fileExtension) {
         res.end();
         return;
     }
+}
+
+async function handleWASMExtension(req, res, fileExtension) {
+    const nodeFilePath = `.${req.url}`;
+
+    // check if the file is in the cache
+    if (compiledFiles[nodeFilePath]) {
+        res.setHeader('Content-Type', 'application/javascript');
+        res.end(compiledFiles[nodeFilePath]);
+        return;
+    }
+
+    // the file is not in the cache
+    // watch the file if necessary
+    // wrap the file and return the wrapped source
+    if (await fs.exists(nodeFilePath)) {
+        watchFile(nodeFilePath, watchFiles);
+        const sourceBuffer = await fs.readFile(nodeFilePath);
+        const wrappedInJS = wrapWASMInJS(sourceBuffer);
+        compiledFiles[nodeFilePath] = wrappedInJS;
+        res.setHeader('Content-Type', 'application/javascript');
+        res.end(wrappedInJS);
+        return;
+    }
+
+    //TODO this code is repeated multiple times
+    // if SPA is enabled, return the contents to index.html
+    // if SPA is not enabled, return a 404 error
+    if (!disableSpa) {
+        const indexFileContents = (await fs.readFile(`./index.html`)).toString();
+        const modifiedIndexFileContents = modifyHTML(indexFileContents, 'index.html', watchFiles, webSocketPort);
+        const directoryPath = req.url.slice(0, req.url.lastIndexOf('/')) || '/';
+        res.end(modifyHTML(modifiedIndexFileContents, directoryPath, watchFiles, webSocketPort));
+        return;
+    }
+    else {
+        res.statusCode = 404;
+        res.end();
+        return;
+    }
+}
+
+function wrapWASMInJS(sourceBuffer) {
+    return `
+        //TODO perhaps there is a better way to get the ArrayBuffer that wasm needs...but for now this works
+        const base64EncodedByteCode = Uint8Array.from('${Uint8Array.from(sourceBuffer)}'.split(','));
+        const wasmModule = new WebAssembly.Module(base64EncodedByteCode);
+        const wasmInstance = new WebAssembly.Instance(wasmModule, {});
+
+        export default wasmInstance.exports;
+    `;
 }
 
 function getTypeScriptErrorsString(filePath, tsWarning, tsError) {
