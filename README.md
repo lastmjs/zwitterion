@@ -2,7 +2,7 @@
 
 # Zwitterion
 
-Zwitterion is a server for web applications that provides automatic transpilation, live-reload, and SPA (single-page application) support out of the box. It allows you to develop web platform applications using the latest versions of JavaScript, TypeScript, JSX, or TSX without a complicated build step.
+Zwitterion is a server for web applications that provides automatic transpilation, live-reload, and SPA (single-page application) support out of the box. It allows you to develop web platform applications using the latest versions of JavaScript, TypeScript, JSX, TSX, or WebAssembly without a complicated build step.
 
 Just include files directly in `<script>` tags:
 
@@ -29,7 +29,8 @@ Zwitterion lets you get back to the good old days of web development. Just write
 * Automatic TypeScript transpilation (TS -> JS)
 * Automatic JSX transpilation (JSX -> JS)
 * Automatic TSX transpilation (TSX -> JS)
-* Automatic CommonJS transpilation (CommonJS -> ES Modules)
+* Automatic WASM transpilation (WASM -> JS Module)
+* Automatic WAST transpilation (WAST -> JS Module)
 * Bare specifiers (`import * as stuff from 'library';` instead of `import * as stuff from '../node_modules/library/index.js';`)
 
 ## Installation and Basic Use
@@ -128,6 +129,27 @@ Or from a non-html file (if you leave out the file extension it will be assumed 
 import {amazingFunction} from './amazing-module';
 ```
 
+### WASM and WAST Files
+
+Include `.wast` or `.wasm` files in your source code and imports just like any other file type. The exports of your WASM module will be available as the default export of the transpiled JS module:
+
+```wast
+;; /add.wast
+(module
+    (func $add (param i32 i32) (result i32)
+        (i32.add
+            (get_local 0)
+            (get_local 1)))
+    (export "add" (func $add)))
+```
+
+```javascript
+import AddWASM from './add.wast';
+
+console.log(AddWASM.add(2, 2));
+// 4
+```
+
 ### Performance
 
 It's important to note that Zwitterion does not bundle files nor engage in tree shaking. This may impact the performance of your application. HTTP2 and ES modules may help with performance, but at this point in time signs tend to point toward worse performance. Zwitterion has plans to improve performance by automatically generating HTTP2 server push information from the static build, and looking into tree shaking, but it is unclear what affect this will have. Stay tuned for more information about performance as Zwitterion matures.
@@ -151,7 +173,7 @@ Read the following for more information on bundling versus not bundling with HTT
 Here's a rough roadmap of the big future plans:
 
 - [ ] Investigate performance, make sure Zwitterion can beat out the complicated bundlers (tree shaking and bundling)
-- [ ] Add support for WebAssembly, Rust, C, C++ and any other popular language that can compile to WebAssembly
+- [ ] Add support for Rust, C, C++ and any other popular language that can compile to WebAssembly
 
 ## Command-line Options
 
