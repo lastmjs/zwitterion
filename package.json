@@ -1,7 +1,7 @@
 {
   "name": "zwitterion",
-  "version": "0.23.0",
-  "description": "Auto-transpiling, live-reloading, and SPA-ing server for JavaScript, TypeScript, JSX, and TSX.",
+  "version": "0.23.1",
+  "description": "Auto-transpiling, live-reloading, and SPA-ing server for JavaScript, TypeScript, JSX, TSX, and WebAssembly.",
   "scripts": {
     "start": "node main.js",
     "test": "xvfb-run guesswork electron --entry test/index.js",
