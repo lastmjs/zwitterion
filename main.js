@@ -184,6 +184,10 @@ function createNodeServer(http, nodePort, webSocketPort, watchFiles, tsWarning, 
                     await handleScriptExtension(req, res, fileExtension);
                     return;
                 }
+                case 'mjs': {
+                    await handleScriptExtension(req, res, fileExtension);
+                    return;
+                }
                 case 'ts': {
                     await handleScriptExtension(req, res, fileExtension);
                     return;
