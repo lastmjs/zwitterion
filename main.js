@@ -14,7 +14,7 @@ const babel = require('babel-core');
 const wast2wasm = require('wast2wasm');
 
 program
-    .version('0.23.1')
+    .version('0.24.0')
     .option('-p, --port [port]', 'Specify the server\'s port')
     .option('-w, --watch-files', 'Watch files in current directory and reload browser on changes')
     .option('--ts-warning', 'Report TypeScript errors in the browser console as warnings')
