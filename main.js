@@ -9,7 +9,7 @@ const path = require('path');
 const WebSocket = require('ws');
 const chokidar = require('chokidar');
 const resolveBareSpecifiers = require('./babel-plugin-transform-resolve-bare-specifiers.js');
-const addTSExtensionToImportPath = require('./babel-plugin-transform-add-ts-extension-to-import-path.js');
+const resolveImportPathExtensions = require('./babel-plugin-transform-resolve-import-path-extensions.js');
 const babel = require('babel-core');
 const wast2wasm = require('wast2wasm');
 
@@ -447,7 +447,7 @@ function compileToJs(source, target, jsx) {
 function transformSpecifiers(source, filePath) {
     return babel.transform(source, {
         babelrc: false,
-        plugins: [resolveBareSpecifiers(filePath, false), addTSExtensionToImportPath]
+        plugins: [resolveBareSpecifiers(filePath, false), resolveImportPathExtensions(filePath)]
     }).code;
 }
 
