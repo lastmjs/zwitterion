@@ -36,6 +36,15 @@ function checkForExtension(filePath, importPath, extension) {
     else if ((fs.existsSync(`${absolutePath}/index.js`))) {
         return `${importPath}/index.js`;
     }
+    else if ((fs.existsSync(`${absolutePath}/index.ts`))) {
+        return `${importPath}/index.ts`;
+    }
+    else if ((fs.existsSync(`${absolutePath}/index.jsx`))) {
+        return `${importPath}/index.jsx`;
+    }
+    else if ((fs.existsSync(`${absolutePath}/index.tsx`))) {
+        return `${importPath}/index.tsx`;
+    }
 
     return null;
 }
