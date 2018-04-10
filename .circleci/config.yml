@@ -4,7 +4,7 @@ jobs:
     build:
         working_directory: ~/zwitterion
         docker:
-            - image: circleci/node:8.9.4
+            - image: circleci/node:8.11.1@sha256:3fb018db8a18ac6df1114370a2faa45715f6e01575aa98321f433dd9b73c16f7
         steps:
             - checkout
             - run:

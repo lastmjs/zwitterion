@@ -23,31 +23,31 @@
   "homepage": "https://github.com/lastmjs/zwitterion#readme",
   "dependencies": {
     "assert-es-module": "0.0.0",
-    "babel-core": "^6.26.0",
-    "babel-plugin-syntax-export-extensions": "^6.13.0",
-    "babel-preset-typescript": "^7.0.0-alpha.19",
-    "chokidar": "^2.0.3",
-    "commander": "^2.11.0",
+    "babel-core": "6.26.0",
+    "babel-plugin-syntax-export-extensions": "6.13.0",
+    "babel-preset-typescript": "7.0.0-alpha.19",
+    "chokidar": "2.0.3",
+    "commander": "2.15.1",
     "events-es-module": "0.0.0",
-    "fs-extra": "^5.0.0",
+    "fs-extra": "5.0.0",
     "inherits-es-module": "0.0.0",
-    "install": "^0.11.0",
-    "is-windows": "^1.0.2",
-    "npm": "^5.8.0",
+    "install": "0.11.0",
+    "is-windows": "1.0.2",
+    "npm": "5.8.0",
     "path-browserify-es-module": "0.0.0",
-    "resolve": "^1.5.0",
+    "resolve": "1.7.0",
     "stream-es-module": "0.0.0",
-    "typescript": "^2.4.2",
+    "typescript": "2.4.2",
     "util-es-module": "0.0.0",
     "wast2wasm": "0.0.1",
-    "whatwg-url": "^6.4.0",
-    "ws": "^5.0.0"
+    "whatwg-url": "6.4.0",
+    "ws": "5.1.1"
   },
   "devDependencies": {
-    "electron": "^2.0.0-beta.6",
-    "guesswork": "^0.10.5",
-    "node-fetch": "^2.1.1",
     "semantic-release": "^15.1.5",
-    "uuid": "^3.2.1"
+    "electron": "2.0.0-beta.7",
+    "guesswork": "0.10.6",
+    "node-fetch": "2.1.2",
+    "uuid": "3.2.1"
   }
 }
