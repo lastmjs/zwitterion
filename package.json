@@ -1,6 +1,6 @@
 {
   "name": "zwitterion",
-  "version": "0.25.1",
+  "version": "0.0.0-semantically-released",
   "description": "Auto-transpiling, live-reloading, and SPA-ing server for JavaScript, TypeScript, JSX, TSX, and WebAssembly.",
   "scripts": {
     "start": "node main.js",
@@ -13,7 +13,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/lastmjs/zwitterion.git"
+    "url": "https://github.com/lastmjs/zwitterion"
   },
   "author": "Jordan Last <jordan.michael.last@gmail.com>",
   "license": "MIT",
@@ -47,6 +47,7 @@
     "electron": "^2.0.0-beta.6",
     "guesswork": "^0.10.5",
     "node-fetch": "^2.1.1",
+    "semantic-release": "^15.1.5",
     "uuid": "^3.2.1"
   }
 }
