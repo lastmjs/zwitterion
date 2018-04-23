@@ -22,7 +22,8 @@ program
     .option('--build-static', 'Create a static build of the current working directory. The output will be in a directory called dist in the current working directory')
     .option('--target [target]', 'The ECMAScript version to compile to; if omitted, defaults to ES5. Any targets supported by the TypeScript compiler are supported here (ES3, ES5, ES6/ES2015, ES2016, ES2017, ESNext)')
     .option('--disable-spa', 'Disable the SPA redirect to index.html')
-    .option('--exclude-dirs', 'A space-separated list of directories to exclude from the static build') //TODO I know this is wrong, I need to figure out how to do variadic arguments
+    .option('--exclude [exclude]', 'A comma-separated list of paths to exclude from the static build') //TODO I know this is wrong, I need to figure out how to do variadic arguments
+    .option('--include [include]', 'A comma-separated list of paths to include in the static build') //TODO I know this is wrong, I need to figure out how to do variadic arguments
     .parse(process.argv);
 // end side-causes
 // start pure operations, generate the data
@@ -36,8 +37,10 @@ const tsError = program.tsError;
 const target = program.target || 'ES2015';
 const nodeHttpServer = createNodeServer(http, nodePort, webSocketPort, watchFiles, tsWarning, tsError, target);
 const webSocketServer = createWebSocketServer(webSocketPort, watchFiles);
-const excludeDirs = program.excludeDirs;
-const excludeDirsRegex = `^${excludeDirs ? program.args.join('|') : 'NO_EXCLUDE_DIRS'}`;
+const exclude = program.exclude;
+const excludeRegex = `${program.exclude ? program.exclude.split(',').join('*|') : 'NO_EXCLUDE'}*`;
+const include = program.include;
+const includeRegex = `${program.include ? program.include.split(',').join('*|') : 'NO_INCLUDE'}*`;
 const disableSpa = program.disableSpa;
 let clients = {};
 let compiledFiles = {};
@@ -64,8 +67,9 @@ if (buildStatic) {
 
         shopt -s globstar
         for file in **/*.html; do
-            if [[ ! $file =~ ${excludeDirsRegex} ]]
+            if [[ ! $file =~ ${excludeRegex} ]] || [[ $file =~ ${includeRegex} ]]
             then
+                echo $file
                 wget -q -x -nH "http://localhost:${nodePort}/$file"
             fi
         done
@@ -74,8 +78,9 @@ if (buildStatic) {
 
         shopt -s globstar
         for file in **/*.js; do
-            if [[ ! $file =~ ${excludeDirsRegex} ]]
+            if [[ ! $file =~ ${excludeRegex} ]] || [[ $file =~ ${includeRegex} ]]
             then
+                echo $file
                 wget -q -x -nH "http://localhost:${nodePort}/$\{file%.*\}.js"
             fi
         done
@@ -84,8 +89,9 @@ if (buildStatic) {
 
         shopt -s globstar
         for file in **/*.ts; do
-            if [[ ! $file =~ ${excludeDirsRegex} ]]
+            if [[ ! $file =~ ${excludeRegex} ]] || [[ $file =~ ${includeRegex} ]]
             then
+                echo $file
                 wget -q -x -nH "http://localhost:${nodePort}/$\{file%.*\}.ts"
             fi
         done
@@ -94,8 +100,9 @@ if (buildStatic) {
 
         shopt -s globstar
         for file in **/*.tsx; do
-            if [[ ! $file =~ ${excludeDirsRegex} ]]
+            if [[ ! $file =~ ${excludeRegex} ]] || [[ $file =~ ${includeRegex} ]]
             then
+                echo $file
                 wget -q -x -nH "http://localhost:${nodePort}/$\{file%.*\}.tsx"
             fi
         done
@@ -104,8 +111,9 @@ if (buildStatic) {
 
         shopt -s globstar
         for file in **/*.jsx; do
-            if [[ ! $file =~ ${excludeDirsRegex} ]]
+            if [[ ! $file =~ ${excludeRegex} ]] || [[ $file =~ ${includeRegex} ]]
             then
+                echo $file
                 wget -q -x -nH "http://localhost:${nodePort}/$\{file%.*\}.jsx"
             fi
         done
@@ -114,7 +122,7 @@ if (buildStatic) {
 
         #shopt -s globstar
         #for file in **/*.c; do
-        #    if [[ ! $file =~ ${excludeDirsRegex} ]]
+        #    if [[ ! $file =~ ${excludeRegex} ]]
         #    then
         #        wget -q -x -nH "http://localhost:${nodePort}/$\{file%.*\}.c"
         #    fi
@@ -124,7 +132,7 @@ if (buildStatic) {
 
         #shopt -s globstar
         #for file in **/*.cc; do
-        #    if [[ ! $file =~ ${excludeDirsRegex} ]]
+        #    if [[ ! $file =~ ${excludeRegex} ]]
         #    then
         #        wget -q -x -nH "http://localhost:${nodePort}/$\{file%.*\}.cc"
         #    fi
@@ -134,7 +142,7 @@ if (buildStatic) {
 
         #shopt -s globstar
         #for file in **/*.cpp; do
-        #    if [[ ! $file =~ ${excludeDirsRegex} ]]
+        #    if [[ ! $file =~ ${excludeRegex} ]]
         #    then
         #        wget -q -x -nH "http://localhost:${nodePort}/$\{file%.*\}.cpp"
         #    fi
@@ -144,7 +152,7 @@ if (buildStatic) {
 
         #shopt -s globstar
         #for file in **/*.wasm; do
-        #    if [[ ! $file =~ ${excludeDirsRegex} ]]
+        #    if [[ ! $file =~ ${excludeRegex} ]]
         #    then
         #        wget -q -x -nH "http://localhost:${nodePort}/$\{file%.*\}.wasm"
         #    fi
