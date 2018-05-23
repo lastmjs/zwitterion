@@ -29,7 +29,7 @@
     "chokidar": "2.0.3",
     "commander": "2.15.1",
     "events-es-module": "0.0.0",
-    "fs-extra": "5.0.0",
+    "fs-extra": "6.0.1",
     "inherits-es-module": "0.0.0",
     "install": "0.11.0",
     "is-windows": "1.0.2",
