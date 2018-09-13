@@ -4,7 +4,7 @@ jobs:
     build:
         working_directory: ~/zwitterion
         docker:
-            - image: circleci/node:8.11.1@sha256:3fb018db8a18ac6df1114370a2faa45715f6e01575aa98321f433dd9b73c16f7
+            - image: circleci/node:8.12.0@sha256:f9412c07c7318b6c19cdb9b758bd5c601678a83f8277059c79288dd43fcb7281
         steps:
             - checkout
             - run:
@@ -18,7 +18,7 @@ jobs:
     release:
         working_directory: ~/zwitterion
         docker:
-            - image: circleci/node:8.11.1@sha256:3fb018db8a18ac6df1114370a2faa45715f6e01575aa98321f433dd9b73c16f7
+            - image: circleci/node:8.12.0@sha256:f9412c07c7318b6c19cdb9b758bd5c601678a83f8277059c79288dd43fcb7281
         steps:
             - checkout
             - run: npm install
