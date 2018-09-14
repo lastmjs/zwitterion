@@ -23,7 +23,7 @@
   "homepage": "https://github.com/lastmjs/zwitterion#readme",
   "dependencies": {
     "assert-es-module": "0.0.0",
-    "babel-core": "6.26.0",
+    "babel-core": "6.26.3",
     "babel-plugin-syntax-export-extensions": "6.13.0",
     "babel-preset-typescript": "7.0.0-alpha.19",
     "chokidar": "2.0.3",
