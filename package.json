@@ -25,7 +25,7 @@
     "assert-es-module": "0.0.0",
     "babel-core": "6.26.3",
     "babel-plugin-syntax-export-extensions": "6.13.0",
-    "babel-preset-typescript": "7.0.0-alpha.19",
+    "babel-preset-typescript": "7.0.0-beta.3",
     "chokidar": "2.0.3",
     "commander": "2.15.1",
     "events-es-module": "0.0.0",
