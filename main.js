@@ -462,7 +462,7 @@ function transformSpecifiers(source, filePath) {
 function addGlobals(source) {
     return `
         var process = window.process;
-        if (!window.ZWITTERION_SOCKET) {
+        if (!window.ZWITTERION_SOCKET && window.location.host.includes('localhost:')) {
             window.ZWITTERION_SOCKET = new WebSocket('ws://localhost:${webSocketPort}');
             window.ZWITTERION_SOCKET.addEventListener('message', (message) => {
                 window.location.reload();
