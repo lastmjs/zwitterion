@@ -27,7 +27,7 @@
     "babel-plugin-syntax-export-extensions": "6.13.0",
     "babel-preset-typescript": "7.0.0-alpha.19",
     "chokidar": "2.0.3",
-    "commander": "2.15.1",
+    "commander": "2.19.0",
     "events-es-module": "0.0.0",
     "fs-extra": "5.0.0",
     "inherits-es-module": "0.0.0",
