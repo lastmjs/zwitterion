@@ -45,7 +45,7 @@
   },
   "devDependencies": {
     "semantic-release": "^15.1.5",
-    "electron": "2.0.9",
+    "electron": "3.0.11",
     "guesswork": "0.11.2",
     "node-fetch": "2.1.2",
     "uuid": "3.2.1"
