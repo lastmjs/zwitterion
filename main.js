@@ -455,7 +455,7 @@ function compileToJs(source, target, jsx) {
 function transformSpecifiers(source, filePath) {
     return babel.transform(source, {
         babelrc: false,
-        plugins: [resolveBareSpecifiers(filePath, false), resolveImportPathExtensions(filePath)]
+        plugins: ['babel-plugin-syntax-dynamic-import', resolveBareSpecifiers(filePath, false), resolveImportPathExtensions(filePath)]
     }).code;
 }
 
