@@ -461,11 +461,11 @@ function transformSpecifiers(source, filePath) {
 
 function addGlobals(source) {
     return `
-        var process = window.process;
-        if (!window.ZWITTERION_SOCKET && window.location.host.includes('localhost:')) {
-            window.ZWITTERION_SOCKET = new WebSocket('ws://localhost:${webSocketPort}');
-            window.ZWITTERION_SOCKET.addEventListener('message', (message) => {
-                window.location.reload();
+        var process = self.process;
+        if (!self.ZWITTERION_SOCKET && self.location.host.includes('localhost:')) {
+            self.ZWITTERION_SOCKET = new WebSocket('ws://localhost:${webSocketPort}');
+            self.ZWITTERION_SOCKET.addEventListener('message', (message) => {
+                self.location.reload();
             });
         }
         ${source}
