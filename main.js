@@ -13,6 +13,7 @@ const resolveImportPathExtensions = require('./babel-plugin-transform-resolve-im
 const babel = require('babel-core');
 const wast2wasm = require('wast2wasm');
 
+
 program
     .version('0.25.1')
     .option('-p, --port [port]', 'Specify the server\'s port')
