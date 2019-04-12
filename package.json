@@ -41,7 +41,7 @@
     "typescript": "2.9.2",
     "util-es-module": "0.0.0",
     "wast2wasm": "0.0.1",
-    "whatwg-url": "6.4.0",
+    "whatwg-url": "6.5.0",
     "ws": "5.2.2"
   },
   "devDependencies": {
