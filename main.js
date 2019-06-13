@@ -25,6 +25,7 @@ program
     .option('--disable-spa', 'Disable the SPA redirect to index.html')
     .option('--exclude [exclude]', 'A comma-separated list of paths to exclude from the static build') //TODO I know this is wrong, I need to figure out how to do variadic arguments
     .option('--include [include]', 'A comma-separated list of paths to include in the static build') //TODO I know this is wrong, I need to figure out how to do variadic arguments
+    .option('--headers [headers]', 'A path to a file, relative to the current directory, for custom headers')
     .parse(process.argv);
 // end side-causes
 // start pure operations, generate the data
@@ -43,8 +44,14 @@ const excludeRegex = `${program.exclude ? program.exclude.split(',').join('*|') 
 const include = program.include;
 const includeRegex = `${program.include ? program.include.split(',').join('*|') : 'NO_INCLUDE'}*`;
 const disableSpa = program.disableSpa;
+const headersFilePath = program.headers || 'NO_HEADERS_FILE';
 let clients = {};
 let compiledFiles = {};
+const fileHeaders = getFileHeaders(headersFilePath);
+const baseHeaderMapping = [
+    [/.*\.(js|mjs|ts|tsx|jsx|wast)$/, [{ name: 'Content-Type', value: 'application/javascript' }]],
+];
+const headerMappings = [...baseHeaderMapping, ...fileHeaders];
 //end pure operations
 // start side-effects, change the world
 
@@ -176,6 +183,30 @@ if (buildStatic) {
     return;
 }
 
+function getFileHeaders(headerPath) {
+    if (headerPath === 'NO_HEADERS_FILE') {
+        return [];
+    }
+
+    try {
+        // JSON can't store a regex so we must parse it from a string
+        return JSON.parse(fs.readFileSync(`${headerPath}`)).map(entry => [new RegExp(entry[0]), entry[1]]);
+    } catch (error) {
+        return [];
+    }
+}
+
+function getHeaders(path) {
+    return headerMappings
+        .filter(mapping => !!mapping[0].exec(path))
+        .map(mapping => mapping[1])
+        .reduce((accum, current) => accum.concat(current), []);
+}
+
+function setHeaders(res, headers) {
+    headers.forEach(header => res.setHeader(header.name, header.value));
+}
+
 // end side-effects
 function createNodeServer(http, nodePort, webSocketPort, watchFiles, tsWarning, tsError, target) {
     return http.createServer(async (req, res) => {
@@ -234,7 +265,7 @@ async function handleScriptExtension(req, res, fileExtension) {
 
     // check if the file is in the cache
     if (compiledFiles[nodeFilePath]) {
-        res.setHeader('Content-Type', 'application/javascript');
+        setHeaders(res, getHeaders(req.url));
         res.end(compiledFiles[nodeFilePath]);
         return;
     }
@@ -249,7 +280,7 @@ async function handleScriptExtension(req, res, fileExtension) {
         const transformedSpecifiers = transformSpecifiers(compiledToJS, nodeFilePath);
         const globalsAdded = addGlobals(transformedSpecifiers);
         compiledFiles[nodeFilePath] = globalsAdded;
-        res.setHeader('Content-Type', 'application/javascript');
+        setHeaders(res, getHeaders(req.url));
         res.end(globalsAdded);
         return;
     }
@@ -314,7 +345,7 @@ async function handleWASMExtension(req, res, fileExtension) {
 
     // check if the file is in the cache
     if (compiledFiles[nodeFilePath]) {
-        res.setHeader('Content-Type', 'application/javascript');
+        setHeaders(res, getHeaders(req.url));
         res.end(compiledFiles[nodeFilePath]);
         return;
     }
@@ -327,7 +358,7 @@ async function handleWASMExtension(req, res, fileExtension) {
         const sourceBuffer = await fs.readFile(nodeFilePath);
         const wrappedInJS = wrapWASMInJS(sourceBuffer);
         compiledFiles[nodeFilePath] = wrappedInJS;
-        res.setHeader('Content-Type', 'application/javascript');
+        setHeaders(res, getHeaders(req.url));
         res.end(wrappedInJS);
         return;
     }
@@ -354,7 +385,7 @@ async function handleWASTExtension(req, res, fileExtension) {
 
     // check if the file is in the cache
     if (compiledFiles[nodeFilePath]) {
-        res.setHeader('Content-Type', 'application/javascript');
+        setHeaders(res, getHeaders(req.url));
         res.end(compiledFiles[nodeFilePath]);
         return;
     }
@@ -368,7 +399,7 @@ async function handleWASTExtension(req, res, fileExtension) {
         const compiledToWASMBuffer = await compileToWASMBuffer(source);
         const wrappedInJS = wrapWASMInJS(compiledToWASMBuffer);
         compiledFiles[nodeFilePath] = wrappedInJS;
-        res.setHeader('Content-Type', 'application/javascript');
+        setHeaders(res, getHeaders(req.url));
         res.end(wrappedInJS);
         return;
     }
