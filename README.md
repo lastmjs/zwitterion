@@ -248,16 +248,12 @@ Specify a regular expression if it matches a request's URL, apply an array of he
 The headers file must be a JSON file in a format similar to the following example:
 
 ```json
-[
-    [
-        "^/services/service-worker.ts$",
-        [
-            {"name": "Service-Worker-Allowed","value": "/"},
-            // more headers can be here
-        ]
-    ],
-    // more regex to header lists can be here
-]
+{
+    "^/services/service-worker.ts$": {
+        "Service-Worker-Allowed": "/",
+        "Content-type": "application/javascript"
+    }
+}
 ```
 
 ## Under the Hood

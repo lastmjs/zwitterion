@@ -48,10 +48,10 @@ const headersFilePath = program.headers || 'NO_HEADERS_FILE';
 let clients = {};
 let compiledFiles = {};
 const fileHeaders = getFileHeaders(headersFilePath);
-const baseHeaderMapping = [
-    [/.*\.(js|mjs|ts|tsx|jsx|wast)$/, [{ name: 'Content-Type', value: 'application/javascript' }]],
-];
-const headerMappings = [...baseHeaderMapping, ...fileHeaders];
+const baseHeaderMapping = {
+    '.*\\.(js|mjs|ts|tsx|jsx|wast)$': {'Content-Type': 'application/javascript' },
+};
+const headerMappings = {...baseHeaderMapping, ...fileHeaders};
 //end pure operations
 // start side-effects, change the world
 
@@ -185,26 +185,28 @@ if (buildStatic) {
 
 function getFileHeaders(headerPath) {
     if (headerPath === 'NO_HEADERS_FILE') {
-        return [];
+        return {};
     }
 
     try {
-        // JSON can't store a regex so we must parse it from a string
-        return JSON.parse(fs.readFileSync(`${headerPath}`)).map(entry => [new RegExp(entry[0]), entry[1]]);
+        return JSON.parse(fs.readFileSync(`${headerPath}`));
     } catch (error) {
-        return [];
+        console.error(`Error parsing JSON for headers file ${headerPath}`);
+        return {};
     }
 }
 
 function getHeaders(path) {
-    return headerMappings
-        .filter(mapping => !!mapping[0].exec(path))
-        .map(mapping => mapping[1])
-        .reduce((accum, current) => accum.concat(current), []);
+    return Object.keys(headerMappings).reduce((allHeaders, currentHeaderRegex) => {
+        if (path.match(currentHeaderRegex)) {
+            return {...allHeaders, ...headerMappings[currentHeaderRegex]};
+        }
+        return allHeaders;
+    }, {});
 }
 
 function setHeaders(res, headers) {
-    headers.forEach(header => res.setHeader(header.name, header.value));
+    Object.keys(headers).forEach(key => res.setHeader(key, headers[key]));
 }
 
 // end side-effects
