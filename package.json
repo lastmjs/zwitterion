@@ -32,7 +32,7 @@
     "events-es-module": "0.0.0",
     "fs-extra": "5.0.0",
     "inherits-es-module": "0.0.0",
-    "install": "0.11.0",
+    "install": "0.13.0",
     "is-windows": "1.0.2",
     "npm": "5.8.0",
     "path-browserify-es-module": "0.0.0",
