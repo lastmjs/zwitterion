@@ -42,7 +42,7 @@
     "util-es-module": "0.0.0",
     "wast2wasm": "0.0.1",
     "whatwg-url": "6.4.0",
-    "ws": "5.2.2"
+    "ws": "7.1.2"
   },
   "devDependencies": {
     "semantic-release": "15.13.3",
