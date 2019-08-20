@@ -45,7 +45,7 @@
     "ws": "5.2.2"
   },
   "devDependencies": {
-    "semantic-release": "15.13.3",
+    "semantic-release": "15.13.21",
     "electron": "2.0.9",
     "guesswork": "0.11.2",
     "node-fetch": "2.1.2",
