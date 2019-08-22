@@ -2,6 +2,8 @@
 
 # Zwitterion
 
+NOTICE - v0.30.0 and up use an experimental import maps feature, and will not work for most browsers. Install a prior version for general browser compatibility
+
 Zwitterion is a server for web applications that provides automatic transpilation, live-reload, and SPA (single-page application) support out of the box. It allows you to develop web platform applications using the latest versions of JavaScript, TypeScript, JSX, TSX, or WebAssembly without a complicated build step.
 
 Just include files directly in `<script>` tags:
