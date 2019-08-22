@@ -174,7 +174,7 @@ if (buildStatic) {
 }
 
 function generateImportMap() {
-    generateImportMapForProjectNodeModules({ projectPath: __dirname });
+    generateImportMapForProjectNodeModules({ projectPath: process.cwd() });
 }
 
 // end side-effects
