@@ -2,20 +2,14 @@
 const fs = require('fs-extra');
 const program = require('commander');
 const http = require('http');
-const execSync = require('child_process').execSync;
 const execAsync = require('child_process').exec;
 const tsc = require('typescript');
-const path = require('path');
 const WebSocket = require('ws');
 const chokidar = require('chokidar');
-const resolveBareSpecifiers = require('./babel-plugin-transform-resolve-bare-specifiers.js');
-const resolveImportPathExtensions = require('./babel-plugin-transform-resolve-import-path-extensions.js');
-const babel = require('babel-core');
-const wast2wasm = require('wast2wasm');
-
+const { generateImportMapForProjectNodeModules } = require("@jsenv/node-module-import-map");
 
 program
-    .version('0.25.1')
+    .version('0.30.0')
     .option('-p, --port [port]', 'Specify the server\'s port')
     .option('-w, --watch-files', 'Watch files in current directory and reload browser on changes')
     .option('--ts-warning', 'Report TypeScript errors in the browser console as warnings')
@@ -47,6 +41,9 @@ let clients = {};
 let compiledFiles = {};
 //end pure operations
 // start side-effects, change the world
+
+console.log('generating')
+generateImportMap();
 
 nodeHttpServer.listen(nodePort);
 console.log(`Zwitterion listening on port ${nodePort}`);
@@ -176,6 +173,10 @@ if (buildStatic) {
     return;
 }
 
+function generateImportMap() {
+    generateImportMapForProjectNodeModules({ projectPath: __dirname });
+}
+
 // end side-effects
 function createNodeServer(http, nodePort, webSocketPort, watchFiles, tsWarning, tsError, target) {
     return http.createServer(async (req, res) => {
@@ -246,8 +247,7 @@ async function handleScriptExtension(req, res, fileExtension) {
         watchFile(nodeFilePath, watchFiles);
         const source = (await fs.readFile(nodeFilePath)).toString();
         const compiledToJS = compileToJs(source, target, fileExtension === '.jsx' || fileExtension === '.tsx');
-        const transformedSpecifiers = transformSpecifiers(compiledToJS, nodeFilePath);
-        const globalsAdded = addGlobals(transformedSpecifiers);
+        const globalsAdded = addGlobals(compiledToJS);
         compiledFiles[nodeFilePath] = globalsAdded;
         res.setHeader('Content-Type', 'application/javascript');
         res.end(globalsAdded);
@@ -453,13 +453,6 @@ function compileToJs(source, target, jsx) {
     return transpileOutput.outputText;
 }
 
-function transformSpecifiers(source, filePath) {
-    return babel.transform(source, {
-        babelrc: false,
-        plugins: ['babel-plugin-syntax-dynamic-import', resolveBareSpecifiers(filePath, false), resolveImportPathExtensions(filePath)]
-    }).code;
-}
-
 function addGlobals(source) {
     return `
         var process = self.process;
@@ -489,11 +482,4 @@ function createWebSocketServer(webSocketPort, watchFiles) {
     else {
         return null;
     }
-}
-
-async function compileToWasmJs(filePath) {
-    const filename = filePath.substring(filePath.lastIndexOf('/') + 1, filePath.lastIndexOf('.'));
-    execSync(`cd emsdk && source ./emsdk_env.sh --build=Release && cd .. && emcc ${filePath} -s WASM=1 -o ${filename}.wasm`, {shell: '/bin/bash'});
-    const compiledText = fs.readFileSync(`${filename}.js`).toString();
-    return compiledText;
 }
