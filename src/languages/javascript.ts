@@ -1,7 +1,8 @@
 import {
     JavaScript,
     Clients,
-    CompiledFiles
+    CompiledFiles,
+    FileContentsResult
 } from '../../index.d.ts';
 import {
     getFileContents,
@@ -17,36 +18,29 @@ export async function getJavaScriptFileContents(params: {
     jsTarget: string;
     wsPort: number;
     disableSpa: boolean;
-}): Promise<{
-    fileContents: JavaScript;
-} | 'FILE_NOT_FOUND'> {
+}): Promise<FileContentsResult> {
 
-    const javaScriptFileContentsResult: {
-        fileContents: JavaScript;
-    } | 'FILE_NOT_FOUND' = await getFileContents({
+    const javaScriptFileContentsResult: FileContentsResult = await getFileContents({
         url: params.url,
         compiledFiles: params.compiledFiles,
         disableSpa: params.disableSpa,
         watchFiles: params.watchFiles,
-        clients: params.clients
+        clients: params.clients,
+        transformer: (source: string) => {
+            const compiledToJS: JavaScript = compileToJs({
+                source, 
+                jsTarget: params.jsTarget,
+                filePath: params.url
+            });
+        
+            const globalsAdded: JavaScript = addGlobals({
+                source: compiledToJS,
+                wsPort: params.wsPort
+            });
+
+            return globalsAdded;
+        }
     });
 
-    if (javaScriptFileContentsResult === 'FILE_NOT_FOUND') {
-        return javaScriptFileContentsResult;
-    }
-
-    const compiledToJS: JavaScript = compileToJs({
-        source: javaScriptFileContentsResult.fileContents, 
-        jsTarget: params.jsTarget,
-        filePath: params.url
-    });
-
-    const globalsAdded: JavaScript = addGlobals({
-        source: compiledToJS,
-        wsPort: params.wsPort
-    });
-
-    return {
-        fileContents: globalsAdded
-    };
+    return javaScriptFileContentsResult;
 }

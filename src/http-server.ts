@@ -12,6 +12,7 @@ import { getTypeScriptFileContents } from './languages/typescript.ts';
 import {
     getFileContents
 } from './utilities.ts';
+import * as mime from 'mime';
 
 export function createHTTPServer(params: {
     wsPort: number;
@@ -117,20 +118,21 @@ async function handleIndex(params: {
     disableSpa: boolean;
     res: http.ServerResponse;
 }): Promise<void> {
-    const indexFileContentsResult: {
-        fileContents: HTML
-    } | 'FILE_NOT_FOUND' = await getFileContents({
+    const indexFileContentsResult: FileContentsResult = await getFileContents({
         url: './index.html',
         compiledFiles: params.compiledFiles,
         watchFiles: params.watchFiles,
         clients: params.clients,
-        disableSpa: params.disableSpa
+        disableSpa: params.disableSpa,
+        transformer: 'NOT_SET'
     });
 
     await sendResponse({
         res: params.res,
         fileContentsResult: indexFileContentsResult,
-        headers: {} // TODO should we set the content type to text/html?
+        headers: {
+            'Content-Type': 'text/html'
+        }
     });
 }
 
@@ -143,20 +145,23 @@ async function handleGeneric(params: {
     res: http.ServerResponse;
 }): Promise<void> {
 
-    const genericFileContentsResult: {
-        fileContents: string
-    } | 'FILE_NOT_FOUND' = await getFileContents({
+    const genericFileContentsResult: FileContentsResult = await getFileContents({
         url: params.url,
         compiledFiles: params.compiledFiles,
         watchFiles: params.watchFiles,
         clients: params.clients,
-        disableSpa: params.disableSpa
+        disableSpa: params.disableSpa,
+        transformer: 'NOT_SET'
     });
+
+    const mimeType: string | null = mime.getType(params.url);
 
     await sendResponse({
         res: params.res,
         fileContentsResult: genericFileContentsResult,
-        headers: {} // TODO think about mime types
+        headers: mimeType ? {
+            'Content-Type': mimeType
+        } : {}
     });
 }
 
@@ -170,9 +175,7 @@ async function handleJavaScript(params: {
     disableSpa: boolean;
     res: http.ServerResponse;
 }): Promise<void> {
-    const javaScriptFileContentsResult: {
-        fileContents: JavaScript;
-    } | 'FILE_NOT_FOUND' = await getJavaScriptFileContents({
+    const javaScriptFileContentsResult: FileContentsResult = await getJavaScriptFileContents({
         url: params.url,
         compiledFiles: params.compiledFiles,
         watchFiles: params.watchFiles,
@@ -201,9 +204,7 @@ async function handleTypeScript(params: {
     disableSpa: boolean;
     res: http.ServerResponse;
 }): Promise<void> {
-    const typeScriptFileContentsResult: {
-        fileContents: JavaScript;
-    } | 'FILE_NOT_FOUND' = await getTypeScriptFileContents({
+    const typeScriptFileContentsResult: FileContentsResult = await getTypeScriptFileContents({
         url: params.url,
         compiledFiles: params.compiledFiles,
         watchFiles: params.watchFiles,

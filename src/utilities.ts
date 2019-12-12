@@ -2,9 +2,9 @@ import * as fs from 'fs-extra';
 import {
     Clients, 
     CompiledFiles,
-    HTML,
     JavaScript,
-    TypeScript
+    TypeScript,
+    Transformer
 } from '../index.d.ts';
 import * as chokidar from 'chokidar';
 import * as WebSocket from 'ws';
@@ -19,11 +19,12 @@ export async function getFileContents(params: {
     disableSpa: boolean;
     watchFiles: boolean;
     clients: Clients;
+    transformer: Transformer | 'NOT_SET';
 }): Promise<{
-    fileContents: string;
+    fileContents: Buffer;
 } | 'FILE_NOT_FOUND'> {
 
-    const cachedFileContents: string | null | undefined = await returnFileContentsFromCache({
+    const cachedFileContents: Buffer | null | undefined = await returnFileContentsFromCache({
         url: params.url,
         compiledFiles: params.compiledFiles
     });
@@ -39,9 +40,11 @@ export async function getFileContents(params: {
     else {
 
         if (await (fs.exists as any)(params.url)) {
-            const fileContents: HTML = (await fs.readFile(params.url)).toString();
+            const fileContents: Buffer = await fs.readFile(params.url);
 
-            params.compiledFiles[params.url] = fileContents;
+            const transformedFileContents: Buffer = params.transformer === 'NOT_SET' ? fileContents : Buffer.from(params.transformer(fileContents.toString()));
+
+            params.compiledFiles[params.url] = transformedFileContents;
 
             watchFile({
                 filePath: params.url,
@@ -51,12 +54,12 @@ export async function getFileContents(params: {
             });
 
             return {
-                fileContents
+                fileContents: transformedFileContents
             };
         }
 
         if (!params.disableSpa) {
-            const indexFileContents: HTML = (await fs.readFile(`./index.html`)).toString();
+            const indexFileContents: Buffer = await fs.readFile(`./index.html`);
                         
             return {
                 fileContents: indexFileContents
@@ -72,9 +75,9 @@ export async function getFileContents(params: {
 async function returnFileContentsFromCache(params: {
     url: string;
     compiledFiles: CompiledFiles;
-}): Promise<string | null | undefined> {
+}): Promise<Buffer | null | undefined> {
 
-    const cachedFileContents: string | null | undefined = params.compiledFiles[params.url];
+    const cachedFileContents: Buffer | null | undefined = params.compiledFiles[params.url];
 
     return cachedFileContents;
 }
@@ -110,7 +113,7 @@ export function addGlobals(params: {
     return `
         var process = self.process;
         if (!self.ZWITTERION_SOCKET && self.location.host.includes('localhost:')) {
-            self.ZWITTERION_SOCKET = new WebSocket('ws://localhost:${params.wsPort}');
+            self.ZWITTERION_SOCKET = new WebSocket('ws://127.0.0.1:${params.wsPort}');
             self.ZWITTERION_SOCKET.addEventListener('message', (message) => {
                 self.location.reload();
             });
@@ -132,7 +135,11 @@ export function compileToJs(params: {
     });
 
     const babelFileResult: Readonly<babel.BabelFileResult> | null = babel.transform(typeScriptTranspileOutput.outputText, {
-        'plugins': [resolveBareSpecifiers(params.filePath, false), resolveImportPathExtensions(params.filePath)]
+        'plugins': [
+            'babel-plugin-syntax-dynamic-import',
+            resolveBareSpecifiers(params.filePath, false),
+            resolveImportPathExtensions(params.filePath)
+        ]
     });
 
     if (

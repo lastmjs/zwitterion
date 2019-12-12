@@ -1,7 +1,7 @@
 import {
-    JavaScript,
     Clients,
-    CompiledFiles
+    CompiledFiles,
+    FileContentsResult
 } from '../../index.d.ts';
 import { getJavaScriptFileContents } from './javascript.ts';
 
@@ -13,8 +13,6 @@ export async function getTypeScriptFileContents(params: {
     jsTarget: string;
     wsPort: number;
     disableSpa: boolean;
-}): Promise<{
-    fileContents: JavaScript;
-} | 'FILE_NOT_FOUND'> {
+}): Promise<FileContentsResult> {
     return getJavaScriptFileContents(params);
 }

@@ -21,9 +21,11 @@ export type Clients = {
 };
 
 export type CompiledFiles = {
-    [filePath: string]: string | null;
+    [filePath: string]: Buffer | null;
 };
 
 export type FileContentsResult = {
-    fileContents: string;
+    fileContents: Buffer;
 } | 'FILE_NOT_FOUND';
+
+export type Transformer = (source: string) => string;
