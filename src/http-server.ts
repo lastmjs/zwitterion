@@ -1,27 +1,32 @@
 import * as http from 'http';
-import * as fs from 'fs-extra';
 import {
-    HTML,
     Clients,
     CompiledFiles,
-    JavaScript,
-    FileContentsResult
+    FileContentsResult,
+    CustomHTTPHeaders,
+    HTTPHeaders
 } from '../index.d.ts';
 import { getJavaScriptFileContents } from './languages/javascript.ts';
 import { getTypeScriptFileContents } from './languages/typescript.ts';
 import {
-    getFileContents
+    getFileContents,
+    getCustomHTTPHeadersFromFile,
+    getCustomHTTPHeadersForURL
 } from './utilities.ts';
 import * as mime from 'mime';
 
-export function createHTTPServer(params: {
+export async function createHTTPServer(params: {
     wsPort: number;
     watchFiles: boolean;
     jsTarget: string;
     clients: Clients;
     compiledFiles: CompiledFiles;
     disableSpa: boolean;
-}): Readonly<http.Server> {
+    customHTTPHeadersFilePath: string | undefined;
+}): Promise<Readonly<http.Server>> {
+
+    const customHTTPHeaders: Readonly<CustomHTTPHeaders> = params.customHTTPHeadersFilePath === undefined ? {} : await getCustomHTTPHeadersFromFile(params.customHTTPHeadersFilePath);
+
     return http.createServer(async (req: Readonly<http.IncomingMessage>, res: http.ServerResponse) => {
 
         try {
@@ -38,7 +43,8 @@ export function createHTTPServer(params: {
                     watchFiles: params.watchFiles,
                     clients: params.clients,
                     disableSpa: params.disableSpa,
-                    res
+                    res,
+                    customHTTPHeaders
                 });
 
                 return;
@@ -54,7 +60,8 @@ export function createHTTPServer(params: {
                     jsTarget: params.jsTarget,
                     wsPort: params.wsPort,
                     disableSpa: params.disableSpa,
-                    res
+                    res,
+                    customHTTPHeaders
                 });
 
                 return;
@@ -70,7 +77,8 @@ export function createHTTPServer(params: {
                     jsTarget: params.jsTarget,
                     wsPort: params.wsPort,
                     disableSpa: params.disableSpa,
-                    res
+                    res,
+                    customHTTPHeaders
                 });
 
                 return;
@@ -86,7 +94,8 @@ export function createHTTPServer(params: {
                     jsTarget: params.jsTarget,
                     wsPort: params.wsPort,
                     disableSpa: params.disableSpa,
-                    res
+                    res,
+                    customHTTPHeaders
                 });
 
                 return;
@@ -102,7 +111,8 @@ export function createHTTPServer(params: {
                 watchFiles: params.watchFiles,
                 clients: params.clients,
                 disableSpa: params.disableSpa,
-                res
+                res,
+                customHTTPHeaders
             });
         }
         catch(error) {
@@ -117,9 +127,13 @@ async function handleIndex(params: {
     clients: Clients;
     disableSpa: boolean;
     res: http.ServerResponse;
+    customHTTPHeaders: Readonly<CustomHTTPHeaders>;
 }): Promise<void> {
-    const indexFileContentsResult: FileContentsResult = await getFileContents({
-        url: './index.html',
+
+    const url: string = './index.html';
+
+    const indexFileContentsResult: Readonly<FileContentsResult> = await getFileContents({
+        url,
         compiledFiles: params.compiledFiles,
         watchFiles: params.watchFiles,
         clients: params.clients,
@@ -127,12 +141,18 @@ async function handleIndex(params: {
         transformer: 'NOT_SET'
     });
 
+    const httpHeaders: Readonly<HTTPHeaders> = getCustomHTTPHeadersForURL({
+        customHTTPHeaders: params.customHTTPHeaders,
+        defaultHTTPHeaders: {
+            'Content-Type': 'text/html'   
+        },
+        url
+    });
+
     await sendResponse({
         res: params.res,
         fileContentsResult: indexFileContentsResult,
-        headers: {
-            'Content-Type': 'text/html'
-        }
+        headers: httpHeaders
     });
 }
 
@@ -143,9 +163,10 @@ async function handleGeneric(params: {
     clients: Clients;
     disableSpa: boolean;
     res: http.ServerResponse;
+    customHTTPHeaders: Readonly<CustomHTTPHeaders>;
 }): Promise<void> {
 
-    const genericFileContentsResult: FileContentsResult = await getFileContents({
+    const genericFileContentsResult: Readonly<FileContentsResult> = await getFileContents({
         url: params.url,
         compiledFiles: params.compiledFiles,
         watchFiles: params.watchFiles,
@@ -156,12 +177,18 @@ async function handleGeneric(params: {
 
     const mimeType: string | null = mime.getType(params.url);
 
+    const httpHeaders: Readonly<HTTPHeaders> = getCustomHTTPHeadersForURL({
+        customHTTPHeaders: params.customHTTPHeaders,
+        defaultHTTPHeaders: mimeType ? {
+            'Content-Type': mimeType   
+        } : {},
+        url: params.url
+    });
+
     await sendResponse({
         res: params.res,
         fileContentsResult: genericFileContentsResult,
-        headers: mimeType ? {
-            'Content-Type': mimeType
-        } : {}
+        headers: httpHeaders
     });
 }
 
@@ -174,8 +201,9 @@ async function handleJavaScript(params: {
     wsPort: number;
     disableSpa: boolean;
     res: http.ServerResponse;
+    customHTTPHeaders: Readonly<CustomHTTPHeaders>;
 }): Promise<void> {
-    const javaScriptFileContentsResult: FileContentsResult = await getJavaScriptFileContents({
+    const javaScriptFileContentsResult: Readonly<FileContentsResult> = await getJavaScriptFileContents({
         url: params.url,
         compiledFiles: params.compiledFiles,
         watchFiles: params.watchFiles,
@@ -185,12 +213,18 @@ async function handleJavaScript(params: {
         disableSpa: params.disableSpa
     });
 
+    const httpHeaders: Readonly<HTTPHeaders> = getCustomHTTPHeadersForURL({
+        customHTTPHeaders: params.customHTTPHeaders,
+        defaultHTTPHeaders: {
+            'Content-Type': 'application/javascript'
+        },
+        url: params.url
+    });
+
     await sendResponse({
         res: params.res,
         fileContentsResult: javaScriptFileContentsResult,
-        headers: {
-            'Content-Type': 'application/javascript'
-        }
+        headers: httpHeaders
     });
 }
 
@@ -203,8 +237,9 @@ async function handleTypeScript(params: {
     wsPort: number;
     disableSpa: boolean;
     res: http.ServerResponse;
+    customHTTPHeaders: Readonly<CustomHTTPHeaders>;
 }): Promise<void> {
-    const typeScriptFileContentsResult: FileContentsResult = await getTypeScriptFileContents({
+    const typeScriptFileContentsResult: Readonly<FileContentsResult> = await getTypeScriptFileContents({
         url: params.url,
         compiledFiles: params.compiledFiles,
         watchFiles: params.watchFiles,
@@ -214,18 +249,24 @@ async function handleTypeScript(params: {
         disableSpa: params.disableSpa
     });
 
+    const httpHeaders: Readonly<HTTPHeaders> = getCustomHTTPHeadersForURL({
+        customHTTPHeaders: params.customHTTPHeaders,
+        defaultHTTPHeaders: {
+            'Content-Type': 'application/javascript'
+        },
+        url: params.url
+    });
+
     await sendResponse({
         res: params.res,
         fileContentsResult: typeScriptFileContentsResult,
-        headers: {
-            'Content-Type': 'application/javascript'
-        }
+        headers: httpHeaders
     });
 }
 
 async function sendResponse(params: {
     res: http.ServerResponse;
-    fileContentsResult: FileContentsResult;
+    fileContentsResult: Readonly<FileContentsResult>;
     headers: {
         [key: string]: string;
     };

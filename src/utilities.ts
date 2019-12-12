@@ -4,7 +4,10 @@ import {
     CompiledFiles,
     JavaScript,
     TypeScript,
-    Transformer
+    Transformer,
+    CustomHTTPHeaders,
+    HTTPHeaders,
+    FileContentsResult
 } from '../index.d.ts';
 import * as chokidar from 'chokidar';
 import * as WebSocket from 'ws';
@@ -20,11 +23,9 @@ export async function getFileContents(params: {
     watchFiles: boolean;
     clients: Clients;
     transformer: Transformer | 'NOT_SET';
-}): Promise<{
-    fileContents: Buffer;
-} | 'FILE_NOT_FOUND'> {
+}): Promise<Readonly<FileContentsResult>> {
 
-    const cachedFileContents: Buffer | null | undefined = await returnFileContentsFromCache({
+    const cachedFileContents: Readonly<Buffer> | null | undefined = await returnFileContentsFromCache({
         url: params.url,
         compiledFiles: params.compiledFiles
     });
@@ -40,9 +41,9 @@ export async function getFileContents(params: {
     else {
 
         if (await (fs.exists as any)(params.url)) {
-            const fileContents: Buffer = await fs.readFile(params.url);
+            const fileContents: Readonly<Buffer> = await fs.readFile(params.url);
 
-            const transformedFileContents: Buffer = params.transformer === 'NOT_SET' ? fileContents : Buffer.from(params.transformer(fileContents.toString()));
+            const transformedFileContents: Readonly<Buffer> = params.transformer === 'NOT_SET' ? fileContents : Buffer.from(params.transformer(fileContents.toString()));
 
             params.compiledFiles[params.url] = transformedFileContents;
 
@@ -59,7 +60,7 @@ export async function getFileContents(params: {
         }
 
         if (!params.disableSpa) {
-            const indexFileContents: Buffer = await fs.readFile(`./index.html`);
+            const indexFileContents: Readonly<Buffer> = await fs.readFile(`./index.html`);
                         
             return {
                 fileContents: indexFileContents
@@ -75,9 +76,9 @@ export async function getFileContents(params: {
 async function returnFileContentsFromCache(params: {
     url: string;
     compiledFiles: CompiledFiles;
-}): Promise<Buffer | null | undefined> {
+}): Promise<Readonly<Buffer> | null | undefined> {
 
-    const cachedFileContents: Buffer | null | undefined = params.compiledFiles[params.url];
+    const cachedFileContents: Readonly<Buffer> | null | undefined = params.compiledFiles[params.url];
 
     return cachedFileContents;
 }
@@ -151,4 +152,27 @@ export function compileToJs(params: {
     }
 
     return babelFileResult.code;
+}
+
+export async function getCustomHTTPHeadersFromFile(headersFilePath: string) {
+    const headersFile: Readonly<Buffer> = await fs.readFile(headersFilePath);
+    return JSON.parse(headersFile.toString());
+}
+
+export function getCustomHTTPHeadersForURL(params: {
+    customHTTPHeaders: Readonly<CustomHTTPHeaders>;
+    url: string;
+    defaultHTTPHeaders: Readonly<HTTPHeaders>;
+}): Readonly<HTTPHeaders> {
+    return Object.keys(params.customHTTPHeaders).reduce((result: Readonly<HTTPHeaders>, customHTTPHeaderRegex: string) => {
+        
+        if (params.url.match(customHTTPHeaderRegex)) {
+            return {
+                ...result,
+                ...params.customHTTPHeaders[customHTTPHeaderRegex]
+            };
+        }
+
+        return result;
+    }, params.defaultHTTPHeaders);
 }

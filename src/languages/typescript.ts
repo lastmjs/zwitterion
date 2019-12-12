@@ -13,6 +13,6 @@ export async function getTypeScriptFileContents(params: {
     jsTarget: string;
     wsPort: number;
     disableSpa: boolean;
-}): Promise<FileContentsResult> {
+}): Promise<Readonly<FileContentsResult>> {
     return getJavaScriptFileContents(params);
 }

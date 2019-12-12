@@ -3,8 +3,8 @@ import { exec as execAsync } from 'child_process';
 // TODO this thing is disgusting and isn't cross platform. Figure out how to do this with some node modules that will ensure this works cross-platform
 // TODO then again...it's not so bad. It works rather well actually
 export function buildStatic(params: {
-    exclude: string;
-    include: string;
+    exclude: string | undefined;
+    include: string | undefined;
     httpPort: number;
 }): void {
     const excludeRegex = `${params.exclude ? params.exclude.split(',').join('*|') : 'NO_EXCLUDE'}*`;

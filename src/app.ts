@@ -9,35 +9,38 @@ import {
 } from '../index.d.ts';
 import {
     buildStatic
-} from './static-builder';
+} from './static-builder.ts';
 
-let clients: Clients = {};
+(async () => {
+    let clients: Clients = {};
 
-let compiledFiles: CompiledFiles = {};
+    let compiledFiles: CompiledFiles = {};
 
-const httpServer: http.Server = createHTTPServer({
-    wsPort: commandLineOptions.wsPort,
-    watchFiles: commandLineOptions.watchFiles,
-    jsTarget: commandLineOptions.jsTarget,
-    clients,
-    compiledFiles,
-    disableSpa: commandLineOptions.disableSpa
-});
-
-const wsServer: Readonly<WebSocket.Server> | 'NOT_CREATED' = createWebSocketServer({
-    wsPort: commandLineOptions.wsPort,
-    watchFiles: commandLineOptions.watchFiles,
-    clients
-});
-
-httpServer.listen(commandLineOptions.httpPort);
-console.log(`Zwitterion listening on port ${commandLineOptions.httpPort}`);
-process.send && process.send('ZWITTERION_LISTENING');
-
-if (commandLineOptions.buildStatic) {
-    buildStatic({
-        exclude: commandLineOptions.exclude,
-        include: commandLineOptions.include,
-        httpPort: commandLineOptions.httpPort
+    const httpServer: Readonly<http.Server> = await createHTTPServer({
+        wsPort: commandLineOptions.wsPort,
+        watchFiles: commandLineOptions.watchFiles,
+        jsTarget: commandLineOptions.jsTarget,
+        clients,
+        compiledFiles,
+        disableSpa: commandLineOptions.disableSpa,
+        customHTTPHeadersFilePath: commandLineOptions.customHTTPHeadersFilePath
     });
-}
+
+    const wsServer: Readonly<WebSocket.Server> | 'NOT_CREATED' = createWebSocketServer({
+        wsPort: commandLineOptions.wsPort,
+        watchFiles: commandLineOptions.watchFiles,
+        clients
+    });
+
+    httpServer.listen(commandLineOptions.httpPort);
+    console.log(`Zwitterion listening on port ${commandLineOptions.httpPort}`);
+    process.send && process.send('ZWITTERION_LISTENING');
+
+    if (commandLineOptions.buildStatic) {
+        buildStatic({
+            exclude: commandLineOptions.exclude,
+            include: commandLineOptions.include,
+            httpPort: commandLineOptions.httpPort
+        });
+    }
+})();

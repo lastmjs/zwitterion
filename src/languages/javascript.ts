@@ -18,9 +18,9 @@ export async function getJavaScriptFileContents(params: {
     jsTarget: string;
     wsPort: number;
     disableSpa: boolean;
-}): Promise<FileContentsResult> {
+}): Promise<Readonly<FileContentsResult>> {
 
-    const javaScriptFileContentsResult: FileContentsResult = await getFileContents({
+    const javaScriptFileContentsResult: Readonly<FileContentsResult> = await getFileContents({
         url: params.url,
         compiledFiles: params.compiledFiles,
         disableSpa: params.disableSpa,
