@@ -1,6 +1,6 @@
 {
   "name": "zwitterion",
-  "version": "0.31.0",
+  "version": "0.32.0",
   "description": "Auto-transpiling, live-reloading, and SPA-ing server for JavaScript, TypeScript, JSX, TSX, and WebAssembly.",
   "scripts": {
     "start": "ts-node --transpile-only src/app.ts --port 5050",
