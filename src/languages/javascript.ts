@@ -1,13 +1,13 @@
 import {
     JavaScript,
-    TypeScript,
     Clients,
     CompiledFiles
 } from '../../index.d.ts';
-import * as tsc from 'typescript';
 import {
-    getFileContents
-} from '../http-server.ts';
+    getFileContents,
+    addGlobals,
+    compileToJs
+} from '../utilities';
 
 export async function getJavaScriptFileContents(params: {
     url: string;
@@ -37,7 +37,8 @@ export async function getJavaScriptFileContents(params: {
 
     const compiledToJS: JavaScript = compileToJs({
         source: javaScriptFileContentsResult.fileContents, 
-        jsTarget: params.jsTarget
+        jsTarget: params.jsTarget,
+        filePath: params.url
     });
 
     const globalsAdded: JavaScript = addGlobals({
@@ -48,34 +49,4 @@ export async function getJavaScriptFileContents(params: {
     return {
         fileContents: globalsAdded
     };
-}
-
-function compileToJs(params: {
-    source: JavaScript | TypeScript;
-    jsTarget: string;
-}): JavaScript {
-    const transpileOutput = tsc.transpileModule(params.source, {
-        compilerOptions: {
-            module: 'es2015' as unknown as tsc.ModuleKind,
-            target: params.jsTarget as any
-        }
-    });
-
-    return transpileOutput.outputText;
-}
-
-function addGlobals(params: {
-    source: JavaScript;
-    wsPort: number;
-}): JavaScript {
-    return `
-        var process = self.process;
-        if (!self.ZWITTERION_SOCKET && self.location.host.includes('localhost:')) {
-            self.ZWITTERION_SOCKET = new WebSocket('ws://localhost:${params.wsPort}');
-            self.ZWITTERION_SOCKET.addEventListener('message', (message) => {
-                self.location.reload();
-            });
-        }
-        ${params.source}
-    `;
 }

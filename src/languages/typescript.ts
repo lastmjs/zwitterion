@@ -16,15 +16,5 @@ export async function getTypeScriptFileContents(params: {
 }): Promise<{
     fileContents: JavaScript;
 } | 'FILE_NOT_FOUND'> {
-    const javaScriptFileContentsResult: {
-        fileContents: JavaScript;
-    } | 'FILE_NOT_FOUND' = await getJavaScriptFileContents(params);
-
-    if (javaScriptFileContentsResult === 'FILE_NOT_FOUND') {
-        return javaScriptFileContentsResult;
-    }
-
-    return {
-        fileContents: javaScriptFileContentsResult.fileContents
-    };
+    return getJavaScriptFileContents(params);
 }

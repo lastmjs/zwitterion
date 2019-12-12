@@ -7,10 +7,11 @@ import {
     JavaScript,
     FileContentsResult
 } from '../index.d.ts';
-import * as chokidar from 'chokidar';
-import * as WebSocket from 'ws';
 import { getJavaScriptFileContents } from './languages/javascript.ts';
 import { getTypeScriptFileContents } from './languages/typescript.ts';
+import {
+    getFileContents
+} from './utilities.ts';
 
 export function createHTTPServer(params: {
     wsPort: number;
@@ -21,8 +22,6 @@ export function createHTTPServer(params: {
     disableSpa: boolean;
 }): Readonly<http.Server> {
     return http.createServer(async (req: Readonly<http.IncomingMessage>, res: http.ServerResponse) => {
-
-        console.log('req.url', req.url);
 
         try {
             if (req.url === undefined) {
@@ -243,98 +242,5 @@ async function sendResponse(params: {
         });
 
         params.res.end(params.fileContentsResult.fileContents);
-    }
-}
-
-export async function getFileContents(params: {
-    url: string;
-    compiledFiles: CompiledFiles;
-    disableSpa: boolean;
-    watchFiles: boolean;
-    clients: Clients;
-}): Promise<{
-    fileContents: string;
-} | 'FILE_NOT_FOUND'> {
-
-    console.log('compiledFiles', params.compiledFiles);
-
-    const cachedFileContents: string | null | undefined = await returnFileContentsFromCache({
-        url: params.url,
-        compiledFiles: params.compiledFiles
-    });
-
-    if (
-        cachedFileContents !== null &&
-        cachedFileContents !== undefined
-    ) {
-        return {
-            fileContents: cachedFileContents
-        };
-    }
-    else {
-
-        if (await (fs.exists as any)(params.url)) {
-            const fileContents: HTML = (await fs.readFile(params.url)).toString();
-
-            params.compiledFiles[params.url] = fileContents;
-
-            watchFile({
-                filePath: params.url,
-                watchFiles: params.watchFiles,
-                clients: params.clients,
-                compiledFiles: params.compiledFiles
-            });
-
-            return {
-                fileContents
-            };
-        }
-
-        if (!params.disableSpa) {
-            const indexFileContents: HTML = (await fs.readFile(`./index.html`)).toString();
-                        
-            return {
-                fileContents: indexFileContents
-            };
-        }
-        else {
-            return 'FILE_NOT_FOUND';
-        }
-    
-    }
-}
-
-async function returnFileContentsFromCache(params: {
-    url: string;
-    compiledFiles: CompiledFiles;
-}): Promise<string | null | undefined> {
-
-    const cachedFileContents: string | null | undefined = params.compiledFiles[params.url];
-
-    return cachedFileContents;
-}
-
-// TODO perhaps put this in a utilities file
-export function watchFile(params: {
-    filePath: string;
-    watchFiles: boolean;
-    clients: Clients;
-    compiledFiles: CompiledFiles;
-}) {
-    if (params.watchFiles) {
-        chokidar.watch(params.filePath).on('change', () => {
-
-            params.compiledFiles[params.filePath] = null;
-
-            Object.values(params.clients).forEach((client: Readonly<WebSocket>) => {
-                try {
-                    client.send('RELOAD_MESSAGE');
-                }
-                catch(error) {
-                    //TODO something should be done about this. What's happening I believe is that if two files are changed in a very short period of time, one file will start the browser reloading, and the other file will try to send a message to the browser while it is reloading, and thus the websocket connection will not be established with the browser. This is a temporary solution
-                    console.log(error);
-                }
-            });
-        });
     }
 }

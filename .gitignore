@@ -1,5 +1,1 @@
-/http.access.log
-/http.error.log
-/nginx.conf
 /node_modules
-/npm-debug.log
