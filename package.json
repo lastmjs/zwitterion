@@ -1,6 +1,6 @@
 {
   "name": "zwitterion",
-  "version": "0.32.0",
+  "version": "0.33.0",
   "description": "Auto-transpiling, live-reloading, and SPA-ing server for JavaScript, TypeScript, JSX, TSX, and WebAssembly.",
   "scripts": {
     "start": "ts-node --transpile-only src/app.ts --port 5050",
@@ -15,7 +15,10 @@
     "type": "git",
     "url": "https://github.com/lastmjs/zwitterion"
   },
-  "author": "Jordan Last <jordan.michael.last@gmail.com>",
+  "contributors": [
+    "Jordan Last <jordan.michael.last@gmail.com>",
+    "electrovir"
+  ],
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/lastmjs/zwitterion/issues"
