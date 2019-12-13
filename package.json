@@ -1,7 +1,7 @@
 {
   "name": "zwitterion",
-  "version": "0.34.1",
-  "description": "Auto-transpiling, live-reloading, and SPA-ing server for JavaScript, TypeScript, JSX, TSX, and WebAssembly.",
+  "version": "0.35.0",
+  "description": "A zero confusion polyglot static file server for front-end web development.",
   "scripts": {
     "start": "ts-node --transpile-only src/app.ts --port 5050",
     "test": "xvfb-run guesswork electron --entry test/index.js",

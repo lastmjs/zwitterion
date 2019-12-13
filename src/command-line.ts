@@ -9,7 +9,7 @@ const packageJSON: {
 program
     .version(packageJSON.version)
     .option('-p, --port [port]', 'Specify the server\'s port')
-    .option('-w, --watch-files', 'Watch files in current directory and reload browser on changes')
+    // .option('-nw, --no-watch-files', 'Do not watch files in current directory and do not reload browser on changes')
     // .option('--ts-warning', 'Report TypeScript errors in the browser console as warnings')
     // .option('--ts-error', 'Report TypeScript errors in the browser console as errors')
     .option('--build-static', 'Create a static build of the current working directory. The output will be in a directory called dist in the current working directory')
@@ -22,7 +22,8 @@ program
 
 // TODO understand how null and undefined are going to work here
 const buildStatic: boolean = program.buildStatic || false;
-const watchFiles: boolean = program.watchFiles || true;
+// const watchFiles: boolean = program.watchFiles || true;
+const watchFiles: boolean = true;
 const httpPort: number = parseInt(program.port || 5000);
 const wsPort: number = httpPort + 1;
 const jsTarget: string = program.target || 'ES2015';

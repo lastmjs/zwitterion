@@ -1,39 +1,73 @@
-[![CircleCI](https://circleci.com/gh/lastmjs/zwitterion.svg?style=shield)](https://circleci.com/gh/lastmjs/zwitterion) [![npm version](https://img.shields.io/npm/v/zwitterion.svg?style=flat)](https://www.npmjs.com/package/zwitterion) [![dependency Status](https://david-dm.org/lastmjs/zwitterion/status.svg)](https://david-dm.org/lastmjs/zwitterion) [![devDependency Status](https://david-dm.org/lastmjs/zwitterion/dev-status.svg)](https://david-dm.org/lastmjs/zwitterion?type=dev)
+[![npm version](https://img.shields.io/npm/v/zwitterion.svg?style=flat)](https://www.npmjs.com/package/zwitterion) [![dependency Status](https://david-dm.org/lastmjs/zwitterion/status.svg)](https://david-dm.org/lastmjs/zwitterion) [![devDependency Status](https://david-dm.org/lastmjs/zwitterion/dev-status.svg)](https://david-dm.org/lastmjs/zwitterion?type=dev)
 
 # Zwitterion
 
-NOTICE - v0.30.0 and up use an experimental import maps feature, and will not work for most browsers. Install a prior version for general browser compatibility
+A zero confusion polyglot static file server for front-end web development.
 
-Zwitterion is a server for web applications that provides automatic transpilation, live-reload, and SPA (single-page application) support out of the box. It allows you to develop web platform applications using the latest versions of JavaScript, TypeScript, JSX, TSX, or WebAssembly without a complicated build step.
+A swap-in replacement for your current static file server. 
 
-Just include files directly in `<script>` tags:
+Supports JavaScript ES2015+, TypeScript, and AssemblyScript, with no changes to how you author your code.
+
+Rust, C, C++, and anything that compiles to WebAssembly can be incorporated in the future.
+
+For example, you can write stuff like the following and it just works:
+
+`index.html`:
 
 ```html
-<script src="hello-world.ts"></script>
+  <!DOCTYPE html>
+
+  <html>
+    <head>
+      <script type="module" src="app.ts"></script>
+    </head>
+
+    <body>
+      This is the simplest developer experience I've ever had!
+    </body>
+  </html>
 ```
 
-or as ES module imports:
-```javascript
-import {hello} from './hello-world';
+`app.ts`:
+
+```typescript
+import { getHelloWorld } from './hello-world.ts';
+
+const helloWorld: string = getHelloWorld();
+
+console.log(helloWorld);
 ```
 
-All features that the TypeScript compiler provides are automatically available, including ES modules, async/await, and Object spread. Zwitterion even provides support for bare specifiers:
+`hello-world.ts`:
 
-```javascript
-import {createStore} from 'redux';
+```typescript
+export function getHelloWorld(): string {
+  return 'Why hello there world!';
+}
 ```
 
-Zwitterion lets you get back to the good old days of web development. Just write your source code and run it in the browser.
+Really, it just works. 
+
+
+Zwitterion lets you get back to the good old days of web development. 
+
+Just write your source code in any supported language and run it in the browser.
 
 ## Current Features
 
-* Automatic JavaScript transpilation (JS -> JS)
-* Automatic TypeScript transpilation (TS -> JS)
-* Automatic JSX transpilation (JSX -> JS)
-* Automatic TSX transpilation (TSX -> JS)
-* Automatic WASM transpilation (WASM -> JS Module)
-* Automatic WAST transpilation (WAST -> JS Module)
-* Bare specifiers (`import * as stuff from 'library';` instead of `import * as stuff from '../node_modules/library/index.js';`)
+* ES2015+
+* TypeScript
+* AssemblyScript
+* Bare imports (`import * as stuff from 'library';` instead of `import * as stuff from '../node_modules/library/index.js';`)
+* Single Page Application routing
+* Static build for production deployment
+
+## Upcoming Features
+
+* WebAssembly (Wasm)
+* Rust
+* Import maps
+* HTTP2 optimizations
 
 ## Installation and Basic Use
 
@@ -91,7 +125,7 @@ or from an npm script:
 
 ## Production Use
 
-To create a static build suitable for uploading to a CDN (content delivery network), run Zwitterion with the `--build-static` option. The static files will be created in a directory called `dist` in the directory Zwitterion is started from. You may need to add the `application/javascript` MIME type to your hosting provider for your TypeScript files.
+To create a static build suitable for uploading to a CDN (content delivery network), run Zwitterion with the `--build-static` option. The static files will be created in a directory called `dist` in the directory Zwitterion is started from. You may need to add the `application/javascript` MIME type to your hosting provider for your TypeScript and AssemblyScript files.
 
 From the terminal:
 
@@ -111,11 +145,25 @@ From an npm script:
 }
 ```
 
+## Languages
+
+### JavaScript
+
+Some JavaScript examples will be included here.
+
+### TypeScript
+
+Some TypeScript examples will be included here.
+
+### AssemblyScript
+
+Some AssemblyScript examples will be included here.
+
 ## Special Considerations
 
 ### Root File
 
-It's important to note that Zwitterion assumes that the root file (the file found at `/`) of your web application is always an `index.html` file. That `index.html` file must have a `<head>` element for file watching to work (this will not be required in the future).
+It's important to note that Zwitterion assumes that the root file (the file found at `/`) of your web application is always an `index.html` file.
 
 ### ES Modules
 
@@ -125,31 +173,10 @@ Zwitterion depends on native browser support for ES modules (import/export synta
 <script type="module" src="amazing-module.ts"></script>
 ```
 
-Or from a non-html file (if you leave out the file extension it will be assumed to be a TypeScript file):
+Or from a non-html file:
 
 ```
-import {amazingFunction} from './amazing-module';
-```
-
-### WASM and WAST Files
-
-Include `.wast` or `.wasm` files in your source code and imports just like any other file type. The exports of your WASM module will be available as the default export of the transpiled JS module:
-
-```wast
-;; /add.wast
-(module
-    (func $add (param i32 i32) (result i32)
-        (i32.add
-            (get_local 0)
-            (get_local 1)))
-    (export "add" (func $add)))
-```
-
-```javascript
-import AddWASM from './add.wast';
-
-console.log(AddWASM.add(2, 2));
-// 4
+import { amazingFunction } from './amazing-module';
 ```
 
 ### Performance
@@ -170,12 +197,6 @@ Read the following for more information on bundling versus not bundling with HTT
 * https://medium.freecodecamp.org/javascript-modules-part-2-module-bundling-5020383cf306
 * https://css-tricks.com/musings-on-http2-and-bundling/
 
-## The Future
-
-Here's a rough roadmap of the big future plans:
-
-- [ ] Investigate performance, make sure Zwitterion can beat out the complicated bundlers (tree shaking and bundling)
-- [ ] Add support for Rust, C, C++ and any other popular language that can compile to WebAssembly
 
 ## Command-line Options
 
@@ -193,20 +214,6 @@ or
 --port [port]
 ```
 
-### Watch Files
-
-Watch files in current directory and reload browser on changes:
-
-```bash
--w
-```
-
-or
-
-```bash
---watch-files
-```
-
 ### Build Static
 
 Create a static build of the current working directory. The output will be in a directory called dist in the current working directory:
@@ -215,12 +222,20 @@ Create a static build of the current working directory. The output will be in a 
 --build-static
 ```
 
-### Exclude Dirs
+### Exclude
 
-A space-separated list of directories to exclude from the static build:
+A comma-separated list of paths, relative to the current directory, to exclude from the static build:
 
 ```bash
---exclude-dirs [excludeDirs...]
+--exclude [exclude]
+```
+
+### Include
+
+A comma-separated list of paths, relative to the current directory, to include in the static build
+
+```bash
+--include [include]
 ```
 
 ### Target
@@ -237,6 +252,14 @@ Disable the SPA redirect to index.html:
 
 ```bash
 --disable-spa
+```
+
+### Headers
+
+A path to a file, relative to the current directory, for custom HTTP headers:
+
+```bash
+--headers [headers]
 ```
 
 ## Under the Hood
