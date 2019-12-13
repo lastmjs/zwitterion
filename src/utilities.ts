@@ -137,7 +137,7 @@ export function compileToJs(params: {
 
     const babelFileResult: Readonly<babel.BabelFileResult> | null = babel.transform(typeScriptTranspileOutput.outputText, {
         'plugins': [
-            'babel-plugin-syntax-dynamic-import',
+            '@babel/plugin-syntax-dynamic-import',
             resolveBareSpecifiers(params.filePath, false),
             resolveImportPathExtensions(params.filePath)
         ]
