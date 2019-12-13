@@ -161,6 +161,10 @@ Some AssemblyScript examples will be included here.
 
 ## Special Considerations
 
+### Third-party Packages
+
+Third-party packages must be authored as if they were using Zwitterion. Essentially this means they should be authored in standard JavaScript, TypeScript, or AssemblyScript. CommonJS (the require syntax), JSON, HTML, or CSS ES Module imports, and other non-standard features that bundlers commonly support are not suppored in source code.
+
 ### Root File
 
 It's important to note that Zwitterion assumes that the root file (the file found at `/`) of your web application is always an `index.html` file.
