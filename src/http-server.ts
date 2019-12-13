@@ -8,6 +8,7 @@ import {
 } from '../index.d.ts';
 import { getJavaScriptFileContents } from './languages/javascript.ts';
 import { getTypeScriptFileContents } from './languages/typescript.ts';
+import { getAssemblyScriptFileContents } from './languages/assemblyscript.ts';
 import {
     getFileContents,
     getCustomHTTPHeadersFromFile,
@@ -102,6 +103,19 @@ export async function createHTTPServer(params: {
             }
 
             if (fileExtension === 'as') {
+
+                await handleAssemblyScript({
+                    url: `.${req.url}`,
+                    compiledFiles: params.compiledFiles,
+                    watchFiles: params.watchFiles,
+                    clients: params.clients,
+                    jsTarget: params.jsTarget,
+                    wsPort: params.wsPort,
+                    disableSpa: params.disableSpa,
+                    res,
+                    customHTTPHeaders
+                });
+
                 return;
             }
 
@@ -260,6 +274,42 @@ async function handleTypeScript(params: {
     await sendResponse({
         res: params.res,
         fileContentsResult: typeScriptFileContentsResult,
+        headers: httpHeaders
+    });
+}
+
+async function handleAssemblyScript(params: {
+    url: string;
+    compiledFiles: CompiledFiles;
+    watchFiles: boolean;
+    clients: Clients;
+    jsTarget: string;
+    wsPort: number;
+    disableSpa: boolean;
+    res: http.ServerResponse;
+    customHTTPHeaders: Readonly<CustomHTTPHeaders>;
+}): Promise<void> {
+    const assemblyScriptFileContentsResult: Readonly<FileContentsResult> = await getAssemblyScriptFileContents({
+        url: params.url,
+        compiledFiles: params.compiledFiles,
+        watchFiles: params.watchFiles,
+        clients: params.clients,
+        jsTarget: params.jsTarget,
+        wsPort: params.wsPort,
+        disableSpa: params.disableSpa
+    });
+
+    const httpHeaders: Readonly<HTTPHeaders> = getCustomHTTPHeadersForURL({
+        customHTTPHeaders: params.customHTTPHeaders,
+        defaultHTTPHeaders: {
+            'Content-Type': 'application/javascript'
+        },
+        url: params.url
+    });
+
+    await sendResponse({
+        res: params.res,
+        fileContentsResult: assemblyScriptFileContentsResult,
         headers: httpHeaders
     });
 }

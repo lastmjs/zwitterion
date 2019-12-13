@@ -11,7 +11,8 @@ export const resolveImportPathExtensions = (filePath) => {
                     checkForExtension(filePath, path.node.source.value, '.js') ||
                     checkForExtension(filePath, path.node.source.value, '.ts') ||
                     checkForExtension(filePath, path.node.source.value, '.jsx') ||
-                    checkForExtension(filePath, path.node.source.value, '.tsx');
+                    checkForExtension(filePath, path.node.source.value, '.tsx') ||
+                    checkForExtension(filePath, path.node.source.value, '.as');
                 }
             }
         }
