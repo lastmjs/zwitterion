@@ -2,7 +2,7 @@
 
 # Zwitterion
 
-A zero confusion polyglot static file server for front-end web development.
+A zero confusion polyglot static file server for front-end web development. No bundling!
 
 A swap-in replacement for your current static file server. 
 
