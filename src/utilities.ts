@@ -137,7 +137,7 @@ export function compileToJs(params: {
 
     const babelFileResult: Readonly<babel.BabelFileResult> | null = babel.transform(typeScriptTranspileOutput.outputText, {
         'plugins': [
-            '@babel/plugin-syntax-dynamic-import',
+            require('@babel/plugin-syntax-dynamic-import'),
             resolveBareSpecifiers(params.filePath, false),
             resolveImportPathExtensions(params.filePath)
         ]
@@ -175,4 +175,20 @@ export function getCustomHTTPHeadersForURL(params: {
 
         return result;
     }, params.defaultHTTPHeaders);
+}
+
+export function wrapWasmInJS(binary: Readonly<Uint8Array>): JavaScript {
+    return `
+        //TODO perhaps there is a better way to get the ArrayBuffer that wasm needs...but for now this works
+        const base64EncodedByteCode = Uint8Array.from('${binary}'.split(','));
+        // const wasmModule = new WebAssembly.Module(base64EncodedByteCode);
+        // const wasmInstance = new WebAssembly.Instance(wasmModule, {});
+        export default WebAssembly.instantiate(base64EncodedByteCode, {
+            env: {
+                abort: () => console.log('aborting')
+            }
+        }).then((result) => {
+            return result.instance.exports;
+        });
+    `;
 }
