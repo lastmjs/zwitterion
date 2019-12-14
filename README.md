@@ -59,6 +59,7 @@ Just write your source code in any supported language and run it in the browser.
 * TypeScript
 * AssemblyScript
 * WebAssembly (Wasm)
+* WebAssembly Text Format (Wat)
 * Bare imports (`import * as stuff from 'library';` instead of `import * as stuff from '../node_modules/library/index.js';`)
 * Single Page Application routing
 * Static build for production deployment
@@ -162,6 +163,10 @@ Some AssemblyScript examples will be included here.
 ### WebAssembly (Wasm)
 
 Some WebAssembly examples will be included here.
+
+### WebAssembly Text Format (wat)
+
+Some WebAssembly Text Format examples will be included here.
 
 ## Special Considerations
 
