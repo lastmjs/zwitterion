@@ -9,6 +9,7 @@ import {
 import { getJavaScriptFileContents } from './languages/javascript.ts';
 import { getTypeScriptFileContents } from './languages/typescript.ts';
 import { getAssemblyScriptFileContents } from './languages/assemblyscript.ts';
+import { getWasmFileContents } from './languages/wasm.ts';
 import {
     getFileContents,
     getCustomHTTPHeadersFromFile,
@@ -105,6 +106,22 @@ export async function createHTTPServer(params: {
             if (fileExtension === 'as') {
 
                 await handleAssemblyScript({
+                    url: `.${req.url}`,
+                    compiledFiles: params.compiledFiles,
+                    watchFiles: params.watchFiles,
+                    clients: params.clients,
+                    jsTarget: params.jsTarget,
+                    wsPort: params.wsPort,
+                    disableSpa: params.disableSpa,
+                    res,
+                    customHTTPHeaders
+                });
+
+                return;
+            }
+
+            if (fileExtension === 'wasm') {
+                await handleWasm({
                     url: `.${req.url}`,
                     compiledFiles: params.compiledFiles,
                     watchFiles: params.watchFiles,
@@ -310,6 +327,42 @@ async function handleAssemblyScript(params: {
     await sendResponse({
         res: params.res,
         fileContentsResult: assemblyScriptFileContentsResult,
+        headers: httpHeaders
+    });
+}
+
+async function handleWasm(params: {
+    url: string;
+    compiledFiles: CompiledFiles;
+    watchFiles: boolean;
+    clients: Clients;
+    jsTarget: string;
+    wsPort: number;
+    disableSpa: boolean;
+    res: http.ServerResponse;
+    customHTTPHeaders: Readonly<CustomHTTPHeaders>;
+}): Promise<void> {
+    const wasmFileContentsResult: Readonly<FileContentsResult> = await getWasmFileContents({
+        url: params.url,
+        compiledFiles: params.compiledFiles,
+        watchFiles: params.watchFiles,
+        clients: params.clients,
+        jsTarget: params.jsTarget,
+        wsPort: params.wsPort,
+        disableSpa: params.disableSpa
+    });
+
+    const httpHeaders: Readonly<HTTPHeaders> = getCustomHTTPHeadersForURL({
+        customHTTPHeaders: params.customHTTPHeaders,
+        defaultHTTPHeaders: {
+            'Content-Type': 'application/javascript'
+        },
+        url: params.url
+    });
+
+    await sendResponse({
+        res: params.res,
+        fileContentsResult: wasmFileContentsResult,
         headers: httpHeaders
     });
 }

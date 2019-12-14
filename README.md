@@ -58,13 +58,13 @@ Just write your source code in any supported language and run it in the browser.
 * ES2015+
 * TypeScript
 * AssemblyScript
+* WebAssembly (Wasm)
 * Bare imports (`import * as stuff from 'library';` instead of `import * as stuff from '../node_modules/library/index.js';`)
 * Single Page Application routing
 * Static build for production deployment
 
 ## Upcoming Features
 
-* WebAssembly (Wasm)
 * Rust
 * Import maps
 * HTTP2 optimizations
@@ -158,6 +158,10 @@ Some TypeScript examples will be included here.
 ### AssemblyScript
 
 Some AssemblyScript examples will be included here.
+
+### WebAssembly (Wasm)
+
+Some WebAssembly examples will be included here.
 
 ## Special Considerations
 
