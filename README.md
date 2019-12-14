@@ -6,9 +6,9 @@ A zero confusion polyglot static file server for front-end web development. No b
 
 A swap-in replacement for your current static file server. 
 
-Supports JavaScript ES2015+, TypeScript, AssemblyScript, and WebAssembly, with no changes to how you author your code.
+Supports JavaScript ES2015+, TypeScript, AssemblyScript, Rust, and WebAssembly, with no changes to how you author your code.
 
-Rust, C, C++, and anything that compiles to WebAssembly can be incorporated in the future.
+C, C++, and anything that compiles to WebAssembly can be incorporated in the future.
 
 For example, you can write stuff like the following and it just works:
 
@@ -48,7 +48,6 @@ export function getHelloWorld(): string {
 
 Really, it just works. 
 
-
 Zwitterion lets you get back to the good old days of web development. 
 
 Just write your source code in any supported language and run it in the browser.
@@ -58,6 +57,7 @@ Just write your source code in any supported language and run it in the browser.
 * ES2015+
 * TypeScript
 * AssemblyScript
+* Rust
 * WebAssembly (Wasm)
 * WebAssembly Text Format (Wat)
 * Bare imports (`import * as stuff from 'library';` instead of `import * as stuff from '../node_modules/library/index.js';`)
@@ -66,7 +66,9 @@ Just write your source code in any supported language and run it in the browser.
 
 ## Upcoming Features
 
-* Rust
+* Automatic local Rust installation during npm installation
+* More robust AssemblyScript integration
+* More robust Rust integration
 * Import maps
 * HTTP2 optimizations
 
@@ -159,6 +161,10 @@ Some TypeScript examples will be included here.
 ### AssemblyScript
 
 Some AssemblyScript examples will be included here.
+
+### Rust
+
+Some Rust examples will be included here.
 
 ### WebAssembly (Wasm)
 

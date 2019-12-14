@@ -11,6 +11,7 @@ import { getTypeScriptFileContents } from './languages/typescript.ts';
 import { getAssemblyScriptFileContents } from './languages/assemblyscript.ts';
 import { getWasmFileContents } from './languages/wasm.ts';
 import { getWatFileContents } from './languages/wat.ts';
+import { getRustFileContents } from './languages/rust.ts';
 import {
     getFileContents,
     getCustomHTTPHeadersFromFile,
@@ -153,6 +154,22 @@ export async function createHTTPServer(params: {
                 return;
             }
 
+            if (fileExtension === 'rs') {
+                await handleRust({
+                    url: `.${req.url}`,
+                    compiledFiles: params.compiledFiles,
+                    watchFiles: params.watchFiles,
+                    clients: params.clients,
+                    jsTarget: params.jsTarget,
+                    wsPort: params.wsPort,
+                    disableSpa: params.disableSpa,
+                    res,
+                    customHTTPHeaders
+                });
+
+                return;
+            }
+
             await handleGeneric({
                 url: `.${req.url}`,
                 compiledFiles: params.compiledFiles,
@@ -168,6 +185,19 @@ export async function createHTTPServer(params: {
         }
     });
 }
+
+// TODO we should be able to abstract all of the handlers into one handler I imagine
+// async function handleFile(params: {
+//     compiledFiles: CompiledFiles;
+//     watchFiles: boolean;
+//     clients: Clients;
+//     disableSpa: boolean;
+//     res: http.ServerResponse;
+//     customHTTPHeaders: Readonly<CustomHTTPHeaders>;
+//     fileHTTPHeaders: Readonly<HTTPHeaders>;
+// }): Promise<void> {
+
+// }
 
 async function handleIndex(params: {
     compiledFiles: CompiledFiles;
@@ -416,6 +446,42 @@ async function handleWat(params: {
     await sendResponse({
         res: params.res,
         fileContentsResult: watFileContentsResult,
+        headers: httpHeaders
+    });
+}
+
+async function handleRust(params: {
+    url: string;
+    compiledFiles: CompiledFiles;
+    watchFiles: boolean;
+    clients: Clients;
+    jsTarget: string;
+    wsPort: number;
+    disableSpa: boolean;
+    res: http.ServerResponse;
+    customHTTPHeaders: Readonly<CustomHTTPHeaders>;
+}): Promise<void> {
+    const rustFileContentsResult: Readonly<FileContentsResult> = await getRustFileContents({
+        url: params.url,
+        compiledFiles: params.compiledFiles,
+        watchFiles: params.watchFiles,
+        clients: params.clients,
+        jsTarget: params.jsTarget,
+        wsPort: params.wsPort,
+        disableSpa: params.disableSpa
+    });
+
+    const httpHeaders: Readonly<HTTPHeaders> = getCustomHTTPHeadersForURL({
+        customHTTPHeaders: params.customHTTPHeaders,
+        defaultHTTPHeaders: {
+            'Content-Type': 'application/javascript'
+        },
+        url: params.url
+    });
+
+    await sendResponse({
+        res: params.res,
+        fileContentsResult: rustFileContentsResult,
         headers: httpHeaders
     });
 }

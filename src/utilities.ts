@@ -43,7 +43,7 @@ export async function getFileContents(params: {
         if (await (fs.exists as any)(params.url)) {
             const fileContents: Readonly<Buffer> = await fs.readFile(params.url);
 
-            const transformedFileContents: Readonly<Buffer> = params.transformer === 'NOT_SET' ? fileContents : Buffer.from(params.transformer(fileContents.toString()));
+            const transformedFileContents: Readonly<Buffer> = params.transformer === 'NOT_SET' ? fileContents : Buffer.from(await params.transformer(fileContents.toString()));
 
             params.compiledFiles[params.url] = transformedFileContents;
 

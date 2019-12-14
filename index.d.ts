@@ -29,7 +29,7 @@ export type FileContentsResult = {
     readonly fileContents: Readonly<Buffer>;
 } | 'FILE_NOT_FOUND';
 
-export type Transformer = (source: string) => string;
+export type Transformer = (source: string) => Promise<string> | string;
 
 export type CustomHTTPHeaders = {
     readonly [regexp: string]: Readonly<HTTPHeaders>;
