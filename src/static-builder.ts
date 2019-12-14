@@ -54,27 +54,57 @@ export function buildStatic(params: {
             fi
         done
 
-        echo "Download and save all .tsx files from Zwitterion"
+        echo "Download and save all .as files from Zwitterion"
 
         shopt -s globstar
-        for file in **/*.tsx; do
-            if [[ ! $file =~ ${excludeRegex} ]] || [[ $file =~ ${includeRegex} ]]
+        for file in **/*.as; do
+            if [[ ! $file =~ ${excludeRegex} ]]
             then
-                echo $file
-                wget -q -x -nH "http://localhost:${params.httpPort}/$\{file%.*\}.tsx"
+                wget -q -x -nH "http://localhost:${params.httpPort}/$\{file%.*\}.as"
             fi
         done
 
-        echo "Download and save all .jsx files from Zwitterion"
+        echo "Download and save all .wasm files from Zwitterion"
 
         shopt -s globstar
-        for file in **/*.jsx; do
-            if [[ ! $file =~ ${excludeRegex} ]] || [[ $file =~ ${includeRegex} ]]
+        for file in **/*.wasm; do
+            if [[ ! $file =~ ${excludeRegex} ]]
             then
-                echo $file
-                wget -q -x -nH "http://localhost:${params.httpPort}/$\{file%.*\}.jsx"
+                wget -q -x -nH "http://localhost:${params.httpPort}/$\{file%.*\}.wasm"
             fi
         done
+
+        #echo "Download and save all .rs files from Zwitterion"
+
+        #shopt -s globstar
+        #for file in **/*.rs; do
+        #    if [[ ! $file =~ ${excludeRegex} ]]
+        #    then
+        #        wget -q -x -nH "http://localhost:${params.httpPort}/$\{file%.*\}.rs"
+        #    fi
+        #done
+
+        #echo "Download and save all .tsx files from Zwitterion"
+
+        #shopt -s globstar
+        #for file in **/*.tsx; do
+        #    if [[ ! $file =~ ${excludeRegex} ]] || [[ $file =~ ${includeRegex} ]]
+        #    then
+        #        echo $file
+        #        wget -q -x -nH "http://localhost:${params.httpPort}/$\{file%.*\}.tsx"
+        #    fi
+        #done
+
+        #echo "Download and save all .jsx files from Zwitterion"
+
+        #shopt -s globstar
+        #for file in **/*.jsx; do
+        #    if [[ ! $file =~ ${excludeRegex} ]] || [[ $file =~ ${includeRegex} ]]
+        #    then
+        #        echo $file
+        #        wget -q -x -nH "http://localhost:${params.httpPort}/$\{file%.*\}.jsx"
+        #    fi
+        #done
 
         #echo "Download and save all .c files from Zwitterion"
 
@@ -103,16 +133,6 @@ export function buildStatic(params: {
         #    if [[ ! $file =~ ${excludeRegex} ]]
         #    then
         #        wget -q -x -nH "http://localhost:${params.httpPort}/$\{file%.*\}.cpp"
-        #    fi
-        #done
-
-        #echo "Download and save all .wasm files from Zwitterion"
-
-        #shopt -s globstar
-        #for file in **/*.wasm; do
-        #    if [[ ! $file =~ ${excludeRegex} ]]
-        #    then
-        #        wget -q -x -nH "http://localhost:${params.httpPort}/$\{file%.*\}.wasm"
         #    fi
         #done
 

@@ -32,6 +32,6 @@ export async function getWasmFileContents(params: {
     }
 
     return {
-        fileContents: Buffer.from(wrapWasmInJS(wasmFileContentsResult.fileContents))
+        fileContents: Buffer.from(wrapWasmInJS(new Uint8Array(wasmFileContentsResult.fileContents)))
     };
 }
