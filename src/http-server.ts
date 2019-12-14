@@ -10,6 +10,7 @@ import { getJavaScriptFileContents } from './languages/javascript.ts';
 import { getTypeScriptFileContents } from './languages/typescript.ts';
 import { getAssemblyScriptFileContents } from './languages/assemblyscript.ts';
 import { getWasmFileContents } from './languages/wasm.ts';
+import { getWatFileContents } from './languages/wat.ts';
 import {
     getFileContents,
     getCustomHTTPHeadersFromFile,
@@ -122,6 +123,22 @@ export async function createHTTPServer(params: {
 
             if (fileExtension === 'wasm') {
                 await handleWasm({
+                    url: `.${req.url}`,
+                    compiledFiles: params.compiledFiles,
+                    watchFiles: params.watchFiles,
+                    clients: params.clients,
+                    jsTarget: params.jsTarget,
+                    wsPort: params.wsPort,
+                    disableSpa: params.disableSpa,
+                    res,
+                    customHTTPHeaders
+                });
+
+                return;
+            }
+
+            if (fileExtension === 'wat') {
+                await handleWat({
                     url: `.${req.url}`,
                     compiledFiles: params.compiledFiles,
                     watchFiles: params.watchFiles,
@@ -363,6 +380,42 @@ async function handleWasm(params: {
     await sendResponse({
         res: params.res,
         fileContentsResult: wasmFileContentsResult,
+        headers: httpHeaders
+    });
+}
+
+async function handleWat(params: {
+    url: string;
+    compiledFiles: CompiledFiles;
+    watchFiles: boolean;
+    clients: Clients;
+    jsTarget: string;
+    wsPort: number;
+    disableSpa: boolean;
+    res: http.ServerResponse;
+    customHTTPHeaders: Readonly<CustomHTTPHeaders>;
+}): Promise<void> {
+    const watFileContentsResult: Readonly<FileContentsResult> = await getWatFileContents({
+        url: params.url,
+        compiledFiles: params.compiledFiles,
+        watchFiles: params.watchFiles,
+        clients: params.clients,
+        jsTarget: params.jsTarget,
+        wsPort: params.wsPort,
+        disableSpa: params.disableSpa
+    });
+
+    const httpHeaders: Readonly<HTTPHeaders> = getCustomHTTPHeadersForURL({
+        customHTTPHeaders: params.customHTTPHeaders,
+        defaultHTTPHeaders: {
+            'Content-Type': 'application/javascript'
+        },
+        url: params.url
+    });
+
+    await sendResponse({
+        res: params.res,
+        fileContentsResult: watFileContentsResult,
         headers: httpHeaders
     });
 }

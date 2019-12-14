@@ -181,8 +181,7 @@ export function wrapWasmInJS(binary: Readonly<Uint8Array>): JavaScript {
     return `
         //TODO perhaps there is a better way to get the ArrayBuffer that wasm needs...but for now this works
         const base64EncodedByteCode = Uint8Array.from('${binary}'.split(','));
-        // const wasmModule = new WebAssembly.Module(base64EncodedByteCode);
-        // const wasmInstance = new WebAssembly.Instance(wasmModule, {});
+
         export default WebAssembly.instantiate(base64EncodedByteCode, {
             env: {
                 abort: () => console.log('aborting')
