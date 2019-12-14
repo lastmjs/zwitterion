@@ -2,13 +2,13 @@
 
 # Zwitterion
 
-A zero confusion polyglot static file server for front-end web development. No bundling!
+A web dev server that lets you import anything*
 
-A swap-in replacement for your current static file server. 
+\* If by anything you mean: JavaScript ES2015+, TypeScript, AssemblyScript, Rust, WebAssembly, and possibly in the future C, C++, and anything that compiles to WebAssembly.
 
-Supports JavaScript ES2015+, TypeScript, AssemblyScript, Rust, and WebAssembly, with no changes to how you author your code.
+Zwitterion is designed to be an instant replacement for your current web development static file server.
 
-C, C++, and anything that compiles to WebAssembly can be incorporated in the future.
+Production deployments are also possible through the static build.
 
 For example, you can write stuff like the following and it just works:
 
