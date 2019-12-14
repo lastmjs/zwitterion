@@ -6,7 +6,7 @@ A zero confusion polyglot static file server for front-end web development. No b
 
 A swap-in replacement for your current static file server. 
 
-Supports JavaScript ES2015+, TypeScript, and AssemblyScript, with no changes to how you author your code.
+Supports JavaScript ES2015+, TypeScript, AssemblyScript, and WebAssembly, with no changes to how you author your code.
 
 Rust, C, C++, and anything that compiles to WebAssembly can be incorporated in the future.
 
