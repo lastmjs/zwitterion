@@ -1,6 +1,6 @@
 {
   "name": "zwitterion",
-  "version": "0.37.0",
+  "version": "0.38.0",
   "description": "A zero confusion polyglot static file server for front-end web development.",
   "scripts": {
     "start": "ts-node --transpile-only src/app.ts --port 5050",
@@ -34,6 +34,7 @@
     "fs-extra": "8.1.0",
     "is-windows": "1.0.2",
     "mime": "2.4.4",
+    "sanitize-filename": "1.6.3",
     "ts-node": "8.5.4",
     "typescript": "3.7.3",
     "wabt": "1.0.12",
@@ -45,6 +46,7 @@
     "@types/fs-extra": "8.0.1",
     "@types/mime": "2.0.1",
     "@types/node": "12.12.17",
+    "@types/uuid": "3.4.6",
     "@types/ws": "6.0.4"
   }
 }
