@@ -2,12 +2,12 @@ import {
     Clients,
     CompiledFiles,
     FileContentsResult
-} from '../../index.d.ts';
+} from '../../../index.d.ts';
 import {
-    getFileContents,
-    wrapWasmInJS
-} from '../utilities';
+    getFileContents
+} from '../../utilities';
 import * as asc from 'assemblyscript/cli/asc';
+import { loaderString } from './assemblyscript-loader';
 
 export async function getAssemblyScriptFileContents(params: {
     url: string;
@@ -32,7 +32,15 @@ export async function getAssemblyScriptFileContents(params: {
                 throw new Error('AssemblyScript compilation failed');
             }
 
-            return wrapWasmInJS(binary);
+            return `
+                ${loaderString}
+
+                const wasmByteCode = Uint8Array.from('${binary}'.split(','));
+
+                export default async (imports) => {
+                    return await instantiate(wasmByteCode, imports);
+                };        
+            `;
         }
     });
 
