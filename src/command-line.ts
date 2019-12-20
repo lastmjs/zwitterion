@@ -17,10 +17,10 @@ program
     .option('--disable-spa', 'Disable the SPA redirect to index.html')
     .option('--exclude [exclude]', 'A comma-separated list of paths, relative to the current directory, to exclude from the static build') //TODO I know this is wrong, I need to figure out how to do variadic arguments
     .option('--include [include]', 'A comma-separated list of paths, relative to the current directory, to include in the static build') //TODO I know this is wrong, I need to figure out how to do variadic arguments
-    .option('--headers [headers]', 'A path to a file, relative to the current directory, for custom HTTP headers')
+    .option('--headers-file [headersFile]', 'A path to a JSON file, relative to the current directory, for custom HTTP headers')
+    .option('--asc-options-file [ascOptionsFile]', 'A path to a JSON file, relative to the current directory, for asc compiler options')
     .parse(process.argv);
 
-// TODO understand how null and undefined are going to work here
 const buildStatic: boolean = program.buildStatic || false;
 // const watchFiles: boolean = program.watchFiles || true;
 const watchFiles: boolean = true;
@@ -30,7 +30,8 @@ const jsTarget: string = program.target || 'ES2015';
 const exclude: string | undefined = program.exclude;
 const include: string | undefined = program.include;
 const disableSpa: boolean = program.disableSpa || false;
-const customHTTPHeadersFilePath: string | undefined = program.headers;
+const customHTTPHeadersFilePath: string | undefined = program.headersFile;
+const ascOptionsFilePath: string | undefined = program.ascOptionsFile;
 
 export const commandLineOptions: Readonly<CommandLineOptions> = {
     buildStatic,
@@ -41,5 +42,6 @@ export const commandLineOptions: Readonly<CommandLineOptions> = {
     exclude,
     include,
     disableSpa,
-    customHTTPHeadersFilePath
+    customHTTPHeadersFilePath,
+    ascOptionsFilePath
 };

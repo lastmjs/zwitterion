@@ -1,7 +1,8 @@
 import {
     Clients,
     CompiledFiles,
-    FileContentsResult
+    FileContentsResult,
+    ASCOptions
 } from '../../../index.d.ts';
 import {
     getFileContents
@@ -17,6 +18,7 @@ export async function getAssemblyScriptFileContents(params: {
     jsTarget: string;
     wsPort: number;
     disableSpa: boolean;
+    ascOptions: Readonly<ASCOptions>;
 }): Promise<Readonly<FileContentsResult>> {
 
     const assemblyScriptFileContentsResult: Readonly<FileContentsResult> = await getFileContents({
@@ -26,7 +28,7 @@ export async function getAssemblyScriptFileContents(params: {
         watchFiles: params.watchFiles,
         clients: params.clients,
         transformer: (source: string) => {
-            const { binary } = asc.compileString(source);
+            const { binary } = asc.compileString(source, params.ascOptions);
 
             if (binary === null) {
                 throw new Error('AssemblyScript compilation failed');
