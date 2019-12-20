@@ -5,7 +5,8 @@ import {
     ASCOptions
 } from '../../../index.d.ts';
 import {
-    getFileContents
+    getFileContents,
+    addGlobals
 } from '../../utilities';
 import * as asc from 'assemblyscript/cli/asc';
 import { loaderString } from './assemblyscript-loader';
@@ -28,21 +29,40 @@ export async function getAssemblyScriptFileContents(params: {
         watchFiles: params.watchFiles,
         clients: params.clients,
         transformer: (source: string) => {
-            const { binary } = asc.compileString(source, params.ascOptions);
+            const { binary, stdout, stderr } = asc.compileString(source, params.ascOptions);
+
+            const stdoutResult: string = stdout.toString(); // TODO should we do anything with stdout?
+            const stderrResult: string = stderr.toString();
+
+            if (stderrResult !== '') {
+                return addGlobals({
+                    source: `
+                        throw new Error(\`${stderrResult}\`);
+
+                        export default () => {
+                            throw new Error('There was an error during AssemblyScript compilation');
+                        };
+                    `,
+                    wsPort: params.wsPort
+                });
+            }
 
             if (binary === null) {
                 throw new Error('AssemblyScript compilation failed');
             }
 
-            return `
-                ${loaderString}
+            return addGlobals({
+                source: `
+                    ${loaderString}
 
-                const wasmByteCode = Uint8Array.from('${binary}'.split(','));
+                    const wasmByteCode = Uint8Array.from('${binary}'.split(','));
 
-                export default async (imports) => {
-                    return await instantiate(wasmByteCode, imports);
-                };        
-            `;
+                    export default async (imports) => {
+                        return await instantiate(wasmByteCode, imports);
+                    };        
+                `,
+                wsPort: params.wsPort
+            });
         }
     });
 
