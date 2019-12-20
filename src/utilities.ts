@@ -7,7 +7,8 @@ import {
     Transformer,
     CustomHTTPHeaders,
     HTTPHeaders,
-    FileContentsResult
+    FileContentsResult,
+    ASCOptions
 } from '../index.d.ts';
 import * as chokidar from 'chokidar';
 import * as WebSocket from 'ws';
@@ -154,9 +155,14 @@ export function compileToJs(params: {
     return babelFileResult.code;
 }
 
-export async function getCustomHTTPHeadersFromFile(headersFilePath: string) {
+export async function getCustomHTTPHeadersFromFile(headersFilePath: string): Promise<Readonly<CustomHTTPHeaders>> {
     const headersFile: Readonly<Buffer> = await fs.readFile(headersFilePath);
     return JSON.parse(headersFile.toString());
+}
+
+export async function getAscOptionsFromFile(ascOptionsFilePath: string): Promise<Readonly<ASCOptions>> {
+    const ascOptionsFile: Readonly<Buffer> = await fs.readFile(ascOptionsFilePath);
+    return JSON.parse(ascOptionsFile.toString());
 }
 
 export function getCustomHTTPHeadersForURL(params: {

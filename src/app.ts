@@ -23,7 +23,8 @@ import {
         clients,
         compiledFiles,
         disableSpa: commandLineOptions.disableSpa,
-        customHTTPHeadersFilePath: commandLineOptions.customHTTPHeadersFilePath
+        customHTTPHeadersFilePath: commandLineOptions.customHTTPHeadersFilePath,
+        ascOptionsFilePath: commandLineOptions.ascOptionsFilePath
     });
 
     const wsServer: Readonly<WebSocket.Server> | 'NOT_CREATED' = createWebSocketServer({

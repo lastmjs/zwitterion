@@ -15,6 +15,7 @@ export type CommandLineOptions = {
     readonly include: string | undefined;
     readonly disableSpa: boolean;
     readonly customHTTPHeadersFilePath: string | undefined;
+    readonly ascOptionsFilePath: string | undefined;
 };
 
 export type Clients = {
@@ -37,4 +38,10 @@ export type CustomHTTPHeaders = {
 
 export type HTTPHeaders = {
     readonly [key: string]: string;
-}
+};
+
+// TODO waiting on better options for the asc programmatic API: https://github.com/AssemblyScript/assemblyscript/issues/1019
+// TODO we might just import the correct type from assemblyscript here
+export type ASCOptions = {
+
+};

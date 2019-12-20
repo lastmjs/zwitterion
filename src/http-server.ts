@@ -4,7 +4,8 @@ import {
     CompiledFiles,
     FileContentsResult,
     CustomHTTPHeaders,
-    HTTPHeaders
+    HTTPHeaders,
+    ASCOptions
 } from '../index.d.ts';
 import { getJavaScriptFileContents } from './languages/javascript.ts';
 import { getTypeScriptFileContents } from './languages/typescript.ts';
@@ -15,7 +16,8 @@ import { getRustFileContents } from './languages/rust.ts';
 import {
     getFileContents,
     getCustomHTTPHeadersFromFile,
-    getCustomHTTPHeadersForURL
+    getCustomHTTPHeadersForURL,
+    getAscOptionsFromFile
 } from './utilities.ts';
 import * as mime from 'mime';
 
@@ -27,9 +29,11 @@ export async function createHTTPServer(params: {
     compiledFiles: CompiledFiles;
     disableSpa: boolean;
     customHTTPHeadersFilePath: string | undefined;
+    ascOptionsFilePath: string | undefined;
 }): Promise<Readonly<http.Server>> {
 
     const customHTTPHeaders: Readonly<CustomHTTPHeaders> = params.customHTTPHeadersFilePath === undefined ? {} : await getCustomHTTPHeadersFromFile(params.customHTTPHeadersFilePath);
+    const ascOptions: Readonly<ASCOptions> = params.ascOptionsFilePath === undefined ? {} : await getAscOptionsFromFile(params.ascOptionsFilePath);
 
     return http.createServer(async (req: Readonly<http.IncomingMessage>, res: http.ServerResponse) => {
 
@@ -116,7 +120,8 @@ export async function createHTTPServer(params: {
                     wsPort: params.wsPort,
                     disableSpa: params.disableSpa,
                     res,
-                    customHTTPHeaders
+                    customHTTPHeaders,
+                    ascOptions
                 });
 
                 return;
@@ -352,6 +357,7 @@ async function handleAssemblyScript(params: {
     disableSpa: boolean;
     res: http.ServerResponse;
     customHTTPHeaders: Readonly<CustomHTTPHeaders>;
+    ascOptions: Readonly<ASCOptions>;
 }): Promise<void> {
     const assemblyScriptFileContentsResult: Readonly<FileContentsResult> = await getAssemblyScriptFileContents({
         url: params.url,
@@ -360,7 +366,8 @@ async function handleAssemblyScript(params: {
         clients: params.clients,
         jsTarget: params.jsTarget,
         wsPort: params.wsPort,
-        disableSpa: params.disableSpa
+        disableSpa: params.disableSpa,
+        ascOptions: params.ascOptions
     });
 
     const httpHeaders: Readonly<HTTPHeaders> = getCustomHTTPHeadersForURL({
