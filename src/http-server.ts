@@ -8,7 +8,7 @@ import {
 } from '../index.d.ts';
 import { getJavaScriptFileContents } from './languages/javascript.ts';
 import { getTypeScriptFileContents } from './languages/typescript.ts';
-import { getAssemblyScriptFileContents } from './languages/assemblyscript.ts';
+import { getAssemblyScriptFileContents } from './languages/assemblyscript/assemblyscript.ts';
 import { getWasmFileContents } from './languages/wasm.ts';
 import { getWatFileContents } from './languages/wat.ts';
 import { getRustFileContents } from './languages/rust.ts';
