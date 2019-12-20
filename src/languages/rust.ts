@@ -39,9 +39,12 @@ export async function getRustFileContents(params: {
                     const wasmFileContents: Readonly<Buffer> = await fs.readFile(wasmFilePath);
 
                     // This is explicitly not awaited in hopes of performance gains
-                    fs.remove(wasmFilePath)
+                    fs.remove(wasmFilePath);
 
-                    resolve(wrapWasmInJS(new Uint8Array(wasmFileContents)));
+                    resolve(wrapWasmInJS({
+                        binary: new Uint8Array(wasmFileContents),
+                        wsPort: params.wsPort
+                    }));
                 });
             });
         }

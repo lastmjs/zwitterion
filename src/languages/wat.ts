@@ -28,7 +28,10 @@ export async function getWatFileContents(params: {
         transformer: (source: string) => {
             // TODO why do I have to pass the filename in as the first parameter? The url is not exactly the file name, make sure it works
             const wasmModule: Readonly<wabt.WasmModule> = (wabt as any)().parseWat(params.url, source);
-            return wrapWasmInJS(wasmModule.toBinary({}).buffer);
+            return wrapWasmInJS({
+                binary: wasmModule.toBinary({}).buffer,
+                wsPort: params.wsPort
+            });
         }
     });
 
