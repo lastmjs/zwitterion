@@ -68,8 +68,7 @@ Also...Zwitterion is NOT a bundler. It eschews bundling for a simpler experience
 
 ## Upcoming Features
 
-* Automatic local Rust installation during npm installation
-* More robust Rust integration
+* More robust Rust integration (i.e. automatic local Rust installation during npm installation)
 * Import maps
 * HTTP2 optimizations
 
@@ -83,7 +82,7 @@ Install Zwitterion in the directory that you would like to serve files from:
 npm install zwitterion
 ```
 
-Run Zwitterion by accessing its binary directly from the terminal:
+Run Zwitterion by accessing its executable directly from the terminal:
 
 ```
 node_modules/.bin/zwitterion
@@ -155,17 +154,17 @@ From an npm script:
 
 Importing JavaScript ES2015+ is straightforward and works as expected. Simply use import and export statements without any modifications. It is recommended to use explicit file extensions:
 
-```javascript
-// app.js
+`app.js`:
 
+```javascript
 import { helloWorld } from './hello-world.js';
 
 console.log(helloWorld());
 ```
 
-```javascript
-// hello-world.js
+`hello-world.js`:
 
+```javascript
 export function helloWorld() {
   return 'Hello world!';
 }
@@ -175,17 +174,18 @@ export function helloWorld() {
 
 Importing TypeScript is straightforward and works as expected. Simply use import and export statements without any modifications. It is recommended to use explicit file extensions:
 
-```typescript
-// app.ts
 
+`app.ts`:
+
+```typescript
 import { helloWorld } from './hello-world.ts';
 
 console.log(helloWorld());
 ```
 
-```typescript
-// hello-world.ts
+`hello-world.ts`:
 
+```typescript
 export function helloWorld(): string {
   return 'Hello world!';
 }
@@ -202,9 +202,9 @@ By default, the TypeScript compiler's `compilerOptions` are set to the following
 
 You can override these options by creating a `.json` file with your own `compilerOptions` and telling Zwitterion where to locate it with the `--tsc-options-file` command line option. For example:
 
-```JSON
-// tsc-options.json
+`tsc-options.json`:
 
+```JSON
 {
   "target": "ES5"
 }
@@ -224,9 +224,9 @@ Zwitterion assumes that AssemblyScript files have the `.as` file extension. This
 
 You can import AssemblyScript from JavaScript or TypeScript files like this:
 
-```javascript
-// app.js
+`app.js`:
 
+```javascript
 import addModuleInit from './add.as';
 
 runAssemblyScript();
@@ -239,9 +239,9 @@ async function runAssemblyScript() {
 
 ```
 
-```typescript
-// add.as
+`add.as`:
 
+```typescript
 export function add(x: i32, y: i32): i32 {
   return x + y;
 }
@@ -251,9 +251,9 @@ Importing AssemblyScript is nearly identical to importing JavaScript or TypeScri
 
 If you want to pass in imports from outside of the AssemblyScript environment, you create a file with export declarations defining the types of the imports. You then pass your imports in as an object to the AssemblyScript module init function. The name of the property that defines your imports for a module must be the exact filename of the file exporting the import declarations. For example:
 
-```javascript
-// app.js
+`app.js`:
 
+```javascript
 import addModuleInit from './add.as';
 
 runAssemblyScript();
@@ -269,15 +269,15 @@ async function runAssemblyScript() {
 }
 ```
 
-```typescript
-// env.as
+`env.as`:
 
+```typescript
 export declare function log(x: number): void;
 ```
 
-```typescript
-// add.as
+`add.as`:
 
+```typescript
 import { log } from './env.as';
 
 export function add(x: i32, y: i32): i32 {
@@ -290,9 +290,9 @@ export function add(x: i32, y: i32): i32 {
 
 You can also import AssemblyScript from within AssemblyScript files, like so:
 
-```typescript
-// add.as
+`add.as`:
 
+```typescript
 import { subtract } from './subtract.as';
 
 export function add(x: i32, y: i32): i32 {
@@ -300,9 +300,9 @@ export function add(x: i32, y: i32): i32 {
 }
 ```
 
-```typescript
-// subtract.as
+`subtract.as`:
 
+```typescript
 export function subtract(x: i32, y: i32): i32 {
   return x - y;
 }
@@ -310,9 +310,9 @@ export function subtract(x: i32, y: i32): i32 {
 
 By default, no compiler options have been set. The available options can be found [here](https://docs.assemblyscript.org/details/compiler). You can add options by creating a `.json` file with an array of option names and values, and telling Zwitterion where to locate it with the `--asc-options-file` command line option. For example:
 
-```JSON
-// asc-options.json
+`asc-options.json`:
 
+```JSON
 [
   "--optimizeLevel", "0",
   "--runtime", "full",
