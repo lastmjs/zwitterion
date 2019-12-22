@@ -8,7 +8,8 @@ import {
 import {
     getFileContents,
     addGlobals,
-    compileToJs
+    compileToJs,
+    getTscOptionsFromFile
 } from '../utilities';
 
 export async function getJavaScriptFileContents(params: {
@@ -18,12 +19,16 @@ export async function getJavaScriptFileContents(params: {
     clients: Clients;
     wsPort: number;
     disableSpa: boolean;
-    tscOptions: Readonly<TSCOptions>;
+    tscOptionsFilePath: string | undefined;
 }): Promise<Readonly<FileContentsResult>> {
 
-    console.log('getJavaScriptFileContents');
-    console.log(params.tscOptions);
-
+    const tscOptions: Readonly<TSCOptions> = await getTscOptionsFromFile({
+        tscOptionsFilePath: params.tscOptionsFilePath,
+        clients: params.clients,
+        compiledFiles: params.compiledFiles,
+        watchFiles: params.watchFiles
+    });
+    
     const javaScriptFileContentsResult: Readonly<FileContentsResult> = await getFileContents({
         url: params.url,
         compiledFiles: params.compiledFiles,
@@ -35,7 +40,7 @@ export async function getJavaScriptFileContents(params: {
             const compiledToJS: JavaScript = compileToJs({
                 source, 
                 filePath: params.url,
-                tscOptions: params.tscOptions
+                tscOptions
             });
         
             const globalsAdded: JavaScript = addGlobals({
