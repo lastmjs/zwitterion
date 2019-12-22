@@ -17,9 +17,8 @@ import * as tsc from 'typescript';
 import * as babel from '@babel/core';
 import { resolveBareSpecifiers } from './babel-plugins/babel-plugin-transform-resolve-bare-specifiers.js';
 import { resolveImportPathExtensions } from './babel-plugins/babel-plugin-transform-resolve-import-path-extensions.js';
-import { tscOptions } from 'assemblyscript/cli/asc';
 
-export const DEFAULT_ASC_OPTIONS: Readonly<ASCOptions> = {};
+export const DEFAULT_ASC_OPTIONS: Readonly<ASCOptions> = [];
 export const DEFAULT_TSC_OPTIONS: Readonly<TSCOptions> = {
     module: 'ES2015',
     target: 'ES2015'
@@ -56,7 +55,7 @@ export async function getFileContents(params: {
 
             params.compiledFiles[params.url] = transformedFileContents;
 
-            watchFile({
+            watchFileAndInvalidateFile({
                 filePath: params.url,
                 watchFiles: params.watchFiles,
                 clients: params.clients,
@@ -92,7 +91,7 @@ async function returnFileContentsFromCache(params: {
     return cachedFileContents;
 }
 
-export function watchFile(params: {
+export function watchFileAndInvalidateFile(params: {
     filePath: string;
     watchFiles: boolean;
     clients: Clients;
@@ -100,20 +99,39 @@ export function watchFile(params: {
 }) {
     if (params.watchFiles) {
         chokidar.watch(params.filePath).on('change', () => {
-
             params.compiledFiles[params.filePath] = null;
-
-            Object.values(params.clients).forEach((client: Readonly<WebSocket>) => {
-                try {
-                    client.send('RELOAD_MESSAGE');
-                }
-                catch(error) {
-                    //TODO something should be done about this. What's happening I believe is that if two files are changed in a very short period of time, one file will start the browser reloading, and the other file will try to send a message to the browser while it is reloading, and thus the websocket connection will not be established with the browser. This is a temporary solution
-                    console.log(error);
-                }
-            });
+            reloadClients(params.clients);
         });
     }
+}
+
+export function watchFileAndInvalidateAllFiles(params: {
+    filePath: string;
+    watchFiles: boolean;
+    clients: Clients;
+    compiledFiles: CompiledFiles;
+}) {
+    if (params.watchFiles) {
+        chokidar.watch(params.filePath).on('change', () => {
+            Object.keys(params.compiledFiles).forEach((key: string) => {
+                params.compiledFiles[key] = null;
+            });
+            
+            reloadClients(params.clients);
+        });
+    }
+}
+
+function reloadClients(clients: Clients): void {
+    Object.values(clients).forEach((client: Readonly<WebSocket>) => {
+        try {
+            client.send('RELOAD_MESSAGE');
+        }
+        catch(error) {
+            //TODO something should be done about this. What's happening I believe is that if two files are changed in a very short period of time, one file will start the browser reloading, and the other file will try to send a message to the browser while it is reloading, and thus the websocket connection will not be established with the browser. This is a temporary solution
+            console.log(error);
+        }
+    });
 }
 
 export function addGlobals(params: {
@@ -161,19 +179,69 @@ export function compileToJs(params: {
     return babelFileResult.code;
 }
 
-export async function getCustomHTTPHeadersFromFile(headersFilePath: string): Promise<Readonly<CustomHTTPHeaders>> {
-    const headersFile: Readonly<Buffer> = await fs.readFile(headersFilePath);
-    return JSON.parse(headersFile.toString());
+export async function getCustomHTTPHeaders(params: {
+    headersFilePath: string | undefined;
+    clients: Clients;
+    compiledFiles: CompiledFiles;
+    watchFiles: boolean;
+}): Promise<Readonly<CustomHTTPHeaders>> {
+    if (params.headersFilePath === undefined) {
+        return {};
+    }
+    else {
+        watchFileAndInvalidateAllFiles({
+            filePath: params.headersFilePath,
+            watchFiles: params.watchFiles,
+            clients: params.clients,
+            compiledFiles: params.compiledFiles
+        });
+
+        const headersFile: Readonly<Buffer> = await fs.readFile(params.headersFilePath);
+        return JSON.parse(headersFile.toString());
+    }
 }
 
-export async function getAscOptionsFromFile(ascOptionsFilePath: string): Promise<Readonly<ASCOptions>> {
-    const ascOptionsFile: Readonly<Buffer> = await fs.readFile(ascOptionsFilePath);
-    return JSON.parse(ascOptionsFile.toString());
+export async function getAscOptionsFromFile(params: {
+    ascOptionsFilePath: string | undefined;
+    clients: Clients;
+    compiledFiles: CompiledFiles;
+    watchFiles: boolean;
+}): Promise<Readonly<ASCOptions>> {
+    if (params.ascOptionsFilePath === undefined) {
+        return DEFAULT_ASC_OPTIONS;
+    } {
+        watchFileAndInvalidateAllFiles({
+            filePath: params.ascOptionsFilePath,
+            watchFiles: params.watchFiles,
+            clients: params.clients,
+            compiledFiles: params.compiledFiles
+        });
+
+        const ascOptionsFile: Readonly<Buffer> = await fs.readFile(params.ascOptionsFilePath);
+        return JSON.parse(ascOptionsFile.toString());
+    }
 }
 
-export async function getTscOptionsFromFile(tscOptionsFilePath: string): Promise<Readonly<TSCOptions>> {
-    const tscOptionsFile: Readonly<Buffer> = await fs.readFile(tscOptionsFilePath);
-    return JSON.parse(tscOptionsFile.toString());
+export async function getTscOptionsFromFile(params: {
+    tscOptionsFilePath: string | undefined;
+    clients: Clients;
+    compiledFiles: CompiledFiles;
+    watchFiles: boolean;
+}): Promise<Readonly<TSCOptions>> {
+    if (params.tscOptionsFilePath === undefined) {
+        return DEFAULT_TSC_OPTIONS;
+    }
+    else {
+        watchFileAndInvalidateAllFiles({
+            filePath: params.tscOptionsFilePath,
+            watchFiles: params.watchFiles,
+            clients: params.clients,
+            compiledFiles: params.compiledFiles
+        });
+
+        const tscOptionsFile: Readonly<Buffer> = await fs.readFile(params.tscOptionsFilePath);
+        return JSON.parse(tscOptionsFile.toString());
+    }
 }
 
 export function getCustomHTTPHeadersForURL(params: {

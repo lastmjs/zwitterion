@@ -42,11 +42,9 @@ export type HTTPHeaders = {
 
 // TODO waiting on better options for the asc programmatic API: https://github.com/AssemblyScript/assemblyscript/issues/1019
 // TODO we might just import the correct type from assemblyscript here
-export type ASCOptions = {
-
-};
+export type ASCOptions = [];
 
 // TODO import the types directly from TypeScript if possible
 export type TSCOptions = {
 
-}
+};
