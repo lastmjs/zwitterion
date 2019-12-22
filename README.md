@@ -220,7 +220,7 @@ zwitterion --tsc-options-file tsc-options.json
 
 AssemblyScript is a new language that compiles a strict subset of TypeScript to WebAssembly. You can learn more about it in [The AssemblyScript Book](https://docs.assemblyscript.org).
 
-Zwitterion assumes that AssemblyScript files have the `.as` file extension. This is a Zwitterion-specific extension choice, as the AssemblyScript project has not chosen its own official file extension yet. You can follow that discussion here: https://github.com/AssemblyScript/assemblyscript/issues/1003. Zwitterion will follow the official extension choice once it is made.
+Zwitterion assumes that AssemblyScript files have the `.as` file extension. This is a Zwitterion-specific extension choice, as the AssemblyScript project has not chosen its own official file extension yet. You can follow that discussion [here](https://github.com/AssemblyScript/assemblyscript/issues/1003). Zwitterion will follow the official extension choice once it is made.
 
 You can import AssemblyScript from JavaScript or TypeScript files like this:
 
