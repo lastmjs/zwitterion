@@ -314,9 +314,9 @@ By default, no compiler options have been set. The available options can be foun
 
 ```JSON
 [
-  "--optimizeLevel", "0",
-  "--runtime", "full",
-  "--shrinkLevel", "0"
+  "--optimizeLevel", "3",
+  "--runtime", "none",
+  "--shrinkLevel", "2"
 ]
 ```
 
@@ -421,14 +421,6 @@ A comma-separated list of paths, relative to the current directory, to include i
 --include [include]
 ```
 
-### Target
-
-The ECMAScript version to compile to; if omitted, defaults to ES2015. Any targets supported by the TypeScript compiler are supported here (ES3, ES5, ES6/ES2015, ES2016, ES2017, ESNext):
-
-```bash
---target [target]
-```
-
 ### Disable SPA
 
 Disable the SPA redirect to index.html:
@@ -437,12 +429,28 @@ Disable the SPA redirect to index.html:
 --disable-spa
 ```
 
-### Headers
+### Headers File
 
-A path to a file, relative to the current directory, for custom HTTP headers:
+A path to a JSON file, relative to the current directory, for custom HTTP headers:
 
 ```bash
---headers [headers]
+--headers-file [headersFile]
+```
+
+### TSC Options File
+
+A path to a JSON file, relative to the current directory, for tsc compiler options:
+
+```bash
+--tsc-options-file [tscOptionsFile]
+```
+
+### ASC Options File
+
+A path to a JSON file, relative to the current directory, for asc compiler options:
+
+```bash
+--asc-options-file [ascOptionsFile]
 ```
 
 ## Under the Hood
