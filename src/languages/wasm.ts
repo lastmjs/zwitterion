@@ -13,7 +13,6 @@ export async function getWasmFileContents(params: {
     compiledFiles: CompiledFiles;
     watchFiles: boolean;
     clients: Clients;
-    jsTarget: string;
     wsPort: number;
     disableSpa: boolean;
 }): Promise<Readonly<FileContentsResult>> {

@@ -8,7 +8,8 @@ import {
     CustomHTTPHeaders,
     HTTPHeaders,
     FileContentsResult,
-    ASCOptions
+    ASCOptions,
+    TSCOptions
 } from '../index.d.ts';
 import * as chokidar from 'chokidar';
 import * as WebSocket from 'ws';
@@ -16,6 +17,13 @@ import * as tsc from 'typescript';
 import * as babel from '@babel/core';
 import { resolveBareSpecifiers } from './babel-plugins/babel-plugin-transform-resolve-bare-specifiers.js';
 import { resolveImportPathExtensions } from './babel-plugins/babel-plugin-transform-resolve-import-path-extensions.js';
+import { tscOptions } from 'assemblyscript/cli/asc';
+
+export const DEFAULT_ASC_OPTIONS: Readonly<ASCOptions> = {};
+export const DEFAULT_TSC_OPTIONS: Readonly<TSCOptions> = {
+    module: 'ES2015',
+    target: 'ES2015'
+};
 
 export async function getFileContents(params: {
     url: string;
@@ -126,14 +134,12 @@ export function addGlobals(params: {
 
 export function compileToJs(params: {
     source: JavaScript | TypeScript;
-    jsTarget: string;
     filePath: string;
+    tscOptions: Readonly<TSCOptions>;
 }): JavaScript {
+
     const typeScriptTranspileOutput: Readonly<tsc.TranspileOutput> = tsc.transpileModule(params.source, {
-        compilerOptions: {
-            module: 'ES2015' as unknown as tsc.ModuleKind,
-            target: params.jsTarget as any
-        }
+        compilerOptions: params.tscOptions
     });
 
     const babelFileResult: Readonly<babel.BabelFileResult> | null = babel.transform(typeScriptTranspileOutput.outputText, {
@@ -163,6 +169,11 @@ export async function getCustomHTTPHeadersFromFile(headersFilePath: string): Pro
 export async function getAscOptionsFromFile(ascOptionsFilePath: string): Promise<Readonly<ASCOptions>> {
     const ascOptionsFile: Readonly<Buffer> = await fs.readFile(ascOptionsFilePath);
     return JSON.parse(ascOptionsFile.toString());
+}
+
+export async function getTscOptionsFromFile(tscOptionsFilePath: string): Promise<Readonly<TSCOptions>> {
+    const tscOptionsFile: Readonly<Buffer> = await fs.readFile(tscOptionsFilePath);
+    return JSON.parse(tscOptionsFile.toString());
 }
 
 export function getCustomHTTPHeadersForURL(params: {

@@ -16,7 +16,6 @@ export async function getAssemblyScriptFileContents(params: {
     compiledFiles: CompiledFiles;
     watchFiles: boolean;
     clients: Clients;
-    jsTarget: string;
     wsPort: number;
     disableSpa: boolean;
     ascOptions: Readonly<ASCOptions>;

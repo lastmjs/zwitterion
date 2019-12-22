@@ -16,7 +16,6 @@ export async function getRustFileContents(params: {
     compiledFiles: CompiledFiles;
     watchFiles: boolean;
     clients: Clients;
-    jsTarget: string;
     wsPort: number;
     disableSpa: boolean;
 }): Promise<Readonly<FileContentsResult>> {

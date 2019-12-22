@@ -1,7 +1,8 @@
 import {
     Clients,
     CompiledFiles,
-    FileContentsResult
+    FileContentsResult,
+    TSCOptions
 } from '../../index.d.ts';
 import { getJavaScriptFileContents } from './javascript.ts';
 
@@ -10,9 +11,9 @@ export async function getTypeScriptFileContents(params: {
     compiledFiles: CompiledFiles;
     watchFiles: boolean;
     clients: Clients;
-    jsTarget: string;
     wsPort: number;
     disableSpa: boolean;
+    tscOptions: Readonly<TSCOptions>;
 }): Promise<Readonly<FileContentsResult>> {
     return getJavaScriptFileContents(params);
 }

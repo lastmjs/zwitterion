@@ -13,12 +13,12 @@ program
     // .option('--ts-warning', 'Report TypeScript errors in the browser console as warnings')
     // .option('--ts-error', 'Report TypeScript errors in the browser console as errors')
     .option('--build-static', 'Create a static build of the current working directory. The output will be in a directory called dist in the current working directory')
-    .option('--target [target]', 'The ECMAScript version to compile to; if omitted, defaults to ES2015. Any targets supported by the TypeScript compiler are supported here (ES3, ES5, ES6/ES2015, ES2016, ES2017, ESNext)')
     .option('--disable-spa', 'Disable the SPA redirect to index.html')
     .option('--exclude [exclude]', 'A comma-separated list of paths, relative to the current directory, to exclude from the static build') //TODO I know this is wrong, I need to figure out how to do variadic arguments
     .option('--include [include]', 'A comma-separated list of paths, relative to the current directory, to include in the static build') //TODO I know this is wrong, I need to figure out how to do variadic arguments
     .option('--headers-file [headersFile]', 'A path to a JSON file, relative to the current directory, for custom HTTP headers')
     .option('--asc-options-file [ascOptionsFile]', 'A path to a JSON file, relative to the current directory, for asc compiler options')
+    .option('--tsc-options-file [tscOptionsFile]', 'A path to a JSON file, relative to the current directory, for tsc compiler options')
     .parse(process.argv);
 
 const buildStatic: boolean = program.buildStatic || false;
@@ -26,22 +26,22 @@ const buildStatic: boolean = program.buildStatic || false;
 const watchFiles: boolean = true;
 const httpPort: number = parseInt(program.port || 5000);
 const wsPort: number = httpPort + 1;
-const jsTarget: string = program.target || 'ES2015';
 const exclude: string | undefined = program.exclude;
 const include: string | undefined = program.include;
 const disableSpa: boolean = program.disableSpa || false;
 const customHTTPHeadersFilePath: string | undefined = program.headersFile;
 const ascOptionsFilePath: string | undefined = program.ascOptionsFile;
+const tscOptionsFilePath: string | undefined = program.tscOptionsFile;
 
 export const commandLineOptions: Readonly<CommandLineOptions> = {
     buildStatic,
     watchFiles,
     httpPort,
     wsPort,
-    jsTarget,
     exclude,
     include,
     disableSpa,
     customHTTPHeadersFilePath,
-    ascOptionsFilePath
+    ascOptionsFilePath,
+    tscOptionsFilePath
 };

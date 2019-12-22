@@ -2,7 +2,8 @@ import {
     JavaScript,
     Clients,
     CompiledFiles,
-    FileContentsResult
+    FileContentsResult,
+    TSCOptions
 } from '../../index.d.ts';
 import {
     getFileContents,
@@ -15,10 +16,13 @@ export async function getJavaScriptFileContents(params: {
     compiledFiles: CompiledFiles;
     watchFiles: boolean;
     clients: Clients;
-    jsTarget: string;
     wsPort: number;
     disableSpa: boolean;
+    tscOptions: Readonly<TSCOptions>;
 }): Promise<Readonly<FileContentsResult>> {
+
+    console.log('getJavaScriptFileContents');
+    console.log(params.tscOptions);
 
     const javaScriptFileContentsResult: Readonly<FileContentsResult> = await getFileContents({
         url: params.url,
@@ -27,10 +31,11 @@ export async function getJavaScriptFileContents(params: {
         watchFiles: params.watchFiles,
         clients: params.clients,
         transformer: (source: string) => {
+
             const compiledToJS: JavaScript = compileToJs({
                 source, 
-                jsTarget: params.jsTarget,
-                filePath: params.url
+                filePath: params.url,
+                tscOptions: params.tscOptions
             });
         
             const globalsAdded: JavaScript = addGlobals({

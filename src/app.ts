@@ -19,12 +19,12 @@ import {
     const httpServer: Readonly<http.Server> = await createHTTPServer({
         wsPort: commandLineOptions.wsPort,
         watchFiles: commandLineOptions.watchFiles,
-        jsTarget: commandLineOptions.jsTarget,
         clients,
         compiledFiles,
         disableSpa: commandLineOptions.disableSpa,
         customHTTPHeadersFilePath: commandLineOptions.customHTTPHeadersFilePath,
-        ascOptionsFilePath: commandLineOptions.ascOptionsFilePath
+        ascOptionsFilePath: commandLineOptions.ascOptionsFilePath,
+        tscOptionsFilePath: commandLineOptions.tscOptionsFilePath
     });
 
     const wsServer: Readonly<WebSocket.Server> | 'NOT_CREATED' = createWebSocketServer({

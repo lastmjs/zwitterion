@@ -10,12 +10,12 @@ export type CommandLineOptions = {
     readonly watchFiles: boolean;
     readonly httpPort: number;
     readonly wsPort: number;
-    readonly jsTarget: string;
     readonly exclude: string | undefined;
     readonly include: string | undefined;
     readonly disableSpa: boolean;
     readonly customHTTPHeadersFilePath: string | undefined;
     readonly ascOptionsFilePath: string | undefined;
+    readonly tscOptionsFilePath: string | undefined;
 };
 
 export type Clients = {
@@ -45,3 +45,8 @@ export type HTTPHeaders = {
 export type ASCOptions = {
 
 };
+
+// TODO import the types directly from TypeScript if possible
+export type TSCOptions = {
+
+}

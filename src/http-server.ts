@@ -5,7 +5,8 @@ import {
     FileContentsResult,
     CustomHTTPHeaders,
     HTTPHeaders,
-    ASCOptions
+    ASCOptions,
+    TSCOptions
 } from '../index.d.ts';
 import { getJavaScriptFileContents } from './languages/javascript.ts';
 import { getTypeScriptFileContents } from './languages/typescript.ts';
@@ -17,23 +18,27 @@ import {
     getFileContents,
     getCustomHTTPHeadersFromFile,
     getCustomHTTPHeadersForURL,
-    getAscOptionsFromFile
+    getAscOptionsFromFile,
+    getTscOptionsFromFile,
+    DEFAULT_ASC_OPTIONS,
+    DEFAULT_TSC_OPTIONS
 } from './utilities.ts';
 import * as mime from 'mime';
 
 export async function createHTTPServer(params: {
     wsPort: number;
     watchFiles: boolean;
-    jsTarget: string;
     clients: Clients;
     compiledFiles: CompiledFiles;
     disableSpa: boolean;
     customHTTPHeadersFilePath: string | undefined;
     ascOptionsFilePath: string | undefined;
+    tscOptionsFilePath: string | undefined;
 }): Promise<Readonly<http.Server>> {
 
     const customHTTPHeaders: Readonly<CustomHTTPHeaders> = params.customHTTPHeadersFilePath === undefined ? {} : await getCustomHTTPHeadersFromFile(params.customHTTPHeadersFilePath);
-    const ascOptions: Readonly<ASCOptions> = params.ascOptionsFilePath === undefined ? {} : await getAscOptionsFromFile(params.ascOptionsFilePath);
+    const ascOptions: Readonly<ASCOptions> = params.ascOptionsFilePath === undefined ? DEFAULT_ASC_OPTIONS : await getAscOptionsFromFile(params.ascOptionsFilePath);
+    const tscOptions: Readonly<TSCOptions> = params.tscOptionsFilePath === undefined ? DEFAULT_TSC_OPTIONS : await getTscOptionsFromFile(params.tscOptionsFilePath);
 
     return http.createServer(async (req: Readonly<http.IncomingMessage>, res: http.ServerResponse) => {
 
@@ -65,11 +70,11 @@ export async function createHTTPServer(params: {
                     compiledFiles: params.compiledFiles,
                     watchFiles: params.watchFiles,
                     clients: params.clients,
-                    jsTarget: params.jsTarget,
                     wsPort: params.wsPort,
                     disableSpa: params.disableSpa,
                     res,
-                    customHTTPHeaders
+                    customHTTPHeaders,
+                    tscOptions
                 });
 
                 return;
@@ -82,11 +87,11 @@ export async function createHTTPServer(params: {
                     compiledFiles: params.compiledFiles,
                     watchFiles: params.watchFiles,
                     clients: params.clients,
-                    jsTarget: params.jsTarget,
                     wsPort: params.wsPort,
                     disableSpa: params.disableSpa,
                     res,
-                    customHTTPHeaders
+                    customHTTPHeaders,
+                    tscOptions
                 });
 
                 return;
@@ -99,11 +104,11 @@ export async function createHTTPServer(params: {
                     compiledFiles: params.compiledFiles,
                     watchFiles: params.watchFiles,
                     clients: params.clients,
-                    jsTarget: params.jsTarget,
                     wsPort: params.wsPort,
                     disableSpa: params.disableSpa,
                     res,
-                    customHTTPHeaders
+                    customHTTPHeaders,
+                    tscOptions
                 });
 
                 return;
@@ -116,7 +121,6 @@ export async function createHTTPServer(params: {
                     compiledFiles: params.compiledFiles,
                     watchFiles: params.watchFiles,
                     clients: params.clients,
-                    jsTarget: params.jsTarget,
                     wsPort: params.wsPort,
                     disableSpa: params.disableSpa,
                     res,
@@ -133,7 +137,6 @@ export async function createHTTPServer(params: {
                     compiledFiles: params.compiledFiles,
                     watchFiles: params.watchFiles,
                     clients: params.clients,
-                    jsTarget: params.jsTarget,
                     wsPort: params.wsPort,
                     disableSpa: params.disableSpa,
                     res,
@@ -149,7 +152,6 @@ export async function createHTTPServer(params: {
                     compiledFiles: params.compiledFiles,
                     watchFiles: params.watchFiles,
                     clients: params.clients,
-                    jsTarget: params.jsTarget,
                     wsPort: params.wsPort,
                     disableSpa: params.disableSpa,
                     res,
@@ -165,7 +167,6 @@ export async function createHTTPServer(params: {
                     compiledFiles: params.compiledFiles,
                     watchFiles: params.watchFiles,
                     clients: params.clients,
-                    jsTarget: params.jsTarget,
                     wsPort: params.wsPort,
                     disableSpa: params.disableSpa,
                     res,
@@ -280,20 +281,20 @@ async function handleJavaScript(params: {
     compiledFiles: CompiledFiles;
     watchFiles: boolean;
     clients: Clients;
-    jsTarget: string;
     wsPort: number;
     disableSpa: boolean;
     res: http.ServerResponse;
     customHTTPHeaders: Readonly<CustomHTTPHeaders>;
+    tscOptions: Readonly<TSCOptions>;
 }): Promise<void> {
     const javaScriptFileContentsResult: Readonly<FileContentsResult> = await getJavaScriptFileContents({
         url: params.url,
         compiledFiles: params.compiledFiles,
         watchFiles: params.watchFiles,
         clients: params.clients,
-        jsTarget: params.jsTarget,
         wsPort: params.wsPort,
-        disableSpa: params.disableSpa
+        disableSpa: params.disableSpa,
+        tscOptions: params.tscOptions
     });
 
     const httpHeaders: Readonly<HTTPHeaders> = getCustomHTTPHeadersForURL({
@@ -316,20 +317,21 @@ async function handleTypeScript(params: {
     compiledFiles: CompiledFiles;
     watchFiles: boolean;
     clients: Clients;
-    jsTarget: string;
     wsPort: number;
     disableSpa: boolean;
     res: http.ServerResponse;
     customHTTPHeaders: Readonly<CustomHTTPHeaders>;
+    tscOptions: Readonly<TSCOptions>;
 }): Promise<void> {
+
     const typeScriptFileContentsResult: Readonly<FileContentsResult> = await getTypeScriptFileContents({
         url: params.url,
         compiledFiles: params.compiledFiles,
         watchFiles: params.watchFiles,
         clients: params.clients,
-        jsTarget: params.jsTarget,
         wsPort: params.wsPort,
-        disableSpa: params.disableSpa
+        disableSpa: params.disableSpa,
+        tscOptions: params.tscOptions
     });
 
     const httpHeaders: Readonly<HTTPHeaders> = getCustomHTTPHeadersForURL({
@@ -352,7 +354,6 @@ async function handleAssemblyScript(params: {
     compiledFiles: CompiledFiles;
     watchFiles: boolean;
     clients: Clients;
-    jsTarget: string;
     wsPort: number;
     disableSpa: boolean;
     res: http.ServerResponse;
@@ -364,7 +365,6 @@ async function handleAssemblyScript(params: {
         compiledFiles: params.compiledFiles,
         watchFiles: params.watchFiles,
         clients: params.clients,
-        jsTarget: params.jsTarget,
         wsPort: params.wsPort,
         disableSpa: params.disableSpa,
         ascOptions: params.ascOptions
@@ -390,7 +390,6 @@ async function handleWasm(params: {
     compiledFiles: CompiledFiles;
     watchFiles: boolean;
     clients: Clients;
-    jsTarget: string;
     wsPort: number;
     disableSpa: boolean;
     res: http.ServerResponse;
@@ -401,7 +400,6 @@ async function handleWasm(params: {
         compiledFiles: params.compiledFiles,
         watchFiles: params.watchFiles,
         clients: params.clients,
-        jsTarget: params.jsTarget,
         wsPort: params.wsPort,
         disableSpa: params.disableSpa
     });
@@ -426,7 +424,6 @@ async function handleWat(params: {
     compiledFiles: CompiledFiles;
     watchFiles: boolean;
     clients: Clients;
-    jsTarget: string;
     wsPort: number;
     disableSpa: boolean;
     res: http.ServerResponse;
@@ -437,7 +434,6 @@ async function handleWat(params: {
         compiledFiles: params.compiledFiles,
         watchFiles: params.watchFiles,
         clients: params.clients,
-        jsTarget: params.jsTarget,
         wsPort: params.wsPort,
         disableSpa: params.disableSpa
     });
@@ -462,7 +458,6 @@ async function handleRust(params: {
     compiledFiles: CompiledFiles;
     watchFiles: boolean;
     clients: Clients;
-    jsTarget: string;
     wsPort: number;
     disableSpa: boolean;
     res: http.ServerResponse;
@@ -473,7 +468,6 @@ async function handleRust(params: {
         compiledFiles: params.compiledFiles,
         watchFiles: params.watchFiles,
         clients: params.clients,
-        jsTarget: params.jsTarget,
         wsPort: params.wsPort,
         disableSpa: params.disableSpa
     });
