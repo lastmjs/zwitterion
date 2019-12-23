@@ -240,7 +240,7 @@ import addModuleInit from './add.as';
 runAssemblyScript();
 
 async function runAssemblyScript() {
-  const adddModule = await addModuleInit({});
+  const adddModule = await addModuleInit();
 
   console.log(addModule.add(1, 1));
 }
@@ -336,7 +336,7 @@ zwitterion --asc-options-file asc-options.json
 
 Rust support is currently very basic (i.e. no [wasm-bindgen](https://rustwasm.github.io/docs/wasm-bindgen) support). You must have Rust installed on your machine. You can find instructions for installing Rust [here](https://www.rust-lang.org/tools/install). It is a goal of Zwitterion to automatically install a local version of the necessary Rust tooling when Zwitterion is installed, but that is currently a work in progress.
 
-Importing Rust is nearly identical to importing JavaScript or TypeScript. The key difference is that the default export of your entry Rust module is a function that returns a promise. You can import Rust from JavaScript or TypeScript files like this:
+Importing Rust is nearly identical to importing JavaScript or TypeScript. The key difference is that the default export of your entry Rust module is a function that returns a promise. This function takes as its one parameter an object containing imports to the Rust module. You can import Rust from JavaScript or TypeScript files like this:
 
 `./app.js`
 
@@ -346,7 +346,7 @@ import addModuleInit from './add.rs';
 runRust();
 
 async function runRust() {
-  const addModule = await addModuleInit;
+  const addModule = await addModuleInit();
 
   console.log(addModule.add(5, 5));
 }
@@ -360,13 +360,59 @@ pub fn add(x: Int, y: Int): Int {
 }
 ```
 
-### WebAssembly Text Format (wat)
+### WebAssembly Text Format (Wat)
 
-Some WebAssembly Text Format examples will be included here.
+Importing Wat is nearly identical to importing JavaScript or TypeScript. The key difference is that the default export of your entry Wat module is a function that returns a promise. This function takes as its one parameter an object containing imports to the Rust module. You can import Wat from JavaScript or TypeScript files like this:
+
+`./app.js`
+
+```javascript
+import addModuleInit from './add.wat';
+
+runWat();
+
+async function runWat() {
+  const addModule = await addModuleInit();
+
+  console.log(addModule.add(5, 5));
+}
+```
+
+`./add.wat`
+
+```Lisp
+(module
+  (func $add (param $x i32) (param $y i32) (result i32)
+    (i32.add (get_local $x) (get_local $y))
+  )
+  (export "add" (func $add))
+)
+```
 
 ### WebAssembly (Wasm)
 
-Some WebAssembly examples will be included here.
+Importing Wasm is nearly identical to importing JavaScript or TypeScript. The key difference is that the default export of your entry Wasm module is a function that returns a promise. This function takes as its one parameter an object containing imports to the Wasm module. You can import Wasm from JavaScript or TypeScript files like this:
+
+`./app.js`
+
+```javascript
+import addModuleInit from './add.wasm';
+
+runWasm();
+
+async function runWasm() {
+  const addModule = await addModuleInit();
+
+  console.log(addModule.add(5, 5));
+}
+```
+
+`./add.wasm`
+
+```binary
+ asm   ���� `����  ����  ���� add  
+���� ����     j
+```
 
 ## Special Considerations
 
