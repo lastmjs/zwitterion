@@ -407,13 +407,6 @@ async function runWasm() {
 }
 ```
 
-`./add.wasm`
-
-```binary
- asm   ���� `����  ����  ���� add  
-���� ����     j
-```
-
 ## Special Considerations
 
 ### Third-party Packages
