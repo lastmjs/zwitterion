@@ -409,9 +409,8 @@ async function runWasm() {
 
 `./add.wasm`
 
-```binary
- asm   ���� `����  ����  ���� add  
-���� ����     j
+```
+The is a compiled Wasm binary file with a function called `add`
 ```
 
 ## Special Considerations
