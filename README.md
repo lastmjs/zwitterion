@@ -355,14 +355,14 @@ async function runRust() {
 `./add.rs`
 
 ```rust
-pub fn add(x: Int, y: Int): Int {
+pub fn add(x: i32, y: i32) -> i32 {
   return x + y;
 }
 ```
 
 ### WebAssembly Text Format (Wat)
 
-Importing Wat is nearly identical to importing JavaScript or TypeScript. The key difference is that the default export of your entry Wat module is a function that returns a promise. This function takes as its one parameter an object containing imports to the Rust module. You can import Wat from JavaScript or TypeScript files like this:
+Importing Wat is nearly identical to importing JavaScript or TypeScript. The key difference is that the default export of your entry Wat module is a function that returns a promise. This function takes as its one parameter an object containing imports to the Wat module. You can import Wat from JavaScript or TypeScript files like this:
 
 `./app.js`
 
@@ -418,24 +418,18 @@ async function runWasm() {
 
 ### Third-party Packages
 
-Third-party packages must be authored as if they were using Zwitterion. Essentially this means they should be authored in standard JavaScript, TypeScript, or AssemblyScript. CommonJS (the require syntax), JSON, HTML, or CSS ES Module imports, and other non-standard features that bundlers commonly support are not suppored in source code.
+Third-party packages must be authored as if they were using Zwitterion. Essentially this means they should be authored in standard JavaScript or TypeScript, and AssemblyScript, Rust, C, and C++ must be authored according to their WebAssembly documentation. Notable exceptions will be explained in this documentation. CommonJS (the require syntax), JSON, HTML, or CSS ES Module imports, and other non-standard features that bundlers commonly support are not suppored in source code.
 
 ### Root File
 
 It's important to note that Zwitterion assumes that the root file (the file found at `/`) of your web application is always an `index.html` file.
 
-### ES Modules
+### ES Module script elements
 
-Zwitterion depends on native browser support for ES modules (import/export syntax). You must add the `type="module"` attribute to script tags that reference modules, for example:
+Zwitterion depends on native browser support for ES modules (import/export syntax). You must add the `type="module"` attribute to script elements that reference modules, for example:
 
 ```
 <script type="module" src="amazing-module.ts"></script>
-```
-
-Or from a non-html file:
-
-```
-import { amazingFunction } from './amazing-module';
 ```
 
 ### Performance
@@ -462,12 +456,6 @@ Read the following for more information on bundling versus not bundling with HTT
 ### Port
 
 Specify the server's port:
-
-```bash
--p [port]
-```
-
-or
 
 ```bash
 --port [port]
@@ -531,4 +519,4 @@ A path to a JSON file, relative to the current directory, for asc compiler optio
 
 ## Under the Hood
 
-Zwitterion is simple. It is more or less a static file server, but it rewrites requested files in memory as necessary to return to the client. For example, if a TypeScript file is requested from the client, Zwitterion will retrieve the text of the file, compile it to JavaScript, compile it from CommonJS to ES Modules, and then return the compiled text to the client. The same thing is done for JavaScript files. In fact, nearly the same process will be used for any file extension that we want to support in the future. For example, in the future, if a C file is requested it will be read into memory, the text will be compiled to WebAssembly, and the WebAssembly will be returned to the client. All of this compilation is done server-side and hidden from the user. To the user, it's just a static file server.
+Zwitterion is simple. It is more or less a static file server, but it rewrites requested files in memory as necessary to return to the client. For example, if a TypeScript file is requested from the client, Zwitterion will retrieve the text of the file, compile it to JavaScript, and then return the compiled text to the client. The same thing is done for JavaScript files. In fact, nearly the same process will be used for any file extension that we want to support in the future. For example, in the future, if a C file is requested it will be read into memory, the text will be compiled to WebAssembly, and the WebAssembly will be returned to the client. All of this compilation is done server-side and hidden from the user. To the user, it's just a static file server.
