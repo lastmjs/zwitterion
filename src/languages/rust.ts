@@ -5,7 +5,7 @@ import {
 } from '../../index.d.ts';
 import {
     getFileContents,
-    wrapWasmInJS
+    addGlobals
 } from '../utilities';
 import { exec } from 'child_process';
 import * as fs from 'fs-extra';
@@ -31,17 +31,40 @@ export async function getRustFileContents(params: {
                 
                 // TODO we might want to warn users to not run Zwitterion in production, or fix this issue
                 // TODO is this sanitization good enough?
-                const wasmFilePath: string = sanitize(`node_modules/zwitterion/tmp/${params.url}-zwitterion.wasm`);
+                const wasmFilePath: string = `node_modules/zwitterion/tmp/${sanitize(params.url.slice(1))}-zwitterion.wasm`;
 
                 exec(`rustc --target=wasm32-unknown-unknown ${params.url} -o ${wasmFilePath}`, async (error, stdout, stderr) => {
 
+                    if (stderr !== '') {
+                        resolve(addGlobals({
+                            source: `
+                                throw new Error(\`${stderr.replace(/`/g, '\\`')}\`);
+
+                                export default () => {
+                                    throw new Error('There was an error during Rust compilation');
+                                };
+                            `,
+                            wsPort: params.wsPort
+                        }));
+
+                        return;
+                    }
+
                     const wasmFileContents: Readonly<Buffer> = await fs.readFile(wasmFilePath);
+                    const binary: Readonly<Uint8Array> = new Uint8Array(wasmFileContents);
 
                     // This is explicitly not awaited in hopes of performance gains
                     fs.remove(wasmFilePath);
 
-                    resolve(wrapWasmInJS({
-                        binary: new Uint8Array(wasmFileContents),
+                    resolve(addGlobals({
+                        source: `
+                            const wasmByteCode = Uint8Array.from('${binary}'.split(','));
+
+                            export default async (imports) => {
+                                const wasmModule = await WebAssembly.instantiate(wasmByteCode, imports);
+                                return wasmModule.instance.exports;
+                            };
+                        `,
                         wsPort: params.wsPort
                     }));
                 });

@@ -5,7 +5,7 @@ import {
 } from '../../index.d.ts';
 import {
     getFileContents,
-    wrapWasmInJS
+    addGlobals
 } from '../utilities';
 
 export async function getWasmFileContents(params: {
@@ -30,9 +30,18 @@ export async function getWasmFileContents(params: {
         return wasmFileContentsResult
     }
 
+    const binary: Readonly<Uint8Array> = new Uint8Array(wasmFileContentsResult.fileContents);
+
     return {
-        fileContents: Buffer.from(wrapWasmInJS({
-            binary: new Uint8Array(wasmFileContentsResult.fileContents),
+        fileContents: Buffer.from(addGlobals({
+            source: `
+                const wasmByteCode = Uint8Array.from('${binary}'.split(','));
+
+                export default async (imports) => {
+                    const wasmModule = await WebAssembly.instantiate(wasmByteCode, imports);
+                    return wasmModule.instance.exports;
+                };
+            `,
             wsPort: params.wsPort
         }))
     };

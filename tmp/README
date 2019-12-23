@@ -1,0 +1,1 @@
+This file is here so that the tmp directory can be checked into git, so that Zwitterion has a temporary folder to dump temporary Wasm files into during Rust compilation.
