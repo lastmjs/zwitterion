@@ -261,24 +261,3 @@ export function getCustomHTTPHeadersForURL(params: {
         return result;
     }, params.defaultHTTPHeaders);
 }
-
-export function wrapWasmInJS(params: {
-    binary: Readonly<Uint8Array>;
-    wsPort: number;
-}): JavaScript {
-    return addGlobals({
-        source: `
-            //TODO perhaps there is a better way to get the ArrayBuffer that wasm needs...but for now this works
-            const base64EncodedByteCode = Uint8Array.from('${params.binary}'.split(','));
-
-            export default WebAssembly.instantiate(base64EncodedByteCode, {
-                env: {
-                    abort: () => console.log('aborting')
-                }
-            }).then((result) => {
-                return result.instance.exports;
-            });
-        `,
-        wsPort: params.wsPort
-    });
-}

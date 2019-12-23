@@ -12,7 +12,7 @@ Production deployments are also possible through the static build.
 
 For example, you can write stuff like the following and it just works:
 
-`index.html`:
+`./index.html`:
 
 ```html
   <!DOCTYPE html>
@@ -28,7 +28,7 @@ For example, you can write stuff like the following and it just works:
   </html>
 ```
 
-`app.ts`:
+`./app.ts`:
 
 ```typescript
 import { getHelloWorld } from './hello-world.ts';
@@ -38,7 +38,7 @@ const helloWorld: string = getHelloWorld();
 console.log(helloWorld);
 ```
 
-`hello-world.ts`:
+`./hello-world.ts`:
 
 ```typescript
 export function getHelloWorld(): string {
@@ -63,12 +63,14 @@ Also...Zwitterion is NOT a bundler. It eschews bundling for a simpler experience
 * WebAssembly (Wasm)
 * WebAssembly Text Format (Wat)
 * Bare imports (`import * as stuff from 'library';` instead of `import * as stuff from '../node_modules/library/index.js';`)
-* Single Page Application routing
+* Single Page Application routing (by default the server returns `index.html` on unhandled routes)
 * Static build for production deployment
 
 ## Upcoming Features
 
 * More robust Rust integration (i.e. automatic local Rust installation during npm installation)
+* C
+* C++
 * Import maps
 * HTTP2 optimizations
 
@@ -128,7 +130,11 @@ or from an npm script:
 
 ## Production Use
 
-To create a static build suitable for uploading to a CDN (content delivery network), run Zwitterion with the `--build-static` option. The static files will be created in a directory called `dist` in the directory Zwitterion is started from. You will probably need to add the `application/javascript` MIME type to your hosting provider for your TypeScript, AssemblyScript, Rust, Wasm, and Wat files.
+It is recommended to use Zwitterion in production by creating a static build of your project. A static build essentially runs all relevant files through Zwitterion, and copies those and all other files in your project to a `dist` directory. You can take this directory and upload it to a Content Delivery Network (CDN), or another static file hosting service.
+
+You may also use a running Zwitterion server in production, but for performance and potential security reasons it is not recommended. 
+
+To create a static build, run Zwitterion with the `--build-static` option. You will probably need to add the `application/javascript` MIME type to your hosting provider for your TypeScript, AssemblyScript, Rust, Wasm, and Wat files.
 
 From the terminal:
 
@@ -148,13 +154,15 @@ From an npm script:
 }
 ```
 
+The static build will be located in a directory called `dist`, in the same directory that you ran the `--build-static` command from.
+
 ## Languages
 
 ### JavaScript
 
 Importing JavaScript ES2015+ is straightforward and works as expected. Simply use import and export statements without any modifications. It is recommended to use explicit file extensions:
 
-`app.js`:
+`./app.js`:
 
 ```javascript
 import { helloWorld } from './hello-world.js';
@@ -162,7 +170,7 @@ import { helloWorld } from './hello-world.js';
 console.log(helloWorld());
 ```
 
-`hello-world.js`:
+`./hello-world.js`:
 
 ```javascript
 export function helloWorld() {
@@ -175,7 +183,7 @@ export function helloWorld() {
 Importing TypeScript is straightforward and works as expected. Simply use import and export statements without any modifications. It is recommended to use explicit file extensions:
 
 
-`app.ts`:
+`./app.ts`:
 
 ```typescript
 import { helloWorld } from './hello-world.ts';
@@ -183,7 +191,7 @@ import { helloWorld } from './hello-world.ts';
 console.log(helloWorld());
 ```
 
-`hello-world.ts`:
+`./hello-world.ts`:
 
 ```typescript
 export function helloWorld(): string {
@@ -220,11 +228,11 @@ zwitterion --tsc-options-file tsc-options.json
 
 AssemblyScript is a new language that compiles a strict subset of TypeScript to WebAssembly. You can learn more about it in [The AssemblyScript Book](https://docs.assemblyscript.org).
 
-Zwitterion assumes that AssemblyScript files have the `.as` file extension. This is a Zwitterion-specific extension choice, as the AssemblyScript project has not chosen its own official file extension yet. You can follow that discussion [here](https://github.com/AssemblyScript/assemblyscript/issues/1003). Zwitterion will follow the official extension choice once it is made.
+Zwitterion assumes that AssemblyScript files have the `.as` file extension. This is a Zwitterion-specific extension choice, as the AssemblyScript project has not yet chosen its own official file extension. You can follow that discussion [here](https://github.com/AssemblyScript/assemblyscript/issues/1003). Zwitterion will follow the official extension choice once it is made.
 
-You can import AssemblyScript from JavaScript or TypeScript files like this:
+Importing AssemblyScript is nearly identical to importing JavaScript or TypeScript. The key difference is that the default export of your entry AssemblyScript module is a function that returns a promise. This function takes as its one parameter an object containing imports to the AssemblyScript module. You can import AssemblyScript from JavaScript or TypeScript files like this:
 
-`app.js`:
+`./app.js`:
 
 ```javascript
 import addModuleInit from './add.as';
@@ -232,14 +240,14 @@ import addModuleInit from './add.as';
 runAssemblyScript();
 
 async function runAssemblyScript() {
-  const adddModule = await addModuleInit({});
+  const adddModule = await addModuleInit();
 
   console.log(addModule.add(1, 1));
 }
 
 ```
 
-`add.as`:
+`./add.as`:
 
 ```typescript
 export function add(x: i32, y: i32): i32 {
@@ -247,11 +255,9 @@ export function add(x: i32, y: i32): i32 {
 }
 ```
 
-Importing AssemblyScript is nearly identical to importing JavaScript or TypeScript. The key difference is that the default export of your entry AssemblyScript module is a function that returns a promise. This function takes as its one parameter an object containing imports to the AssemblyScript module.
-
 If you want to pass in imports from outside of the AssemblyScript environment, you create a file with export declarations defining the types of the imports. You then pass your imports in as an object to the AssemblyScript module init function. The name of the property that defines your imports for a module must be the exact filename of the file exporting the import declarations. For example:
 
-`app.js`:
+`./app.js`:
 
 ```javascript
 import addModuleInit from './add.as';
@@ -269,13 +275,13 @@ async function runAssemblyScript() {
 }
 ```
 
-`env.as`:
+`./env.as`:
 
 ```typescript
 export declare function log(x: number): void;
 ```
 
-`add.as`:
+`./add.as`:
 
 ```typescript
 import { log } from './env.as';
@@ -290,7 +296,7 @@ export function add(x: i32, y: i32): i32 {
 
 You can also import AssemblyScript from within AssemblyScript files, like so:
 
-`add.as`:
+`./add.as`:
 
 ```typescript
 import { subtract } from './subtract.as';
@@ -300,7 +306,7 @@ export function add(x: i32, y: i32): i32 {
 }
 ```
 
-`subtract.as`:
+`./subtract.as`:
 
 ```typescript
 export function subtract(x: i32, y: i32): i32 {
@@ -310,7 +316,7 @@ export function subtract(x: i32, y: i32): i32 {
 
 By default, no compiler options have been set. The available options can be found [here](https://docs.assemblyscript.org/details/compiler). You can add options by creating a `.json` file with an array of option names and values, and telling Zwitterion where to locate it with the `--asc-options-file` command line option. For example:
 
-`asc-options.json`:
+`./asc-options.json`:
 
 ```JSON
 [
@@ -328,38 +334,102 @@ zwitterion --asc-options-file asc-options.json
 
 ### Rust
 
-Some Rust examples will be included here.
+Rust support is currently very basic (i.e. no [wasm-bindgen](https://rustwasm.github.io/docs/wasm-bindgen) support). You must have Rust installed on your machine. You can find instructions for installing Rust [here](https://www.rust-lang.org/tools/install). It is a goal of Zwitterion to automatically install a local version of the necessary Rust tooling when Zwitterion is installed, but that is currently a work in progress.
+
+Importing Rust is nearly identical to importing JavaScript or TypeScript. The key difference is that the default export of your entry Rust module is a function that returns a promise. This function takes as its one parameter an object containing imports to the Rust module. You can import Rust from JavaScript or TypeScript files like this:
+
+`./app.js`
+
+```javascript
+import addModuleInit from './add.rs';
+
+runRust();
+
+async function runRust() {
+  const addModule = await addModuleInit();
+
+  console.log(addModule.add(5, 5));
+}
+```
+
+`./add.rs`
+
+```rust
+pub fn add(x: i32, y: i32) -> i32 {
+  return x + y;
+}
+```
+
+### WebAssembly Text Format (Wat)
+
+Importing Wat is nearly identical to importing JavaScript or TypeScript. The key difference is that the default export of your entry Wat module is a function that returns a promise. This function takes as its one parameter an object containing imports to the Wat module. You can import Wat from JavaScript or TypeScript files like this:
+
+`./app.js`
+
+```javascript
+import addModuleInit from './add.wat';
+
+runWat();
+
+async function runWat() {
+  const addModule = await addModuleInit();
+
+  console.log(addModule.add(5, 5));
+}
+```
+
+`./add.wat`
+
+```Lisp
+(module
+  (func $add (param $x i32) (param $y i32) (result i32)
+    (i32.add (get_local $x) (get_local $y))
+  )
+  (export "add" (func $add))
+)
+```
 
 ### WebAssembly (Wasm)
 
-Some WebAssembly examples will be included here.
+Importing Wasm is nearly identical to importing JavaScript or TypeScript. The key difference is that the default export of your entry Wasm module is a function that returns a promise. This function takes as its one parameter an object containing imports to the Wasm module. You can import Wasm from JavaScript or TypeScript files like this:
 
-### WebAssembly Text Format (wat)
+`./app.js`
 
-Some WebAssembly Text Format examples will be included here.
+```javascript
+import addModuleInit from './add.wasm';
+
+runWasm();
+
+async function runWasm() {
+  const addModule = await addModuleInit();
+
+  console.log(addModule.add(5, 5));
+}
+```
+
+`./add.wasm`
+
+```binary
+ asm   ���� `����  ����  ���� add  
+���� ����     j
+```
 
 ## Special Considerations
 
 ### Third-party Packages
 
-Third-party packages must be authored as if they were using Zwitterion. Essentially this means they should be authored in standard JavaScript, TypeScript, or AssemblyScript. CommonJS (the require syntax), JSON, HTML, or CSS ES Module imports, and other non-standard features that bundlers commonly support are not suppored in source code.
+Third-party packages must be authored as if they were using Zwitterion. Essentially this means they should be authored in standard JavaScript or TypeScript, and AssemblyScript, Rust, C, and C++ must be authored according to their WebAssembly documentation. Notable exceptions will be explained in this documentation. CommonJS (the require syntax), JSON, HTML, or CSS ES Module imports, and other non-standard features that bundlers commonly support are not suppored in source code.
 
 ### Root File
 
 It's important to note that Zwitterion assumes that the root file (the file found at `/`) of your web application is always an `index.html` file.
 
-### ES Modules
+### ES Module script elements
 
-Zwitterion depends on native browser support for ES modules (import/export syntax). You must add the `type="module"` attribute to script tags that reference modules, for example:
+Zwitterion depends on native browser support for ES modules (import/export syntax). You must add the `type="module"` attribute to script elements that reference modules, for example:
 
 ```
 <script type="module" src="amazing-module.ts"></script>
-```
-
-Or from a non-html file:
-
-```
-import { amazingFunction } from './amazing-module';
 ```
 
 ### Performance
@@ -386,12 +456,6 @@ Read the following for more information on bundling versus not bundling with HTT
 ### Port
 
 Specify the server's port:
-
-```bash
--p [port]
-```
-
-or
 
 ```bash
 --port [port]
@@ -455,4 +519,4 @@ A path to a JSON file, relative to the current directory, for asc compiler optio
 
 ## Under the Hood
 
-Zwitterion is simple. It is more or less a static file server, but it rewrites requested files in memory as necessary to return to the client. For example, if a TypeScript file is requested from the client, Zwitterion will retrieve the text of the file, compile it to JavaScript, compile it from CommonJS to ES Modules, and then return the compiled text to the client. The same thing is done for JavaScript files. In fact, nearly the same process will be used for any file extension that we want to support in the future. For example, in the future, if a C file is requested it will be read into memory, the text will be compiled to WebAssembly, and the WebAssembly will be returned to the client. All of this compilation is done server-side and hidden from the user. To the user, it's just a static file server.
+Zwitterion is simple. It is more or less a static file server, but it rewrites requested files in memory as necessary to return to the client. For example, if a TypeScript file is requested from the client, Zwitterion will retrieve the text of the file, compile it to JavaScript, and then return the compiled text to the client. The same thing is done for JavaScript files. In fact, nearly the same process will be used for any file extension that we want to support in the future. For example, in the future, if a C file is requested it will be read into memory, the text will be compiled to WebAssembly, and the WebAssembly will be returned to the client. All of this compilation is done server-side and hidden from the user. To the user, it's just a static file server.

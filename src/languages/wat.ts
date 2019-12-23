@@ -5,7 +5,7 @@ import {
 } from '../../index.d.ts';
 import {
     getFileContents,
-    wrapWasmInJS
+    addGlobals
 } from '../utilities';
 import * as wabt from 'wabt';
 
@@ -27,10 +27,19 @@ export async function getWatFileContents(params: {
         transformer: (source: string) => {
             // TODO why do I have to pass the filename in as the first parameter? The url is not exactly the file name, make sure it works
             const wasmModule: Readonly<wabt.WasmModule> = (wabt as any)().parseWat(params.url, source);
-            return wrapWasmInJS({
-                binary: wasmModule.toBinary({}).buffer,
+            const binary = wasmModule.toBinary({}).buffer;
+
+            return addGlobals({
+                source: `
+                    const wasmByteCode = Uint8Array.from('${binary}'.split(','));
+
+                    export default async (imports) => {
+                        const wasmModule = await WebAssembly.instantiate(wasmByteCode, imports);
+                        return wasmModule.instance.exports;
+                    };
+                `,
                 wsPort: params.wsPort
-            });
+            })
         }
     });
 
