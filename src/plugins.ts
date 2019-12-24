@@ -6,6 +6,8 @@ import { AssemblyScriptPlugin } from './languages/assemblyscript/assemblyscript.
 import { RustPlugin } from './languages/rust.ts';
 import { WatPlugin } from './languages/wat.ts';
 import { WasmPlugin } from './languages/wasm.ts';
+import { CPlugin } from './languages/c.ts';
+import { CPPPlugin } from './languages/c++.ts';
 
 // TODO this is where we can load external plugins, then add them to the array
 
@@ -15,5 +17,7 @@ export const ZwitterionPlugins: ReadonlyArray<Plugin> = [
     AssemblyScriptPlugin,
     RustPlugin,
     WatPlugin,
-    WasmPlugin
+    WasmPlugin,
+    CPlugin,
+    CPPPlugin
 ];

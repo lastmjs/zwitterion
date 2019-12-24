@@ -65,6 +65,10 @@ export type RustCOptions = {
 
 export type WabtOptions = {};
 
+export type COptions = {};
+
+export type CPPOptions = {};
+
 export type Plugin = {
     readonly fileExtensions: ReadonlyArray<string>;
     readonly httpHeaders: Readonly<HTTPHeaders>;
