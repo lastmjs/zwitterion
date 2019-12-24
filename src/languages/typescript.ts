@@ -1,18 +1,11 @@
 import {
-    Clients,
-    CompiledFiles,
-    FileContentsResult
+    Plugin
 } from '../../index.d.ts';
-import { getJavaScriptFileContents } from './javascript.ts';
+import { JavaScriptPlugin } from './javascript.ts';
 
-export async function getTypeScriptFileContents(params: {
-    url: string;
-    compiledFiles: CompiledFiles;
-    watchFiles: boolean;
-    clients: Clients;
-    wsPort: number;
-    disableSpa: boolean;
-    tscOptionsFilePath: string | undefined;
-}): Promise<Readonly<FileContentsResult>> {
-    return getJavaScriptFileContents(params);
-}
+export const TypeScriptPlugin: Readonly<Plugin> = {
+    fileExtensions: ['ts'],
+    httpHeaders: JavaScriptPlugin.httpHeaders,
+    createTransformer: JavaScriptPlugin.createTransformer,
+    defaultCompilerOptions: JavaScriptPlugin.defaultCompilerOptions
+};

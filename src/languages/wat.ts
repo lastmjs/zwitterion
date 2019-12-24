@@ -1,32 +1,29 @@
 import {
-    Clients,
-    CompiledFiles,
-    FileContentsResult
+    Plugin,
+    WabtOptions
 } from '../../index.d.ts';
 import {
-    getFileContents,
     addGlobals
 } from '../utilities';
 import * as wabt from 'wabt';
 
-export async function getWatFileContents(params: {
-    url: string;
-    compiledFiles: CompiledFiles;
-    watchFiles: boolean;
-    clients: Clients;
-    wsPort: number;
-    disableSpa: boolean;
-}): Promise<Readonly<FileContentsResult>> {
-
-    const watFileContentsResult: Readonly<FileContentsResult> = await getFileContents({
-        url: params.url,
-        compiledFiles: params.compiledFiles,
-        disableSpa: params.disableSpa,
-        watchFiles: params.watchFiles,
-        clients: params.clients,
-        transformer: (source: string) => {
+export const WatPlugin: Readonly<Plugin> = {
+    fileExtensions: ['wat'],
+    httpHeaders: {
+        'Content-Type': 'application/javascript'
+    },
+    defaultCompilerOptions: {},
+    createTransformer: (transformerCreatorParams: {
+        url: string;
+        compilerOptions: Readonly<WabtOptions>;
+        wsPort: number;
+    }) => {
+        return (transformerParams: {
+            sourceString: string;
+            sourceBuffer: Readonly<Buffer>;
+        }) => {
             // TODO why do I have to pass the filename in as the first parameter? The url is not exactly the file name, make sure it works
-            const wasmModule: Readonly<wabt.WasmModule> = (wabt as any)().parseWat(params.url, source);
+            const wasmModule: Readonly<wabt.WasmModule> = (wabt as any)().parseWat(transformerCreatorParams.url, transformerParams.sourceString);
             const binary = wasmModule.toBinary({}).buffer;
 
             return addGlobals({
@@ -38,10 +35,8 @@ export async function getWatFileContents(params: {
                         return wasmModule.instance.exports;
                     };
                 `,
-                wsPort: params.wsPort
-            })
-        }
-    });
-
-    return watFileContentsResult;
-}
+                wsPort: transformerCreatorParams.wsPort
+            });
+        };
+    }
+};

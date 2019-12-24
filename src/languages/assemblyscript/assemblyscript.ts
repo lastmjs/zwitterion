@@ -1,47 +1,34 @@
 import {
-    Clients,
-    CompiledFiles,
-    FileContentsResult,
-    ASCOptions
+    ASCOptions,
+    Plugin
 } from '../../../index.d.ts';
 import {
-    getFileContents,
-    addGlobals,
-    getAscOptionsFromFile
+    addGlobals
 } from '../../utilities';
 import * as asc from 'assemblyscript/cli/asc';
 import { loaderString } from './assemblyscript-loader';
 import * as fs from 'fs-extra';
 
-export async function getAssemblyScriptFileContents(params: {
-    url: string;
-    compiledFiles: CompiledFiles;
-    watchFiles: boolean;
-    clients: Clients;
-    wsPort: number;
-    disableSpa: boolean;
-    ascOptionsFilePath: string | undefined;
-}): Promise<Readonly<FileContentsResult>> {
-
-    const ascOptions: Readonly<ASCOptions> = await getAscOptionsFromFile({
-        ascOptionsFilePath: params.ascOptionsFilePath,
-        clients: params.clients,
-        compiledFiles: params.compiledFiles,
-        watchFiles: params.watchFiles
-    });
-    
-    const assemblyScriptFileContentsResult: Readonly<FileContentsResult> = await getFileContents({
-        url: params.url,
-        compiledFiles: params.compiledFiles,
-        disableSpa: params.disableSpa,
-        watchFiles: params.watchFiles,
-        clients: params.clients,
-        transformer: async (source: string) => {
+export const AssemblyScriptPlugin: Readonly<Plugin> = {
+    fileExtensions: ['as'],
+    httpHeaders: {
+        'Content-Type': 'application/javascript'
+    },
+    defaultCompilerOptions: [],
+    createTransformer: (transformerCreatorParams: {
+        url: string;
+        compilerOptions: Readonly<ASCOptions>;
+        wsPort: number;
+    }) => {
+        return async (transformerParams: {
+            sourceString: string;
+            sourceBuffer: Readonly<Buffer>;
+        }) => {
 
             const { binary, stdout, stderr } = await compile({
-                source, 
-                filepath: params.url,
-                ascOptions
+                source: transformerParams.sourceString, 
+                filepath: transformerCreatorParams.url,
+                ascOptions: transformerCreatorParams.compilerOptions
             });
 
             if (stderr !== '') {
@@ -53,7 +40,7 @@ export async function getAssemblyScriptFileContents(params: {
                             throw new Error('There was an error during AssemblyScript compilation');
                         };
                     `,
-                    wsPort: params.wsPort
+                    wsPort: transformerCreatorParams.wsPort
                 });
             }
 
@@ -67,13 +54,11 @@ export async function getAssemblyScriptFileContents(params: {
                         return await instantiate(wasmByteCode, imports);
                     };        
                 `,
-                wsPort: params.wsPort
+                wsPort: transformerCreatorParams.wsPort
             });
         }
-    });
-
-    return assemblyScriptFileContentsResult;
-}
+    }
+};
 
 function compile(params: {
     source: string;
