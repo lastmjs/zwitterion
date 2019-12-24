@@ -208,7 +208,7 @@ By default, the TypeScript compiler's `compilerOptions` are set to the following
   }
 ```
 
-You can override these options by creating a `.json` file with your own `compilerOptions` and telling Zwitterion where to locate it with the `--tsc-options-file` command line option. For example:
+You can override these options by creating a `.json` file with your own `compilerOptions` and telling Zwitterion where to locate it with the `--tsc-options-file` command line option. The available options can be found [here](https://www.typescriptlang.org/docs/handbook/compiler-options.html). Options are specified as a JSON object. For example:
 
 `tsc-options.json`:
 
@@ -413,43 +413,6 @@ async function runWasm() {
 The is a compiled Wasm binary file with a function called `add`
 ```
 
-## Special Considerations
-
-### Third-party Packages
-
-Third-party packages must be authored as if they were using Zwitterion. Essentially this means they should be authored in standard JavaScript or TypeScript, and AssemblyScript, Rust, C, and C++ must be authored according to their WebAssembly documentation. Notable exceptions will be explained in this documentation. CommonJS (the require syntax), JSON, HTML, or CSS ES Module imports, and other non-standard features that bundlers commonly support are not suppored in source code.
-
-### Root File
-
-It's important to note that Zwitterion assumes that the root file (the file found at `/`) of your web application is always an `index.html` file.
-
-### ES Module script elements
-
-Zwitterion depends on native browser support for ES modules (import/export syntax). You must add the `type="module"` attribute to script elements that reference modules, for example:
-
-```
-<script type="module" src="amazing-module.ts"></script>
-```
-
-### Performance
-
-It's important to note that Zwitterion does not bundle files nor engage in tree shaking. This may impact the performance of your application. HTTP2 and ES modules may help with performance, but at this point in time signs tend to point toward worse performance. Zwitterion has plans to improve performance by automatically generating HTTP2 server push information from the static build, and looking into tree shaking, but it is unclear what affect this will have. Stay tuned for more information about performance as Zwitterion matures.
-
-With all of the above being said, the performance implications are unclear. Measure for yourself.
-
-Read the following for more information on bundling versus not bundling with HTTP2:
-
-* https://medium.com/@asyncmax/the-right-way-to-bundle-your-assets-for-faster-sites-over-http-2-437c37efe3ff
-* https://stackoverflow.com/questions/30861591/why-bundle-optimizations-are-no-longer-a-concern-in-http-2
-* http://engineering.khanacademy.org/posts/js-packaging-http2.htm
-* https://blog.newrelic.com/2016/02/09/http2-best-practices-web-performance/
-* https://mattwilcox.net/web-development/http2-for-front-end-web-developers
-* https://news.ycombinator.com/item?id=9137690
-* https://www.sitepoint.com/file-bundling-and-http2/
-* https://medium.freecodecamp.org/javascript-modules-part-2-module-bundling-5020383cf306
-* https://css-tricks.com/musings-on-http2-and-bundling/
-
-
 ## Command Line Options
 
 ### Port
@@ -500,12 +463,46 @@ A path to a JSON file, relative to the current directory, for custom HTTP header
 --headers-file [headersFile]
 ```
 
+Custom HTTP headers are specified as a JSON object with the following shape:
+
+```typescript
+type CustomHTTPHeaders = {
+    [regexp: string]: HTTPHeaders;
+}
+
+type HTTPHeaders = {
+    [key: string]: string;
+}
+```
+
+For example:
+
+`./headers.json`
+
+```json
+{
+  "^service-worker.ts$": {
+    "Service-Worker-Allowed": "/"
+  }
+}
+```
+
 ### TSC Options File
 
 A path to a JSON file, relative to the current directory, for tsc compiler options:
 
 ```bash
 --tsc-options-file [tscOptionsFile]
+```
+
+The available options can be found [here](https://www.typescriptlang.org/docs/handbook/compiler-options.html). Options are specified as a JSON object. For example:
+
+`tsc-options.json`:
+
+```JSON
+{
+  "target": "ES5"
+}
 ```
 
 ### ASC Options File
@@ -515,6 +512,54 @@ A path to a JSON file, relative to the current directory, for asc compiler optio
 ```bash
 --asc-options-file [ascOptionsFile]
 ```
+
+By default, no compiler options have been set. The available options can be found [here](https://docs.assemblyscript.org/details/compiler). Options are specified as an array of option names and values. For example:
+
+`./asc-options.json`:
+
+```JSON
+[
+  "--optimizeLevel", "3",
+  "--runtime", "none",
+  "--shrinkLevel", "2"
+]
+```
+
+## Special Considerations
+
+### Third-party Packages
+
+Third-party packages must be authored as if they were using Zwitterion. Essentially this means they should be authored in standard JavaScript or TypeScript, and AssemblyScript, Rust, C, and C++ must be authored according to their WebAssembly documentation. Notable exceptions will be explained in this documentation. CommonJS (the require syntax), JSON, HTML, or CSS ES Module imports, and other non-standard features that bundlers commonly support are not suppored in source code.
+
+### Root File
+
+It's important to note that Zwitterion assumes that the root file (the file found at `/`) of your web application is always an `index.html` file.
+
+### ES Module script elements
+
+Zwitterion depends on native browser support for ES modules (import/export syntax). You must add the `type="module"` attribute to script elements that reference modules, for example:
+
+```
+<script type="module" src="amazing-module.ts"></script>
+```
+
+### Performance
+
+It's important to note that Zwitterion does not bundle files nor engage in tree shaking. This may impact the performance of your application. HTTP2 and ES modules may help with performance, but at this point in time signs tend to point toward worse performance. Zwitterion has plans to improve performance by automatically generating HTTP2 server push information from the static build, and looking into tree shaking, but it is unclear what affect this will have. Stay tuned for more information about performance as Zwitterion matures.
+
+With all of the above being said, the performance implications are unclear. Measure for yourself.
+
+Read the following for more information on bundling versus not bundling with HTTP2:
+
+* https://medium.com/@asyncmax/the-right-way-to-bundle-your-assets-for-faster-sites-over-http-2-437c37efe3ff
+* https://stackoverflow.com/questions/30861591/why-bundle-optimizations-are-no-longer-a-concern-in-http-2
+* http://engineering.khanacademy.org/posts/js-packaging-http2.htm
+* https://blog.newrelic.com/2016/02/09/http2-best-practices-web-performance/
+* https://mattwilcox.net/web-development/http2-for-front-end-web-developers
+* https://news.ycombinator.com/item?id=9137690
+* https://www.sitepoint.com/file-bundling-and-http2/
+* https://medium.freecodecamp.org/javascript-modules-part-2-module-bundling-5020383cf306
+* https://css-tricks.com/musings-on-http2-and-bundling/
 
 ## Under the Hood
 
