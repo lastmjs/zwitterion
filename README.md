@@ -4,7 +4,7 @@
 
 A web dev server that lets you import anything*
 
-\* If by anything you mean: JavaScript ES2015+, TypeScript, AssemblyScript, Rust, WebAssembly, and possibly in the future C, C++, and anything that compiles to WebAssembly.
+\* If by anything you mean: JavaScript ES2015+, TypeScript, AssemblyScript, Rust, WebAssembly, C, C++, and in the future anything that compiles to WebAssembly.
 
 Zwitterion is designed to be an instant replacement for your current web development static file server.
 
@@ -60,6 +60,8 @@ Also...Zwitterion is NOT a bundler. It eschews bundling for a simpler experience
 * TypeScript
 * AssemblyScript
 * Rust (experimental support)
+* C (experimental support)
+* C++ (experimental support)
 * WebAssembly (Wasm)
 * WebAssembly Text Format (Wat)
 * Bare imports (`import * as stuff from 'library';` instead of `import * as stuff from '../node_modules/library/index.js';`)
@@ -69,8 +71,8 @@ Also...Zwitterion is NOT a bundler. It eschews bundling for a simpler experience
 ## Upcoming Features
 
 * More robust Rust integration (i.e. automatic local Rust installation during npm installation)
-* C
-* C++
+* More robust C integration
+* More robust C++ integration
 * Import maps
 * HTTP2 optimizations
 
@@ -362,6 +364,62 @@ async function runRust() {
 
 ```rust
 pub fn add(x: i32, y: i32) -> i32 {
+  return x + y;
+}
+```
+
+### C
+
+C support is currently very basic. You must have Emscripten installed on your machine. You can find instructions for installing Emscripten [here](https://emscripten.org/docs/getting_started/downloads.html). It is a goal of Zwitterion to automatically install a local version of the necessary C tooling when Zwitterion is installed, but that is currently a work in progress.
+
+Importing C is nearly identical to importing JavaScript or TypeScript. The key difference is that the default export of your entry C module is a function that returns a promise. This function takes as its one parameter an object containing imports to the C module. You can import C from JavaScript or TypeScript files like this:
+
+`./app.js`
+
+```javascript
+import addModuleInit from './add.c';
+
+runC();
+
+async function runC() {
+  const addModule = await addModuleInit();
+
+  console.log(addModule.add(5, 5));
+}
+```
+
+`./add.c`
+
+```c
+int add(int x, int y) {
+  return x + y;
+}
+```
+
+### C++
+
+C++ support is currently very basic. You must have Emscripten installed on your machine. You can find instructions for installing Emscripten [here](https://emscripten.org/docs/getting_started/downloads.html). It is a goal of Zwitterion to automatically install a local version of the necessary C++ tooling when Zwitterion is installed, but that is currently a work in progress.
+
+Importing C++ is nearly identical to importing JavaScript or TypeScript. The key difference is that the default export of your entry C++ module is a function that returns a promise. This function takes as its one parameter an object containing imports to the C++ module. You can import C++ from JavaScript or TypeScript files like this:
+
+`./app.js`
+
+```javascript
+import addModuleInit from './add.cpp';
+
+runCPP();
+
+async function runCPP() {
+  const addModule = await addModuleInit();
+
+  console.log(addModule.add(5, 5));
+}
+```
+
+`./add.cpp`
+
+```c++
+int add(int x, int y) {
   return x + y;
 }
 ```
