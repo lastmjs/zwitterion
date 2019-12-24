@@ -59,9 +59,9 @@ Also...Zwitterion is NOT a bundler. It eschews bundling for a simpler experience
 * ES2015+
 * TypeScript
 * AssemblyScript
-* Rust (experimental support)
-* C (experimental support)
-* C++ (experimental support)
+* Rust (basic support)
+* C (basic support)
+* C++ (basic support)
 * WebAssembly (Wasm)
 * WebAssembly Text Format (Wat)
 * Bare imports (`import * as stuff from 'library';` instead of `import * as stuff from '../node_modules/library/index.js';`)
