@@ -160,6 +160,8 @@ The static build will be located in a directory called `dist`, in the same direc
 
 ### JavaScript
 
+JavaScript is the language of the web. You can learn more [here](https://developer.mozilla.org/en-US/docs/Web/JavaScript).
+
 Importing JavaScript ES2015+ is straightforward and works as expected. Simply use import and export statements without any modifications. It is recommended to use explicit file extensions:
 
 `./app.js`:
@@ -179,6 +181,8 @@ export function helloWorld() {
 ```
 
 ### TypeScript
+
+TypeScript is a typed superset of JavaScript. You can learn more [here](https://www.typescriptlang.org).
 
 Importing TypeScript is straightforward and works as expected. Simply use import and export statements without any modifications. It is recommended to use explicit file extensions:
 
@@ -334,6 +338,8 @@ zwitterion --asc-options-file asc-options.json
 
 ### Rust
 
+Rust is a low-level language focused on performance, reliability, and productivity. Learn more [here](https://www.rust-lang.org).
+
 Rust support is currently very basic (i.e. no [wasm-bindgen](https://rustwasm.github.io/docs/wasm-bindgen) support). You must have Rust installed on your machine. You can find instructions for installing Rust [here](https://www.rust-lang.org/tools/install). It is a goal of Zwitterion to automatically install a local version of the necessary Rust tooling when Zwitterion is installed, but that is currently a work in progress.
 
 Importing Rust is nearly identical to importing JavaScript or TypeScript. The key difference is that the default export of your entry Rust module is a function that returns a promise. This function takes as its one parameter an object containing imports to the Rust module. You can import Rust from JavaScript or TypeScript files like this:
@@ -361,6 +367,8 @@ pub fn add(x: i32, y: i32) -> i32 {
 ```
 
 ### WebAssembly Text Format (Wat)
+
+Wat is a textual representation of the Wasm binary format. It allows Wasm to be more easily written by hand. Learn more [here](https://developer.mozilla.org/en-US/docs/WebAssembly/Understanding_the_text_format).
 
 Importing Wat is nearly identical to importing JavaScript or TypeScript. The key difference is that the default export of your entry Wat module is a function that returns a promise. This function takes as its one parameter an object containing imports to the Wat module. You can import Wat from JavaScript or TypeScript files like this:
 
@@ -390,6 +398,8 @@ async function runWat() {
 ```
 
 ### WebAssembly (Wasm)
+
+Wasm is a binary instruction format built to be efficient, safe, portable, and open. Learn more [here](https://webassembly.org/).
 
 Importing Wasm is nearly identical to importing JavaScript or TypeScript. The key difference is that the default export of your entry Wasm module is a function that returns a promise. This function takes as its one parameter an object containing imports to the Wasm module. You can import Wasm from JavaScript or TypeScript files like this:
 
