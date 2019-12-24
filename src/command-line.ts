@@ -19,6 +19,7 @@ program
     .option('--headers-file [headersFile]', 'A path to a JSON file, relative to the current directory, for custom HTTP headers')
     .option('--asc-options-file [ascOptionsFile]', 'A path to a JSON file, relative to the current directory, for asc compiler options')
     .option('--tsc-options-file [tscOptionsFile]', 'A path to a JSON file, relative to the current directory, for tsc compiler options')
+    // .options('--plugins [plugins]', '')
     .parse(process.argv);
 
 const buildStatic: boolean = program.buildStatic || false;

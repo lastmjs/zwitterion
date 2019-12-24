@@ -1,4 +1,5 @@
 import * as WebSocket from 'ws';
+import * as http from 'http';
 
 export type HTML = string;
 export type JavaScript = string;
@@ -30,7 +31,16 @@ export type FileContentsResult = {
     readonly fileContents: Readonly<Buffer>;
 } | 'FILE_NOT_FOUND';
 
-export type Transformer = (source: string) => Promise<string> | string;
+export type Transformer = (transformerParams: {
+    sourceString: string;
+    sourceBuffer: Readonly<Buffer>;
+}) => Promise<string> | string;
+
+export type TransformerCreator = (transformerCreatorParams: {
+    url: string;
+    compilerOptions: any; // TODO I would really like to get rid of this any
+    wsPort: number;
+}) => Transformer;
 
 export type CustomHTTPHeaders = {
     readonly [regexp: string]: Readonly<HTTPHeaders>;
@@ -47,4 +57,17 @@ export type ASCOptions = [];
 // TODO import the types directly from TypeScript if possible
 export type TSCOptions = {
 
+};
+
+export type RustCOptions = {
+
+};
+
+export type WabtOptions = {};
+
+export type Plugin = {
+    readonly fileExtensions: ReadonlyArray<string>;
+    readonly httpHeaders: Readonly<HTTPHeaders>;
+    readonly createTransformer: TransformerCreator;
+    readonly defaultCompilerOptions: any;
 };

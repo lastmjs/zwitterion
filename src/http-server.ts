@@ -4,20 +4,17 @@ import {
     CompiledFiles,
     FileContentsResult,
     CustomHTTPHeaders,
-    HTTPHeaders
+    HTTPHeaders,
+    Plugin
 } from '../index.d.ts';
-import { getJavaScriptFileContents } from './languages/javascript.ts';
-import { getTypeScriptFileContents } from './languages/typescript.ts';
-import { getAssemblyScriptFileContents } from './languages/assemblyscript/assemblyscript.ts';
-import { getWasmFileContents } from './languages/wasm.ts';
-import { getWatFileContents } from './languages/wat.ts';
-import { getRustFileContents } from './languages/rust.ts';
 import {
     getFileContents,
     getCustomHTTPHeaders,
-    getCustomHTTPHeadersForURL
+    getCustomHTTPHeadersForURL,
+    getCompilerOptionsFromFile
 } from './utilities.ts';
 import * as mime from 'mime';
+import { ZwitterionPlugins } from './plugins.ts';
 
 export async function createHTTPServer(params: {
     wsPort: number;
@@ -52,117 +49,30 @@ export async function createHTTPServer(params: {
                 return;
             }
 
-            if (fileExtension === 'js') {
+            for (let i=0; i < ZwitterionPlugins.length; i++ ) {
 
-                await handleJavaScript({
-                    url: `.${req.url}`,
-                    compiledFiles: params.compiledFiles,
-                    watchFiles: params.watchFiles,
-                    clients: params.clients,
-                    wsPort: params.wsPort,
-                    disableSpa: params.disableSpa,
-                    res,
-                    customHTTPHeadersFilePath: params.customHTTPHeadersFilePath,
-                    tscOptionsFilePath: params.tscOptionsFilePath
-                });
+                const plugin: Readonly<Plugin> = ZwitterionPlugins[i];
 
-                return;
-            }
+                if (plugin.fileExtensions.includes(fileExtension)) {
+                    await handlePlugin({
+                        plugin,
+                        url: `.${req.url}`,
+                        compiledFiles: params.compiledFiles,
+                        watchFiles: params.watchFiles,
+                        clients: params.clients,
+                        wsPort: params.wsPort,
+                        disableSpa: params.disableSpa,
+                        res,
+                        customHTTPHeadersFilePath: params.customHTTPHeadersFilePath,
+                        compilerOptionsFilePath: getCompilerOptionsFilePath({
+                            fileExtension,
+                            tscOptionsFilePath: params.tscOptionsFilePath,
+                            ascOptionsFilePath: params.ascOptionsFilePath
+                        })
+                    });
 
-            if (fileExtension === 'mjs') {
-
-                await handleJavaScript({
-                    url: `.${req.url}`,
-                    compiledFiles: params.compiledFiles,
-                    watchFiles: params.watchFiles,
-                    clients: params.clients,
-                    wsPort: params.wsPort,
-                    disableSpa: params.disableSpa,
-                    res,
-                    customHTTPHeadersFilePath: params.customHTTPHeadersFilePath,
-                    tscOptionsFilePath: params.tscOptionsFilePath
-                });
-
-                return;
-            }
-
-            if (fileExtension === 'ts') {
-
-                await handleTypeScript({
-                    url: `.${req.url}`,
-                    compiledFiles: params.compiledFiles,
-                    watchFiles: params.watchFiles,
-                    clients: params.clients,
-                    wsPort: params.wsPort,
-                    disableSpa: params.disableSpa,
-                    res,
-                    customHTTPHeadersFilePath: params.customHTTPHeadersFilePath,
-                    tscOptionsFilePath: params.tscOptionsFilePath
-                });
-
-                return;
-            }
-
-            if (fileExtension === 'as') {
-
-                await handleAssemblyScript({
-                    url: `.${req.url}`,
-                    compiledFiles: params.compiledFiles,
-                    watchFiles: params.watchFiles,
-                    clients: params.clients,
-                    wsPort: params.wsPort,
-                    disableSpa: params.disableSpa,
-                    res,
-                    customHTTPHeadersFilePath: params.customHTTPHeadersFilePath,
-                    ascOptionsFilePath: params.ascOptionsFilePath
-                });
-
-                return;
-            }
-
-            if (fileExtension === 'wasm') {
-                await handleWasm({
-                    url: `.${req.url}`,
-                    compiledFiles: params.compiledFiles,
-                    watchFiles: params.watchFiles,
-                    clients: params.clients,
-                    wsPort: params.wsPort,
-                    disableSpa: params.disableSpa,
-                    res,
-                    customHTTPHeadersFilePath: params.customHTTPHeadersFilePath
-                });
-
-                return;
-            }
-
-            if (fileExtension === 'wat') {
-                await handleWat({
-                    url: `.${req.url}`,
-                    compiledFiles: params.compiledFiles,
-                    watchFiles: params.watchFiles,
-                    clients: params.clients,
-                    wsPort: params.wsPort,
-                    disableSpa: params.disableSpa,
-                    res,
-                    customHTTPHeadersFilePath: params.customHTTPHeadersFilePath
-                });
-
-                return;
-            }
-
-            if (fileExtension === 'rs') {
-                await handleRust({
-                    url: `.${req.url}`,
-                    compiledFiles: params.compiledFiles,
-                    watchFiles: params.watchFiles,
-                    clients: params.clients,
-                    wsPort: params.wsPort,
-                    disableSpa: params.disableSpa,
-                    res,
-                    customHTTPHeadersFilePath: params.customHTTPHeadersFilePath
-                });
-
-                return;
+                    return;
+                }
             }
 
             await handleGeneric({
@@ -181,18 +91,26 @@ export async function createHTTPServer(params: {
     });
 }
 
-// TODO we should be able to abstract all of the handlers into one handler I imagine
-// async function handleFile(params: {
-//     compiledFiles: CompiledFiles;
-//     watchFiles: boolean;
-//     clients: Clients;
-//     disableSpa: boolean;
-//     res: http.ServerResponse;
-//     customHTTPHeaders: Readonly<CustomHTTPHeaders>;
-//     fileHTTPHeaders: Readonly<HTTPHeaders>;
-// }): Promise<void> {
+// TODO we need to figure out a way to allow plugins to specify their own way for a user to specify a custom path to a compiler options file
+function getCompilerOptionsFilePath(params: {
+    fileExtension: string;
+    tscOptionsFilePath: string | undefined;
+    ascOptionsFilePath: string | undefined;
+}): string | undefined {
+    if (
+        params.fileExtension === 'js' ||
+        params.fileExtension === 'mjs' ||
+        params.fileExtension === 'ts'
+    ) {
+        return params.tscOptionsFilePath;
+    }
 
-// }
+    if (params.fileExtension === 'as') {
+        return params.ascOptionsFilePath;
+    }
+
+    return undefined;
+}
 
 async function handleIndex(params: {
     compiledFiles: CompiledFiles;
@@ -235,6 +153,61 @@ async function handleIndex(params: {
     });
 }
 
+async function handlePlugin(params: {
+    plugin: Readonly<Plugin>;
+    url: string;
+    compiledFiles: CompiledFiles;
+    watchFiles: boolean;
+    clients: Clients;
+    wsPort: number;
+    disableSpa: boolean;
+    res: http.ServerResponse;
+    customHTTPHeadersFilePath: string | undefined;
+    compilerOptionsFilePath: string | undefined;
+}): Promise<void> {
+
+    // TODO can't we do better here than any?
+    const compilerOptions: any = await getCompilerOptionsFromFile({
+        compilerOptionsFilePath: params.compilerOptionsFilePath,
+        clients: params.clients,
+        compiledFiles: params.compiledFiles,
+        watchFiles: params.watchFiles,
+        defaultCompilerOptions: params.plugin.defaultCompilerOptions
+    });
+
+    const fileContentsResult: Readonly<FileContentsResult> = await getFileContents({
+        url: params.url,
+        compiledFiles: params.compiledFiles,
+        disableSpa: params.disableSpa,
+        watchFiles: params.watchFiles,
+        clients: params.clients,
+        transformer: params.plugin.createTransformer({
+            url: params.url,
+            compilerOptions,
+            wsPort: params.wsPort
+        })
+    });
+
+    const customHTTPHeaders: Readonly<CustomHTTPHeaders> = await getCustomHTTPHeaders({
+        headersFilePath: params.customHTTPHeadersFilePath,
+        clients: params.clients,
+        compiledFiles: params.compiledFiles,
+        watchFiles: params.watchFiles
+    });
+
+    const httpHeaders: Readonly<HTTPHeaders> = getCustomHTTPHeadersForURL({
+        customHTTPHeaders,
+        defaultHTTPHeaders: params.plugin.httpHeaders,
+        url: params.url
+    });
+
+    await sendResponse({
+        res: params.res,
+        fileContentsResult,
+        headers: httpHeaders
+    });
+}
+
 async function handleGeneric(params: {
     url: string;
     compiledFiles: CompiledFiles;
@@ -273,253 +246,6 @@ async function handleGeneric(params: {
     await sendResponse({
         res: params.res,
         fileContentsResult: genericFileContentsResult,
-        headers: httpHeaders
-    });
-}
-
-async function handleJavaScript(params: {
-    url: string;
-    compiledFiles: CompiledFiles;
-    watchFiles: boolean;
-    clients: Clients;
-    wsPort: number;
-    disableSpa: boolean;
-    res: http.ServerResponse;
-    customHTTPHeadersFilePath: string | undefined;
-    tscOptionsFilePath: string | undefined;
-}): Promise<void> {
-    const javaScriptFileContentsResult: Readonly<FileContentsResult> = await getJavaScriptFileContents({
-        url: params.url,
-        compiledFiles: params.compiledFiles,
-        watchFiles: params.watchFiles,
-        clients: params.clients,
-        wsPort: params.wsPort,
-        disableSpa: params.disableSpa,
-        tscOptionsFilePath: params.tscOptionsFilePath
-    });
-
-    const customHTTPHeaders: Readonly<CustomHTTPHeaders> = await getCustomHTTPHeaders({
-        headersFilePath: params.customHTTPHeadersFilePath,
-        clients: params.clients,
-        compiledFiles: params.compiledFiles,
-        watchFiles: params.watchFiles
-    });
-    const httpHeaders: Readonly<HTTPHeaders> = getCustomHTTPHeadersForURL({
-        customHTTPHeaders,
-        defaultHTTPHeaders: {
-            'Content-Type': 'application/javascript'
-        },
-        url: params.url
-    });
-
-    await sendResponse({
-        res: params.res,
-        fileContentsResult: javaScriptFileContentsResult,
-        headers: httpHeaders
-    });
-}
-
-async function handleTypeScript(params: {
-    url: string;
-    compiledFiles: CompiledFiles;
-    watchFiles: boolean;
-    clients: Clients;
-    wsPort: number;
-    disableSpa: boolean;
-    res: http.ServerResponse;
-    customHTTPHeadersFilePath: string | undefined;
-    tscOptionsFilePath: string | undefined;
-}): Promise<void> {
-
-    const typeScriptFileContentsResult: Readonly<FileContentsResult> = await getTypeScriptFileContents({
-        url: params.url,
-        compiledFiles: params.compiledFiles,
-        watchFiles: params.watchFiles,
-        clients: params.clients,
-        wsPort: params.wsPort,
-        disableSpa: params.disableSpa,
-        tscOptionsFilePath: params.tscOptionsFilePath
-    });
-
-    const customHTTPHeaders: Readonly<CustomHTTPHeaders> = await getCustomHTTPHeaders({
-        headersFilePath: params.customHTTPHeadersFilePath,
-        clients: params.clients,
-        compiledFiles: params.compiledFiles,
-        watchFiles: params.watchFiles
-    });
-    const httpHeaders: Readonly<HTTPHeaders> = getCustomHTTPHeadersForURL({
-        customHTTPHeaders,
-        defaultHTTPHeaders: {
-            'Content-Type': 'application/javascript'
-        },
-        url: params.url
-    });
-
-    await sendResponse({
-        res: params.res,
-        fileContentsResult: typeScriptFileContentsResult,
-        headers: httpHeaders
-    });
-}
-
-async function handleAssemblyScript(params: {
-    url: string;
-    compiledFiles: CompiledFiles;
-    watchFiles: boolean;
-    clients: Clients;
-    wsPort: number;
-    disableSpa: boolean;
-    res: http.ServerResponse;
-    customHTTPHeadersFilePath: string | undefined;
-    ascOptionsFilePath: string | undefined;
-}): Promise<void> {
-    const assemblyScriptFileContentsResult: Readonly<FileContentsResult> = await getAssemblyScriptFileContents({
-        url: params.url,
-        compiledFiles: params.compiledFiles,
-        watchFiles: params.watchFiles,
-        clients: params.clients,
-        wsPort: params.wsPort,
-        disableSpa: params.disableSpa,
-        ascOptionsFilePath: params.ascOptionsFilePath
-    });
-
-    const customHTTPHeaders: Readonly<CustomHTTPHeaders> = await getCustomHTTPHeaders({
-        headersFilePath: params.customHTTPHeadersFilePath,
-        clients: params.clients,
-        compiledFiles: params.compiledFiles,
-        watchFiles: params.watchFiles
-    });
-    const httpHeaders: Readonly<HTTPHeaders> = getCustomHTTPHeadersForURL({
-        customHTTPHeaders,
-        defaultHTTPHeaders: {
-            'Content-Type': 'application/javascript'
-        },
-        url: params.url
-    });
-
-    await sendResponse({
-        res: params.res,
-        fileContentsResult: assemblyScriptFileContentsResult,
-        headers: httpHeaders
-    });
-}
-
-async function handleWasm(params: {
-    url: string;
-    compiledFiles: CompiledFiles;
-    watchFiles: boolean;
-    clients: Clients;
-    wsPort: number;
-    disableSpa: boolean;
-    res: http.ServerResponse;
-    customHTTPHeadersFilePath: string | undefined;
-}): Promise<void> {
-    const wasmFileContentsResult: Readonly<FileContentsResult> = await getWasmFileContents({
-        url: params.url,
-        compiledFiles: params.compiledFiles,
-        watchFiles: params.watchFiles,
-        clients: params.clients,
-        wsPort: params.wsPort,
-        disableSpa: params.disableSpa
-    });
-
-    const customHTTPHeaders: Readonly<CustomHTTPHeaders> = await getCustomHTTPHeaders({
-        headersFilePath: params.customHTTPHeadersFilePath,
-        clients: params.clients,
-        compiledFiles: params.compiledFiles,
-        watchFiles: params.watchFiles
-    });
-    const httpHeaders: Readonly<HTTPHeaders> = getCustomHTTPHeadersForURL({
-        customHTTPHeaders,
-        defaultHTTPHeaders: {
-            'Content-Type': 'application/javascript'
-        },
-        url: params.url
-    });
-
-    await sendResponse({
-        res: params.res,
-        fileContentsResult: wasmFileContentsResult,
-        headers: httpHeaders
-    });
-}
-
-async function handleWat(params: {
-    url: string;
-    compiledFiles: CompiledFiles;
-    watchFiles: boolean;
-    clients: Clients;
-    wsPort: number;
-    disableSpa: boolean;
-    res: http.ServerResponse;
-    customHTTPHeadersFilePath: string | undefined;
-}): Promise<void> {
-    const watFileContentsResult: Readonly<FileContentsResult> = await getWatFileContents({
-        url: params.url,
-        compiledFiles: params.compiledFiles,
-        watchFiles: params.watchFiles,
-        clients: params.clients,
-        wsPort: params.wsPort,
-        disableSpa: params.disableSpa
-    });
-
-    const customHTTPHeaders: Readonly<CustomHTTPHeaders> = await getCustomHTTPHeaders({
-        headersFilePath: params.customHTTPHeadersFilePath,
-        clients: params.clients,
-        compiledFiles: params.compiledFiles,
-        watchFiles: params.watchFiles
-    });
-    const httpHeaders: Readonly<HTTPHeaders> = getCustomHTTPHeadersForURL({
-        customHTTPHeaders,
-        defaultHTTPHeaders: {
-            'Content-Type': 'application/javascript'
-        },
-        url: params.url
-    });
-
-    await sendResponse({
-        res: params.res,
-        fileContentsResult: watFileContentsResult,
-        headers: httpHeaders
-    });
-}
-
-async function handleRust(params: {
-    url: string;
-    compiledFiles: CompiledFiles;
-    watchFiles: boolean;
-    clients: Clients;
-    wsPort: number;
-    disableSpa: boolean;
-    res: http.ServerResponse;
-    customHTTPHeadersFilePath: string | undefined;
-}): Promise<void> {
-    const rustFileContentsResult: Readonly<FileContentsResult> = await getRustFileContents({
-        url: params.url,
-        compiledFiles: params.compiledFiles,
-        watchFiles: params.watchFiles,
-        clients: params.clients,
-        wsPort: params.wsPort,
-        disableSpa: params.disableSpa
-    });
-
-    const customHTTPHeaders: Readonly<CustomHTTPHeaders> = await getCustomHTTPHeaders({
-        headersFilePath: params.customHTTPHeadersFilePath,
-        clients: params.clients,
-        compiledFiles: params.compiledFiles,
-        watchFiles: params.watchFiles
-    });
-    const httpHeaders: Readonly<HTTPHeaders> = getCustomHTTPHeadersForURL({
-        customHTTPHeaders,
-        defaultHTTPHeaders: {
-            'Content-Type': 'application/javascript'
-        },
-        url: params.url
-    });
-
-    await sendResponse({
-        res: params.res,
-        fileContentsResult: rustFileContentsResult,
         headers: httpHeaders
     });
 }

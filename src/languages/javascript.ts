@@ -1,56 +1,43 @@
 import {
     JavaScript,
-    Clients,
-    CompiledFiles,
-    FileContentsResult,
-    TSCOptions
+    TSCOptions,
+    Plugin
 } from '../../index.d.ts';
 import {
-    getFileContents,
     addGlobals,
     compileToJs,
-    getTscOptionsFromFile
 } from '../utilities';
 
-export async function getJavaScriptFileContents(params: {
-    url: string;
-    compiledFiles: CompiledFiles;
-    watchFiles: boolean;
-    clients: Clients;
-    wsPort: number;
-    disableSpa: boolean;
-    tscOptionsFilePath: string | undefined;
-}): Promise<Readonly<FileContentsResult>> {
-
-    const tscOptions: Readonly<TSCOptions> = await getTscOptionsFromFile({
-        tscOptionsFilePath: params.tscOptionsFilePath,
-        clients: params.clients,
-        compiledFiles: params.compiledFiles,
-        watchFiles: params.watchFiles
-    });
-    
-    const javaScriptFileContentsResult: Readonly<FileContentsResult> = await getFileContents({
-        url: params.url,
-        compiledFiles: params.compiledFiles,
-        disableSpa: params.disableSpa,
-        watchFiles: params.watchFiles,
-        clients: params.clients,
-        transformer: (source: string) => {
-
+export const JavaScriptPlugin: Readonly<Plugin> = {
+    fileExtensions: ['js', 'mjs'],
+    httpHeaders: {
+        'Content-Type': 'application/javascript'
+    },
+    createTransformer: (transformerCreatorParams: {
+        url: string;
+        compilerOptions: Readonly<TSCOptions>;
+        wsPort: number;
+    }) => {
+        return (transformerParams: {
+            sourceString: string;
+            sourceBuffer: Readonly<Buffer>;
+        }) => {
             const compiledToJS: JavaScript = compileToJs({
-                source, 
-                filePath: params.url,
-                tscOptions
+                source: transformerParams.sourceString, 
+                filePath: transformerCreatorParams.url,
+                tscOptions: transformerCreatorParams.compilerOptions
             });
         
             const globalsAdded: JavaScript = addGlobals({
                 source: compiledToJS,
-                wsPort: params.wsPort
+                wsPort: transformerCreatorParams.wsPort
             });
-
+    
             return globalsAdded;
-        }
-    });
-
-    return javaScriptFileContentsResult;
-}
+        };
+    },
+    defaultCompilerOptions: {
+        module: 'ES2015',
+        target: 'ES2015'    
+    }
+};

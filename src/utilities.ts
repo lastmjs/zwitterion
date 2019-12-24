@@ -8,7 +8,6 @@ import {
     CustomHTTPHeaders,
     HTTPHeaders,
     FileContentsResult,
-    ASCOptions,
     TSCOptions
 } from '../index.d.ts';
 import * as chokidar from 'chokidar';
@@ -17,12 +16,6 @@ import * as tsc from 'typescript';
 import * as babel from '@babel/core';
 import { resolveBareSpecifiers } from './babel-plugins/babel-plugin-transform-resolve-bare-specifiers.js';
 import { resolveImportPathExtensions } from './babel-plugins/babel-plugin-transform-resolve-import-path-extensions.js';
-
-export const DEFAULT_ASC_OPTIONS: Readonly<ASCOptions> = [];
-export const DEFAULT_TSC_OPTIONS: Readonly<TSCOptions> = {
-    module: 'ES2015',
-    target: 'ES2015'
-};
 
 export async function getFileContents(params: {
     url: string;
@@ -51,7 +44,10 @@ export async function getFileContents(params: {
         if (await (fs.exists as any)(params.url)) {
             const fileContents: Readonly<Buffer> = await fs.readFile(params.url);
 
-            const transformedFileContents: Readonly<Buffer> = params.transformer === 'NOT_SET' ? fileContents : Buffer.from(await params.transformer(fileContents.toString()));
+            const transformedFileContents: Readonly<Buffer> = params.transformer === 'NOT_SET' ? fileContents : Buffer.from(await params.transformer({
+                sourceString: fileContents.toString(),
+                sourceBuffer: fileContents
+            }));
 
             params.compiledFiles[params.url] = transformedFileContents;
 
@@ -201,46 +197,25 @@ export async function getCustomHTTPHeaders(params: {
     }
 }
 
-export async function getAscOptionsFromFile(params: {
-    ascOptionsFilePath: string | undefined;
+export async function getCompilerOptionsFromFile(params: {
+    compilerOptionsFilePath: string | undefined;
     clients: Clients;
     compiledFiles: CompiledFiles;
     watchFiles: boolean;
-}): Promise<Readonly<ASCOptions>> {
-    if (params.ascOptionsFilePath === undefined) {
-        return DEFAULT_ASC_OPTIONS;
+    defaultCompilerOptions: any;
+}): Promise<any> {
+    if (params.compilerOptionsFilePath === undefined) {
+        return params.defaultCompilerOptions;
     } {
         watchFileAndInvalidateAllFiles({
-            filePath: params.ascOptionsFilePath,
+            filePath: params.compilerOptionsFilePath,
             watchFiles: params.watchFiles,
             clients: params.clients,
             compiledFiles: params.compiledFiles
         });
 
-        const ascOptionsFile: Readonly<Buffer> = await fs.readFile(params.ascOptionsFilePath);
-        return JSON.parse(ascOptionsFile.toString());
-    }
-}
-
-export async function getTscOptionsFromFile(params: {
-    tscOptionsFilePath: string | undefined;
-    clients: Clients;
-    compiledFiles: CompiledFiles;
-    watchFiles: boolean;
-}): Promise<Readonly<TSCOptions>> {
-    if (params.tscOptionsFilePath === undefined) {
-        return DEFAULT_TSC_OPTIONS;
-    }
-    else {
-        watchFileAndInvalidateAllFiles({
-            filePath: params.tscOptionsFilePath,
-            watchFiles: params.watchFiles,
-            clients: params.clients,
-            compiledFiles: params.compiledFiles
-        });
-
-        const tscOptionsFile: Readonly<Buffer> = await fs.readFile(params.tscOptionsFilePath);
-        return JSON.parse(tscOptionsFile.toString());
+        const compilerOptionsFile: Readonly<Buffer> = await fs.readFile(params.compilerOptionsFilePath);
+        return JSON.parse(compilerOptionsFile.toString());
     }
 }
 
