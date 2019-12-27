@@ -28,7 +28,8 @@ export const CPlugin: Readonly<Plugin> = {
                 
                 // TODO we might want to warn users to not run Zwitterion in production, or fix this issue
                 // TODO is this sanitization good enough?
-                const wasmFilePath: string = `node_modules/zwitterion/tmp/${sanitize(transformerCreatorParams.url.slice(1))}-zwitterion.wasm`;
+                // TODO We should get away from using require in any way. We want this path to be relative, if Zwitterion is installed in the node_modules it needs to find it, if it is nested it needs to find it, etc
+                const wasmFilePath: string = `${(require as any).main.path}/tmp/${sanitize(transformerCreatorParams.url.slice(1))}-zwitterion.wasm`;
 
                 exec(`emcc ${transformerCreatorParams.url} -Os -s WASM=1 -s SIDE_MODULE=1 -o ${wasmFilePath}`, async (error, stdout, stderr) => {
 
