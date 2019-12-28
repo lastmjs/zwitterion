@@ -4,9 +4,10 @@
   "description": "A zero confusion polyglot static file server for front-end web development.",
   "scripts": {
     "start": "ts-node --transpile-only src/app.ts --port 5050",
-    "test": "xvfb-run guesswork electron --entry test/index.js",
-    "test-window": "guesswork electron --entry test/index.js --electron-window",
-    "test-auto": "guesswork electron --entry test/index.js"
+    "test": "ts-node --transpile-only test/test.ts --port 5050",
+    "old-test": "xvfb-run guesswork electron --entry test/index.js",
+    "old-test-window": "guesswork electron --entry test/index.js --electron-window",
+    "old-test-auto": "guesswork electron --entry test/index.js"
   },
   "bin": {
     "zwitterion": "./bin.js"
@@ -47,6 +48,8 @@
     "@types/mime": "2.0.1",
     "@types/node": "12.12.17",
     "@types/uuid": "3.4.6",
-    "@types/ws": "6.0.4"
+    "@types/ws": "6.0.4",
+    "fast-check": "1.21.0",
+    "uuid": "3.3.3"
   }
 }

@@ -1,4 +1,4 @@
-name: Node CI
+name: test
 
 on:
   pull_request:
@@ -8,10 +8,11 @@ on:
 jobs:
   build:
 
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
 
     strategy:
       matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
         node-version: [8.x, 10.x, 12.x]
 
     steps:
@@ -26,3 +27,4 @@ jobs:
         npm test
       env:
         CI: true
+        OS: ${{ matrix.os }}
