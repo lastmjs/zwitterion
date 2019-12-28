@@ -26,8 +26,7 @@ jobs:
     - name: macos dependencies
       if ${{ matrix.os }} == 'macos-latest'
       run: |
-        brew cask install firefox
-          
+        brew cask install firefox    
     - name: npm install, and npm test
       run: |
         npm ci
