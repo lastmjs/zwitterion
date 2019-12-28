@@ -103,7 +103,7 @@ import { exec } from 'child_process';
 
     const timeoutId: NodeJS.Timeout = setTimeout(() => {
         process.exit(1);
-    }, 30000);
+    }, 60000);
 
     if (wsServer !== 'NOT_CREATED') {
         wsServer.on('connection', (client: Readonly<WebSocket>, request: Readonly<http.IncomingMessage>) => {
