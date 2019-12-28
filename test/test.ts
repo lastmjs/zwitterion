@@ -98,12 +98,13 @@ import { exec } from 'child_process';
         fs.writeFileSync(`./${testDescription.moduleName}`, testDescription.moduleContents);
     });
 
-    const chromeCommand: 'chrome' | 'google-chrome' = process.env.OS === 'ubuntu-latest' ? 'google-chrome' : process.env.OS === 'macos-latest' ? 'open -a "Google Chrome" --args' : 'start chrome';
+    // const browserCommand = process.env.OS === 'ubuntu-latest' ? 'google-chrome' : process.env.OS === 'macos-latest' ? 'open -a "Google Chrome" --args' : 'start chrome';
+    const browserCommand = process.env.OS === 'ubuntu-latest' ? 'firefox' : process.env.OS === 'macos-latest' ? 'open -a "Firefox" --args' : 'start firefox';
 
-    const childProcess = exec(`${chromeCommand} --headless --disable-gpu --remote-debugging-port=7777 http://localhost:${commandLineOptions.httpPort}`);
+    // const childProcess = exec(`${browserCommand} --headless --disable-gpu --remote-debugging-port=7777 http://localhost:${commandLineOptions.httpPort}`);
     
     // TODO add firefox testing
-    // const childProcess = exec(`firefox --headless http://localhost:${commandLineOptions.httpPort}`);
+    const childProcess = exec(`${browserCommand} --headless http://localhost:${commandLineOptions.httpPort}`);
 
     childProcess.stdout?.on('data', (data) => {
         console.log(data);
@@ -116,7 +117,7 @@ import { exec } from 'child_process';
     const timeoutId: NodeJS.Timeout = setTimeout(() => {
         console.log('timeout reached');
         process.exit(1);
-    }, 120000);
+    }, 60000);
 
     if (wsServer !== 'NOT_CREATED') {
         wsServer.on('connection', (client: Readonly<WebSocket>, request: Readonly<http.IncomingMessage>) => {
