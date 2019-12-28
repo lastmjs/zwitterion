@@ -32,8 +32,8 @@ import { exec } from 'child_process';
         ...prepareJavaScriptTestDescriptions(),
         ...prepareTypeScriptTestDescriptions(),
         ...prepareAssemblyScriptTestDescriptions(),
-        ...prepareRustTestDescriptions(),
-        ...prepareCTestDescriptions(),
+        // ...prepareRustTestDescriptions(),
+        // ...prepareCTestDescriptions(),
         // ...prepareCPPTestDescriptions(),
         ...prepareWatTestDescriptions()
     ];
