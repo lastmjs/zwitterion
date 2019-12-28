@@ -34,7 +34,7 @@ import { exec } from 'child_process';
         ...prepareAssemblyScriptTestDescriptions(),
         ...prepareRustTestDescriptions(),
         ...prepareCTestDescriptions(),
-        ...prepareCPPTestDescriptions(),
+        // ...prepareCPPTestDescriptions(),
         ...prepareWatTestDescriptions()
     ];
 
