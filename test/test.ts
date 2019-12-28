@@ -88,10 +88,10 @@ import { exec } from 'child_process';
         fs.writeFileSync(`./${testDescription.moduleName}`, testDescription.moduleContents);
     });
 
-    const childProcess = exec(`google-chrome --headless --disable-gpu --remote-debugging-port=7777 http://localhost:${commandLineOptions.httpPort}`);
+    // const childProcess = exec(`google-chrome --headless --disable-gpu --remote-debugging-port=7777 http://localhost:${commandLineOptions.httpPort}`);
     
     // TODO add firefox testing
-    // const childProcess = exec(`firefox --headless http://localhost:${commandLineOptions.httpPort}`);
+    const childProcess = exec(`firefox --headless http://localhost:${commandLineOptions.httpPort}`);
 
     const timeoutId: NodeJS.Timeout = setTimeout(() => {
         process.exit(1);
