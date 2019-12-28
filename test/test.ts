@@ -98,7 +98,7 @@ import { exec } from 'child_process';
         fs.writeFileSync(`./${testDescription.moduleName}`, testDescription.moduleContents);
     });
 
-    const chromeCommand: 'chrome' | 'google-chrome' = process.env.OS === 'ubuntu-latest' ? 'google-chrome' : process.env.OS === 'macos-latest' ? 'open -a "Google Chrome"' : 'start chrome';
+    const chromeCommand: 'chrome' | 'google-chrome' = process.env.OS === 'ubuntu-latest' ? 'google-chrome' : process.env.OS === 'macos-latest' ? 'open -a "Google Chrome" --args' : 'start chrome';
 
     const childProcess = exec(`${chromeCommand} --headless --disable-gpu --remote-debugging-port=7777 http://localhost:${commandLineOptions.httpPort}`);
     
@@ -116,7 +116,7 @@ import { exec } from 'child_process';
     const timeoutId: NodeJS.Timeout = setTimeout(() => {
         console.log('timeout reached');
         process.exit(1);
-    }, 60000);
+    }, 120000);
 
     if (wsServer !== 'NOT_CREATED') {
         wsServer.on('connection', (client: Readonly<WebSocket>, request: Readonly<http.IncomingMessage>) => {
