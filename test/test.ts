@@ -88,14 +88,22 @@ import { exec } from 'child_process';
         fs.writeFileSync(`./${testDescription.moduleName}`, testDescription.moduleContents);
     });
 
-    // const childProcess = exec(`google-chrome --headless --disable-gpu --remote-debugging-port=7777 http://localhost:${commandLineOptions.httpPort}`);
+    const childProcess = exec(`google-chrome --headless --disable-gpu --remote-debugging-port=7777 http://localhost:${commandLineOptions.httpPort}`);
     
     // TODO add firefox testing
-    const childProcess = exec(`firefox --headless http://localhost:${commandLineOptions.httpPort}`);
+    // const childProcess = exec(`firefox --headless http://localhost:${commandLineOptions.httpPort}`);
+
+    childProcess.stdout?.on('data', (data) => {
+        console.log(data);
+    });
+
+    childProcess.stderr?.on('data', (data) => {
+        console.log(data);
+    });
 
     const timeoutId: NodeJS.Timeout = setTimeout(() => {
         process.exit(1);
-    }, 10000);
+    }, 30000);
 
     if (wsServer !== 'NOT_CREATED') {
         wsServer.on('connection', (client: Readonly<WebSocket>, request: Readonly<http.IncomingMessage>) => {
@@ -105,7 +113,7 @@ import { exec } from 'child_process';
                     console.log('data', data);
 
                     if (data.toString().includes('ALL_TESTS_PASSED')) {
-                        // clearTimeout(timeoutId);
+                        clearTimeout(timeoutId);
 
                         testDescriptions.forEach((testDescription: Readonly<TestDescription>) => {
                             fs.removeSync(testDescription.moduleName);
