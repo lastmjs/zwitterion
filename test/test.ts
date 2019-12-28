@@ -47,6 +47,7 @@ import { exec } from 'child_process';
 
         <html>
             <head>
+                <meta charset="utf-8">
             </head>
 
             <body>
@@ -83,8 +84,6 @@ import { exec } from 'child_process';
                             self.ZWITTERION_SOCKET.send('ALL_TESTS_PASSED');
                             console.log('ALL_TESTS_PASSED');
                         }
-
-                        window.close();
                     })();
 
                 </script>
@@ -104,7 +103,7 @@ import { exec } from 'child_process';
     // const childProcess = exec(`${browserCommand} --headless --disable-gpu --remote-debugging-port=7777 http://localhost:${commandLineOptions.httpPort}`);
     
     // TODO add firefox testing
-    const childProcess = exec(`${browserCommand} --headless http://localhost:${commandLineOptions.httpPort}`);
+    const childProcess = exec(`${browserCommand} --headless --purgecaches --no-remote http://localhost:${commandLineOptions.httpPort}`);
 
     childProcess.stdout?.on('data', (data) => {
         console.log(data);
