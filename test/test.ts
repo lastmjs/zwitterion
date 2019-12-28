@@ -88,7 +88,7 @@ import { exec } from 'child_process';
         fs.writeFileSync(`./${testDescription.moduleName}`, testDescription.moduleContents);
     });
 
-    const chromeCommand: 'chrome' | 'google-chrome' = process.env.OS === 'ubuntu-latest' ? 'google-chrome' : process.env.OS === 'macos-latest' ? 'open /Applications/Google\\ Chrome.app' : 'start chrome';
+    const chromeCommand: 'chrome' | 'google-chrome' = process.env.OS === 'ubuntu-latest' ? 'google-chrome' : process.env.OS === 'macos-latest' ? '/Applications/Google\\ Chrome.app/Contents/MacOS/Google\\ Chrome' : 'start chrome';
 
     const childProcess = exec(`${chromeCommand} --headless --disable-gpu --remote-debugging-port=7777 http://localhost:${commandLineOptions.httpPort}`);
     
