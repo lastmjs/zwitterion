@@ -27,3 +27,4 @@ jobs:
         npm test
       env:
         CI: true
+        OS: ${{ matrix.os }}
