@@ -104,6 +104,7 @@ import { exec } from 'child_process';
     });
 
     const timeoutId: NodeJS.Timeout = setTimeout(() => {
+        console.log('timeout reached');
         process.exit(1);
     }, 60000);
 
