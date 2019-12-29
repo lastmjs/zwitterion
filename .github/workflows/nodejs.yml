@@ -11,9 +11,11 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     strategy:
+      fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
         node-version: [8.x, 10.x, 12.x]
+        browser: [chrome, firefox]
 
     steps:
     - uses: actions/checkout@v1
@@ -21,10 +23,15 @@ jobs:
       uses: actions/setup-node@v1
       with:
         node-version: ${{ matrix.node-version }}
-    - name: npm install and test
+    - name: install macos-latest dependencies
+      if: matrix.os == 'macos-latest' # TODO this if statement does not seem to work. The other builds on other os's do not fail entirely, but this command does fail
+      run: |
+        brew update && brew cask install firefox && brew cask install google-chrome
+    - name: npm install and npm test
       run: |
         npm ci
         npm test
       env:
         CI: true
         OS: ${{ matrix.os }}
+        BROWSER: ${{ matrix.browser }}

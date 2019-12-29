@@ -8,6 +8,7 @@ import {
 import { exec } from 'child_process';
 import * as fs from 'fs-extra';
 import * as sanitize from 'sanitize-filename';
+import * as path from 'path';
 
 export const RustPlugin: Readonly<Plugin> = {
     fileExtensions: ['rs'],
@@ -29,8 +30,7 @@ export const RustPlugin: Readonly<Plugin> = {
                 // TODO we might want to warn users to not run Zwitterion in production, or fix this issue
                 // TODO is this sanitization good enough?
 
-                // TODO We should get away from using require in any way. We want this path to be relative, if Zwitterion is installed in the node_modules it needs to find it, if it is nested it needs to find it, etc
-                const wasmFilePath: string = `${(require as any).main.path}/tmp/${sanitize(transformerCreatorParams.url.slice(1))}-zwitterion.wasm`;
+                const wasmFilePath: string = `${path.join(__dirname, '../../')}/tmp/${sanitize(transformerCreatorParams.url.slice(1))}-zwitterion.wasm`;
 
                 exec(`rustc --target=wasm32-unknown-unknown ${transformerCreatorParams.url} -o ${wasmFilePath}`, async (error, stdout, stderr) => {
 

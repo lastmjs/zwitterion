@@ -1,7 +1,6 @@
 // TODO put all of the files into a tmp folder, probably inside of the test directory
 // TODO add arbitrary files and file structure
 // TODO add configuration tests
-// TODO We need to create the test files, then open Chrome, then run the tests, then end everything
 
 import * as fs from 'fs-extra';
 import * as http from 'http';
@@ -32,9 +31,9 @@ import { exec } from 'child_process';
         ...prepareJavaScriptTestDescriptions(),
         ...prepareTypeScriptTestDescriptions(),
         ...prepareAssemblyScriptTestDescriptions(),
-        // ...prepareRustTestDescriptions(),
-        // ...prepareCTestDescriptions(),
-        // ...prepareCPPTestDescriptions(),
+        ...(process.env.CI === 'true' ? [] : prepareRustTestDescriptions()), // TODO no remote tests until we can install rustc with npm
+        ...(process.env.CI === 'true' ? [] : prepareCTestDescriptions()), // TODO no remote tests until we can install emscripten with npm
+        ...(process.env.CI === 'true' ? [] : prepareCPPTestDescriptions()), // TODO no remote tests until we can install emscripten with npm
         ...prepareWatTestDescriptions()
     ];
 
@@ -47,10 +46,21 @@ import { exec } from 'child_process';
 
         <html>
             <head>
+                <meta charset="utf-8">
             </head>
 
             <body>
                 <script type="module">
+                    if (self.ZWITTERION_SOCKET.readyState !== 1) {
+                        self.ZWITTERION_SOCKET.addEventListener('open', () => {
+                            self.ZWITTERION_SOCKET.send('STARTING_TESTS');
+
+                        });
+                    }
+                    else {
+                        self.ZWITTERION_SOCKET.send('STARTING_TESTS');
+                    }
+
                     ${topLevelTestDescriptions.map((testDescription: Readonly<TestDescription>) => {
                         return `import * as ${testDescription.id} from './${testDescription.moduleName}';\n`;
                     }).join('')}
@@ -73,8 +83,6 @@ import { exec } from 'child_process';
                             self.ZWITTERION_SOCKET.send('ALL_TESTS_PASSED');
                             console.log('ALL_TESTS_PASSED');
                         }
-
-                        window.close();
                     })();
 
                 </script>
@@ -88,12 +96,32 @@ import { exec } from 'child_process';
         fs.writeFileSync(`./${testDescription.moduleName}`, testDescription.moduleContents);
     });
 
-    const chromeCommand: 'chrome' | 'google-chrome' = process.env.OS === 'ubuntu-latest' ? 'google-chrome' : process.env.OS === 'macos-latest' ? 'open /Applications/Google\ Chrome.app' : 'chrome';
+    const browserCommands: {
+        [key: string]: {
+            [key: string]: string;
+        };
+    } = {
+        'chrome': {
+            'ubuntu-latest': `google-chrome --headless --disable-gpu --remote-debugging-port=7777 http://localhost:${commandLineOptions.httpPort}`,
+            'macos-latest': `/Applications/Google\\ Chrome.app/Contents/MacOS/Google\\ Chrome --headless --disable-gpu --remote-debugging-port=7777 http://localhost:${commandLineOptions.httpPort}`,
+            'windows-latest': `start chrome --headless --disable-gpu --remote-debugging-port=7777 http://localhost:${commandLineOptions.httpPort}`
+        },
+        'firefox': {
+            'ubuntu-latest': `firefox --headless http://localhost:${commandLineOptions.httpPort}`,
+            'macos-latest': `/Applications/Firefox.app/Contents/MacOS/firefox --headless http://localhost:${commandLineOptions.httpPort}`,
+            'windows-latest': `start firefox --headless http://localhost:${commandLineOptions.httpPort}`
+        }
+    };
 
-    const childProcess = exec(`${chromeCommand} --headless --disable-gpu --remote-debugging-port=7777 http://localhost:${commandLineOptions.httpPort}`);
-    
-    // TODO add firefox testing
-    // const childProcess = exec(`firefox --headless http://localhost:${commandLineOptions.httpPort}`);
+    if (process.env.OS === undefined) {
+        throw new Error('process.env.OS is not defined');
+    }
+
+    if (process.env.BROWSER === undefined) {
+        throw new Error('process.env.BROWSER is not defined');
+    }
+
+    const childProcess = exec(browserCommands[process.env.BROWSER][process.env.OS]);
 
     childProcess.stdout?.on('data', (data) => {
         console.log(data);
@@ -104,6 +132,7 @@ import { exec } from 'child_process';
     });
 
     const timeoutId: NodeJS.Timeout = setTimeout(() => {
+        console.log('timeout reached');
         process.exit(1);
     }, 60000);
 
