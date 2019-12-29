@@ -35,6 +35,9 @@ export const RustPlugin: Readonly<Plugin> = {
 
                 exec(`rustc --target=wasm32-unknown-unknown ${transformerCreatorParams.url} -o ${wasmFilePath}`, async (error, stdout, stderr) => {
 
+                    console.log('stdout', stdout);
+                    console.log('stderr', stderr);
+
                     if (stderr !== '') {
                         resolve(addGlobals({
                             source: `
