@@ -38,6 +38,6 @@ export const JavaScriptPlugin: Readonly<Plugin> = {
     },
     defaultCompilerOptions: {
         module: 'ES2015',
-        target: 'ES2015'    
+        target: 'ES2015'   
     }
 };

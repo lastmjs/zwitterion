@@ -4,7 +4,7 @@
 
 A web dev server that lets you import anything*
 
-\* If by anything you mean: JavaScript ES2015+, TypeScript, AssemblyScript, Rust, WebAssembly, C, C++, and in the future anything that compiles to WebAssembly.
+\* If by anything you mean: JavaScript ES2015+, TypeScript, JSX, TSX, AssemblyScript, Rust, WebAssembly, C, C++, and in the future anything that compiles to JavaScript or WebAssembly.
 
 Zwitterion is designed to be an instant replacement for your current web development static file server.
 
@@ -58,6 +58,8 @@ Also...Zwitterion is NOT a bundler. It eschews bundling for a simpler experience
 
 * ES2015+
 * TypeScript
+* JSX
+* TSX
 * AssemblyScript
 * Rust (basic support)
 * C (basic support)
@@ -182,6 +184,31 @@ export function helloWorld() {
 }
 ```
 
+JavaScript transpilation is done by the TypeScript compiler. By default, the TypeScript compiler's `compilerOptions` are set to the following:
+
+```JSON
+  {
+    "module": "ES2015",
+    "target": "ES2015"
+  }
+```
+
+You can override these options by creating a `.json` file with your own `compilerOptions` and telling Zwitterion where to locate it with the `--tsc-options-file` command line option. The available options can be found [here](https://www.typescriptlang.org/docs/handbook/compiler-options.html). Options are specified as a JSON object. For example:
+
+`tsc-options.json`:
+
+```JSON
+{
+  "target": "ES5"
+}
+```
+
+Tell Zwitterion where to locate it:
+
+```bash
+zwitterion --tsc-options-file tsc-options.json
+```
+
 ### TypeScript
 
 TypeScript is a typed superset of JavaScript. You can learn more [here](https://www.typescriptlang.org).
@@ -206,6 +233,101 @@ export function helloWorld(): string {
 ```
 
 By default, the TypeScript compiler's `compilerOptions` are set to the following:
+
+```JSON
+  {
+    "module": "ES2015",
+    "target": "ES2015"
+  }
+```
+
+You can override these options by creating a `.json` file with your own `compilerOptions` and telling Zwitterion where to locate it with the `--tsc-options-file` command line option. The available options can be found [here](https://www.typescriptlang.org/docs/handbook/compiler-options.html). Options are specified as a JSON object. For example:
+
+`tsc-options.json`:
+
+```JSON
+{
+  "target": "ES5"
+}
+```
+
+Tell Zwitterion where to locate it:
+
+```bash
+zwitterion --tsc-options-file tsc-options.json
+```
+
+### JSX
+
+Importing JSX is straightforward and works as expected. Simply use import and export statements without any modifications. It is recommended to use explicit file extensions:
+
+`./app.js`:
+
+```javascript
+import { helloWorldElement } from './hello-world.jsx';
+
+ReactDOM.render(
+  helloWorldElement,
+  document.getElementById('root')
+);
+```
+
+`./hello-world.jsx`:
+
+```javascript
+export const hellowWorldElement = <h1>Hello, world!</h1>;
+```
+
+JSX transpilation is done by the TypeScript compiler. By default, the TypeScript compiler's `compilerOptions` are set to the following:
+
+```JSON
+  {
+    "module": "ES2015",
+    "target": "ES2015"
+  }
+```
+
+You can override these options by creating a `.json` file with your own `compilerOptions` and telling Zwitterion where to locate it with the `--tsc-options-file` command line option. The available options can be found [here](https://www.typescriptlang.org/docs/handbook/compiler-options.html). Options are specified as a JSON object. For example:
+
+`tsc-options.json`:
+
+```JSON
+{
+  "target": "ES5"
+}
+```
+
+Tell Zwitterion where to locate it:
+
+```bash
+zwitterion --tsc-options-file tsc-options.json
+```
+
+### TSX
+
+Importing TSX is straightforward and works as expected. Simply use import and export statements without any modifications. It is recommended to use explicit file extensions:
+
+`./app.js`:
+
+```javascript
+import { helloWorldElement } from './hello-world.tsx';
+
+ReactDOM.render(
+  helloWorldElement,
+  document.getElementById('root')
+);
+```
+
+`./hello-world.tsx`:
+
+```javascript
+
+const helloWorld: string = 'Hello, world!';
+
+export const hellowWorldElement = <h1>{ helloWorld }</h1>;
+```
+
+TSX transpilation is done by the TypeScript compiler. By default, the TypeScript compiler's `compilerOptions` are set to the following:
 
 ```JSON
   {
