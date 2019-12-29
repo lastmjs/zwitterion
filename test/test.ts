@@ -97,13 +97,13 @@ import { exec } from 'child_process';
         fs.writeFileSync(`./${testDescription.moduleName}`, testDescription.moduleContents);
     });
 
-    // const browserCommand = process.env.OS === 'ubuntu-latest' ? 'google-chrome' : process.env.OS === 'macos-latest' ? 'open -a "Google Chrome" --args' : 'start chrome';
-    const browserCommand = process.env.OS === 'ubuntu-latest' ? 'firefox' : process.env.OS === 'macos-latest' ? 'open -a "Firefox" --args' : 'start firefox';
+    const browserCommand = process.env.OS === 'ubuntu-latest' ? 'google-chrome' : process.env.OS === 'macos-latest' ? 'open -a "Google Chrome" --args' : 'start chrome';
+    // const browserCommand = process.env.OS === 'ubuntu-latest' ? 'firefox' : process.env.OS === 'macos-latest' ? 'open -a "Firefox" --args' : 'start firefox';
 
-    // const childProcess = exec(`${browserCommand} --headless --disable-gpu --remote-debugging-port=7777 http://localhost:${commandLineOptions.httpPort}`);
+    const childProcess = exec(`${browserCommand} --headless --disable-gpu --remote-debugging-port=7777 http://localhost:${commandLineOptions.httpPort}`);
     
     // TODO add firefox testing
-    const childProcess = exec(`${browserCommand} --headless --purgecaches --no-remote http://localhost:${commandLineOptions.httpPort}`);
+    // const childProcess = exec(`${browserCommand} --headless --purgecaches --no-remote http://localhost:${commandLineOptions.httpPort}`);
 
     childProcess.stdout?.on('data', (data) => {
         console.log(data);
