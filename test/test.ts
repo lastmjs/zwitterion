@@ -100,10 +100,10 @@ import { exec } from 'child_process';
     // const browserCommand = process.env.OS === 'ubuntu-latest' ? 'google-chrome' : process.env.OS === 'macos-latest' ? '/Applications/Google\\ Chrome.app/Contents/MacOS/Google\\ Chrome' : 'start chrome';
     const browserCommand = process.env.OS === 'ubuntu-latest' ? 'firefox' : process.env.OS === 'macos-latest' ? '/Applications/Firefox.app/Contents/MacOS/firefox' : 'start firefox';
 
-    const childProcess = exec(`${browserCommand} --headless --disable-gpu --remote-debugging-port=7777 http://localhost:${commandLineOptions.httpPort}`);
+    // const childProcess = exec(`${browserCommand} --headless --disable-gpu --remote-debugging-port=7777 http://localhost:${commandLineOptions.httpPort}`);
     
     // TODO add firefox testing
-    // const childProcess = exec(`${browserCommand} --headless --purgecaches --no-remote http://localhost:${commandLineOptions.httpPort}`);
+    const childProcess = exec(`${browserCommand} --headless --purgecaches --no-remote http://localhost:${commandLineOptions.httpPort}`);
 
     childProcess.stdout?.on('data', (data) => {
         console.log(data);
