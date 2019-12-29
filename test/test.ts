@@ -30,6 +30,8 @@ import { exec } from 'child_process';
     const testDescriptions: ReadonlyArray<TestDescription> = [
         ...prepareJavaScriptTestDescriptions(),
         ...prepareTypeScriptTestDescriptions(),
+        ...prepareJSXTestDescriptions(),
+        ...prepareTSXTestDescriptions(),
         ...prepareAssemblyScriptTestDescriptions(),
         ...(process.env.CI === 'true' ? [] : prepareRustTestDescriptions()), // TODO no remote tests until we can install rustc with npm
         ...(process.env.CI === 'true' ? [] : prepareCTestDescriptions()), // TODO no remote tests until we can install emscripten with npm
@@ -113,15 +115,29 @@ import { exec } from 'child_process';
         }
     };
 
-    if (process.env.OS === undefined) {
+    if (
+        process.env.CI === 'true' &&
+        process.env.OS === undefined
+    ) {
         throw new Error('process.env.OS is not defined');
     }
 
-    if (process.env.BROWSER === undefined) {
+    if (
+        process.env.CI === 'true' &&
+        process.env.BROWSER === undefined
+    ) {
         throw new Error('process.env.BROWSER is not defined');
     }
 
-    const childProcess = exec(browserCommands[process.env.BROWSER][process.env.OS]);
+    const childProcess = process.env.CI === 'true' ? exec(browserCommands[process.env.BROWSER || ''][process.env.OS || '']) : {
+        kill: () => {},
+        stdout: {
+            on: () => {}
+        },
+        stderr: {
+            on: () => {}
+        }
+    };
 
     childProcess.stdout?.on('data', (data) => {
         console.log(data);
@@ -152,9 +168,11 @@ import { exec } from 'child_process';
 
                         fs.removeSync('./index.html');
 
-                        childProcess.kill('SIGINT');
-
-                        process.exit(0);
+                        if (process.env.CI === 'true') {
+                            childProcess.kill('SIGINT');
+    
+                            process.exit(0);
+                        }
                     }
                 });
             }
@@ -206,6 +224,57 @@ function prepareTypeScriptTestDescriptions(): ReadonlyArray<TestDescription> {
         }
     ];
 }
+
+function prepareJSXTestDescriptions(): ReadonlyArray<TestDescription> {
+    return [
+        {
+            id: getRandomId(),
+            topLevel: true,
+            moduleName: 'test-module.jsx',
+            moduleContents: `
+                const arbNumber = 5;
+
+                console.log(arbNumber);
+
+                const React = {
+                    createElement: () => {}
+                };
+
+                <div />
+
+                export const resultPromise = async () => {
+
+                };
+            `
+        }
+    ];
+}
+
+function prepareTSXTestDescriptions(): ReadonlyArray<TestDescription> {
+    return [
+        {
+            id: getRandomId(),
+            topLevel: true,
+            moduleName: 'test-module.tsx',
+            moduleContents: `
+                const arbNumber: number = 5;
+
+                console.log(arbNumber);
+
+                const React = {
+                    createElement: () => {}
+                };
+
+                <div />
+
+                export const resultPromise = async () => {
+
+                };
+            `
+        }
+    ];
+}
+
 
 function prepareAssemblyScriptTestDescriptions(): ReadonlyArray<TestDescription> {
     return [
