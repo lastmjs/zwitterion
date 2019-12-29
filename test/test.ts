@@ -31,9 +31,9 @@ import { exec } from 'child_process';
         ...prepareJavaScriptTestDescriptions(),
         ...prepareTypeScriptTestDescriptions(),
         ...prepareAssemblyScriptTestDescriptions(),
-        ...prepareRustTestDescriptions(),
-        // ...prepareCTestDescriptions(),
-        // ...prepareCPPTestDescriptions(),
+        ...(process.env.CI === 'true' ? [] : prepareRustTestDescriptions()), // TODO no remote tests until we can install rustc with npm
+        ...(process.env.CI === 'true' ? [] : prepareCTestDescriptions()), // TODO no remote tests until we can install emscripten with npm
+        ...(process.env.CI === 'true' ? [] : prepareCPPTestDescriptions()), // TODO no remote tests until we can install emscripten with npm
         ...prepareWatTestDescriptions()
     ];
 
