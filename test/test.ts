@@ -97,13 +97,40 @@ import { exec } from 'child_process';
         fs.writeFileSync(`./${testDescription.moduleName}`, testDescription.moduleContents);
     });
 
+    const browserCommands: {
+        [key: string]: {
+            [key: string]: string;
+        };
+    } = {
+        'chrome': {
+            'ubuntu-latest': `google-chrome --headless --disable-gpu --remote-debugging-port=7777 http://localhost:${commandLineOptions.httpPort}`,
+            'macos-latest': `/Applications/Google\\ Chrome.app/Contents/MacOS/Google\\ Chrome --headless --disable-gpu --remote-debugging-port=7777 http://localhost:${commandLineOptions.httpPort}`,
+            'windows-latest': `start chrome --headless --disable-gpu --remote-debugging-port=7777 http://localhost:${commandLineOptions.httpPort}`
+        },
+        'firefox': {
+            'ubuntu-latest': `firefox --headless http://localhost:${commandLineOptions.httpPort}`,
+            'macos-latest': `/Applications/Firefox.app/Contents/MacOS/firefox --headless http://localhost:${commandLineOptions.httpPort}`,
+            'windows-latest': `start firefox --headless http://localhost:${commandLineOptions.httpPort}`
+        }
+    };
+
     // const browserCommand = process.env.OS === 'ubuntu-latest' ? 'google-chrome' : process.env.OS === 'macos-latest' ? '/Applications/Google\\ Chrome.app/Contents/MacOS/Google\\ Chrome' : 'start chrome';
-    const browserCommand = process.env.OS === 'ubuntu-latest' ? 'firefox' : process.env.OS === 'macos-latest' ? '/Applications/Firefox.app/Contents/MacOS/firefox' : 'start firefox';
+    // const browserCommand = process.env.OS === 'ubuntu-latest' ? 'firefox' : process.env.OS === 'macos-latest' ? '/Applications/Firefox.app/Contents/MacOS/firefox' : 'start firefox';
 
     // const childProcess = exec(`${browserCommand} --headless --disable-gpu --remote-debugging-port=7777 http://localhost:${commandLineOptions.httpPort}`);
     
     // TODO add firefox testing
-    const childProcess = exec(`${browserCommand} --headless --purgecaches --no-remote http://localhost:${commandLineOptions.httpPort}`);
+    // const childProcess = exec(`${browserCommand} --headless --purgecaches --no-remote http://localhost:${commandLineOptions.httpPort}`);
+
+    if (process.env.OS === undefined) {
+        throw new Error('process.env.OS is not defined');
+    }
+
+    if (process.env.BROWSER === undefined) {
+        throw new Error('process.env.BROWSER is not defined');
+    }
+
+    const childProcess = exec(browserCommands[process.env.OS][process.env.BROWSER]);
 
     childProcess.stdout?.on('data', (data) => {
         console.log(data);
