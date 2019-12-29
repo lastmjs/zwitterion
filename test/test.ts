@@ -97,7 +97,8 @@ import { exec } from 'child_process';
         fs.writeFileSync(`./${testDescription.moduleName}`, testDescription.moduleContents);
     });
 
-    const browserCommand = process.env.OS === 'ubuntu-latest' ? 'google-chrome' : process.env.OS === 'macos-latest' ? 'open -a "Google Chrome" --args' : 'start chrome';
+    const browserCommand = process.env.OS === 'ubuntu-latest' ? 'google-chrome' : process.env.OS === 'macos-latest' ? '/Applications/Google\\ Chrome.app/Contents/MacOS/Google\\ Chrome' : 'start chrome';
+    // const browserCommand = process.env.OS === 'ubuntu-latest' ? 'google-chrome' : process.env.OS === 'macos-latest' ? 'open -a "Google Chrome" --args' : 'start chrome';
     // const browserCommand = process.env.OS === 'ubuntu-latest' ? 'firefox' : process.env.OS === 'macos-latest' ? 'open -a "Firefox" --args' : 'start firefox';
 
     const childProcess = exec(`${browserCommand} --headless --disable-gpu --remote-debugging-port=7777 http://localhost:${commandLineOptions.httpPort}`);
