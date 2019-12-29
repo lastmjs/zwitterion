@@ -5,9 +5,7 @@
   "scripts": {
     "start": "ts-node --transpile-only src/app.ts --port 5050",
     "test": "ts-node --transpile-only test/test.ts --port 5050",
-    "old-test": "xvfb-run guesswork electron --entry test/index.js",
-    "old-test-window": "guesswork electron --entry test/index.js --electron-window",
-    "old-test-auto": "guesswork electron --entry test/index.js"
+    "test-local": "export OS=ubuntu-latest export BROWSER=chrome && npm test"
   },
   "bin": {
     "zwitterion": "./bin.js"

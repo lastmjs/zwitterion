@@ -14,7 +14,6 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
-        # os: [ubuntu-latest, windows-latest]
         node-version: [8.x, 10.x, 12.x]
         browser: [chrome, firefox]
 
@@ -28,7 +27,7 @@ jobs:
       if: matrix.os == 'macos-latest' # TODO this if statement does not seem to work. The other builds on other os's do not fail entirely, but this command does fail
       run: |
         brew update && brew cask install firefox && brew cask install google-chrome
-    - name: npm install, and npm test
+    - name: npm install and npm test
       run: |
         npm ci
         npm test

@@ -1,7 +1,6 @@
 // TODO put all of the files into a tmp folder, probably inside of the test directory
 // TODO add arbitrary files and file structure
 // TODO add configuration tests
-// TODO We need to create the test files, then open Chrome, then run the tests, then end everything
 
 import * as fs from 'fs-extra';
 import * as http from 'http';
@@ -32,7 +31,7 @@ import { exec } from 'child_process';
         ...prepareJavaScriptTestDescriptions(),
         ...prepareTypeScriptTestDescriptions(),
         ...prepareAssemblyScriptTestDescriptions(),
-        // ...prepareRustTestDescriptions(),
+        ...prepareRustTestDescriptions(),
         // ...prepareCTestDescriptions(),
         // ...prepareCPPTestDescriptions(),
         ...prepareWatTestDescriptions()
@@ -113,14 +112,6 @@ import { exec } from 'child_process';
             'windows-latest': `start firefox --headless http://localhost:${commandLineOptions.httpPort}`
         }
     };
-
-    // const browserCommand = process.env.OS === 'ubuntu-latest' ? 'google-chrome' : process.env.OS === 'macos-latest' ? '/Applications/Google\\ Chrome.app/Contents/MacOS/Google\\ Chrome' : 'start chrome';
-    // const browserCommand = process.env.OS === 'ubuntu-latest' ? 'firefox' : process.env.OS === 'macos-latest' ? '/Applications/Firefox.app/Contents/MacOS/firefox' : 'start firefox';
-
-    // const childProcess = exec(`${browserCommand} --headless --disable-gpu --remote-debugging-port=7777 http://localhost:${commandLineOptions.httpPort}`);
-    
-    // TODO add firefox testing
-    // const childProcess = exec(`${browserCommand} --headless --purgecaches --no-remote http://localhost:${commandLineOptions.httpPort}`);
 
     if (process.env.OS === undefined) {
         throw new Error('process.env.OS is not defined');
