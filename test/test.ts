@@ -130,7 +130,7 @@ import { exec } from 'child_process';
         throw new Error('process.env.BROWSER is not defined');
     }
 
-    const childProcess = exec(browserCommands[process.env.OS][process.env.BROWSER]);
+    const childProcess = exec(browserCommands[process.env.BROWSER][process.env.OS]);
 
     childProcess.stdout?.on('data', (data) => {
         console.log(data);
