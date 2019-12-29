@@ -1,12 +1,11 @@
 import {
     ASCOptions,
     Plugin
-} from '../../../index.d.ts';
+} from '../../index.d.ts';
 import {
     addGlobals
-} from '../../utilities';
+} from '../utilities';
 import * as asc from 'assemblyscript/cli/asc';
-import { loaderString } from './assemblyscript-loader';
 import * as fs from 'fs-extra';
 
 export const AssemblyScriptPlugin: Readonly<Plugin> = {
@@ -44,8 +43,13 @@ export const AssemblyScriptPlugin: Readonly<Plugin> = {
                 });
             }
 
+            // TODO I would like to figure out a better way of including the loader...I would especially like to get rid of the use of require here
+            const loaderString: string = (await fs.readFile(require.resolve('assemblyscript/lib/loader'))).toString();
+
             return addGlobals({
                 source: `
+                    const exports = {};
+
                     ${loaderString}
 
                     const wasmByteCode = Uint8Array.from('${binary}'.split(','));

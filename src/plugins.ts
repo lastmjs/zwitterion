@@ -4,7 +4,7 @@ import { JavaScriptPlugin } from './languages/javascript.ts';
 import { TypeScriptPlugin } from './languages/typescript.ts';
 import { JSXPlugin } from './languages/jsx.ts';
 import { TSXPlugin } from './languages/tsx.ts';
-import { AssemblyScriptPlugin } from './languages/assemblyscript/assemblyscript.ts';
+import { AssemblyScriptPlugin } from './languages/assemblyscript.ts';
 import { RustPlugin } from './languages/rust.ts';
 import { WatPlugin } from './languages/wat.ts';
 import { WasmPlugin } from './languages/wasm.ts';
