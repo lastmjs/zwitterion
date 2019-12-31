@@ -33,7 +33,7 @@ export const AssemblyScriptPlugin: Readonly<Plugin> = {
             if (stderr !== '') {
                 return addGlobals({
                     source: `
-                        throw new Error(\`${stderr}\`);
+                        throw new Error(\`${stderr.replace(/`/g, '\\`')}\`);
 
                         export default () => {
                             throw new Error('There was an error during AssemblyScript compilation');
