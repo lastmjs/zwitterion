@@ -84,7 +84,7 @@ Also...Zwitterion is NOT a bundler. It eschews bundling for a simpler experience
 * [Installation and Basic Use](#installation-and-basic-use)
 * [Production Use](#production-use)
 * [Languages](#languages)
-  * [JavaScript](#languages/javascript)
+  * [JavaScript](#languages-javascript)
   * [TypeScript](#languages/typescript)
   * [JSON](#languages/json)
   * [JSX](#languages/jsx)
