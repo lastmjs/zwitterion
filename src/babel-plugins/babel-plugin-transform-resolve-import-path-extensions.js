@@ -19,7 +19,8 @@ export const resolveImportPathExtensions = (filePath) => {
                     checkForExtension(filePath, path.node.source.value, '.c') ||
                     checkForExtension(filePath, path.node.source.value, '.cpp') ||
                     checkForExtension(filePath, path.node.source.value, '.c++') ||
-                    checkForExtension(filePath, path.node.source.value, '.cc');
+                    checkForExtension(filePath, path.node.source.value, '.cc') ||
+                    checkForExtension(filePath, path.node.source.value, '.json');
                 }
             }
         }

@@ -1,7 +1,7 @@
 {
   "name": "zwitterion",
-  "version": "0.42.2",
-  "description": "A zero confusion polyglot static file server for front-end web development.",
+  "version": "0.43.0",
+  "description": "A web dev server that lets you import anything*",
   "scripts": {
     "start": "ts-node --transpile-only src/app.ts --port 5050",
     "test": "ts-node --transpile-only test/test.ts --port 5050"

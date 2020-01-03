@@ -30,6 +30,7 @@ import { exec } from 'child_process';
     const testDescriptions: ReadonlyArray<TestDescription> = [
         ...prepareJavaScriptTestDescriptions(),
         ...prepareTypeScriptTestDescriptions(),
+        ...prepareJSONTestDescriptions(),
         ...prepareJSXTestDescriptions(),
         ...prepareTSXTestDescriptions(),
         ...prepareAssemblyScriptTestDescriptions(),
@@ -220,6 +221,33 @@ function prepareTypeScriptTestDescriptions(): ReadonlyArray<TestDescription> {
                 export const resultPromise = async () => {
 
                 };
+            `
+        }
+    ];
+}
+
+function prepareJSONTestDescriptions(): ReadonlyArray<TestDescription> {
+    return [
+        {
+            id: getRandomId(),
+            topLevel: true,
+            moduleName: 'test-json-module.js',
+            moduleContents: `
+                import helloWorld from './test-module.json'
+
+                export const resultPromise = async () => {
+                    console.log(helloWorld);
+                };
+            `
+        },
+        {
+            id: getRandomId(),
+            topLevel: false,
+            moduleName: 'test-module.json',
+            moduleContents: `
+                {
+                    "hello": "world"
+                }
             `
         }
     ];

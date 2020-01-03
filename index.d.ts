@@ -69,6 +69,8 @@ export type COptions = {};
 
 export type CPPOptions = {};
 
+export type JSONOptions = {};
+
 export type Plugin = {
     readonly fileExtensions: ReadonlyArray<string>;
     readonly httpHeaders: Readonly<HTTPHeaders>;
