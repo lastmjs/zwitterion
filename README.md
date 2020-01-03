@@ -4,7 +4,7 @@
 
 A web dev server that lets you import anything*
 
-\* If by anything you mean: JavaScript ES2015+, TypeScript, JSX, TSX, AssemblyScript, Rust, WebAssembly, C, C++, and in the future anything that compiles to JavaScript or WebAssembly.
+\* If by anything you mean: JavaScript ES2015+, TypeScript, JSON, JSX, TSX, AssemblyScript, Rust, WebAssembly, C, C++, and in the future anything that compiles to JavaScript or WebAssembly.
 
 Zwitterion is designed to be an instant replacement for your current web development static file server.
 
@@ -58,14 +58,15 @@ Also...Zwitterion is NOT a bundler. It eschews bundling for a simpler experience
 
 * ES2015+
 * TypeScript
+* JSON
 * JSX
 * TSX
 * AssemblyScript
 * Rust (basic support)
 * C (basic support)
 * C++ (basic support)
-* WebAssembly (Wasm)
 * WebAssembly Text Format (Wat)
+* WebAssembly (Wasm)
 * Bare imports (`import * as stuff from 'library';` instead of `import * as stuff from '../node_modules/library/index.js';`)
 * Single Page Application routing (by default the server returns `index.html` on unhandled routes)
 * Static build for production deployment
@@ -77,6 +78,26 @@ Also...Zwitterion is NOT a bundler. It eschews bundling for a simpler experience
 * More robust C++ integration
 * Import maps
 * HTTP2 optimizations
+
+# Documentation
+
+* [Installation and Basic Use](#installation-and-basic-use)
+* [Production Use](#production-use)
+* [Languages](#languages)
+  * [JavaScript](#languages/javascript)
+  * [TypeScript](#languages/typescript)
+  * [JSON](#languages/json)
+  * [JSX](#languages/jsx)
+  * [TSX](#languages/tsx)
+  * [AssemblyScript](#languages/assemblyscript)
+  * [Rust](#languages/rust)
+  * [C](#languages/c)
+  * [C++](#languages/c++)
+  * [WebAssembly Text Format (Wat)](#languages/webassembly-text-format-(wat))
+  * [WebAssembly (Wasm)](#languages/webassembly-(wasm))
+* [Command Line Options](#command-line-options)
+* [special-considerations](#special-considerations)
+* [under-the-hood](#under-the-hood)
 
 ## Installation and Basic Use
 
@@ -255,6 +276,26 @@ Tell Zwitterion where to locate it:
 
 ```bash
 zwitterion --tsc-options-file tsc-options.json
+```
+
+### JSON
+
+JSON is provided as a default export. It is recommended to use explicit file extensions:
+
+`./app.js`:
+
+```javascript
+import helloWorld from './hello-world.json';
+
+console.log(helloWorld());
+```
+
+`./hello-world.json`:
+
+```json
+{
+  "hello": "world"
+}
 ```
 
 ### JSX
