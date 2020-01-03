@@ -96,8 +96,8 @@ Also...Zwitterion is NOT a bundler. It eschews bundling for a simpler experience
   * [WebAssembly Text Format (Wat)](#languages/webassembly-text-format-(wat))
   * [WebAssembly (Wasm)](#languages/webassembly-(wasm))
 * [Command Line Options](#command-line-options)
-* [special-considerations](#special-considerations)
-* [under-the-hood](#under-the-hood)
+* [Special Considerations](#special-considerations)
+* [Under the Hood](#under-the-hood)
 
 ## Installation and Basic Use
 
