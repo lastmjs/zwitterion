@@ -4,7 +4,7 @@
 
 A web dev server that lets you import anything*
 
-\* If by anything you mean: JavaScript ES2015+, TypeScript, JSON, JSX, TSX, AssemblyScript, Rust, WebAssembly, C, C++, and in the future anything that compiles to JavaScript or WebAssembly.
+\* If by anything you mean: JavaScript ES2015+, TypeScript, JSON, JSX, TSX, AssemblyScript, Rust, C, C++, WebAssembly, and in the future anything that compiles to JavaScript or WebAssembly.
 
 Zwitterion is designed to be an instant replacement for your current web development static file server.
 
