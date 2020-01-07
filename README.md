@@ -287,7 +287,7 @@ JSON is provided as a default export. It is recommended to use explicit file ext
 ```javascript
 import helloWorld from './hello-world.json';
 
-console.log(helloWorld());
+console.log(helloWorld);
 ```
 
 `./hello-world.json`:
