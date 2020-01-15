@@ -399,7 +399,11 @@ AssemblyScript is a new language that compiles a strict subset of TypeScript to 
 
 Zwitterion assumes that AssemblyScript files have the `.as` file extension. This is a Zwitterion-specific extension choice, as the AssemblyScript project has not yet chosen its own official file extension. You can follow that discussion [here](https://github.com/AssemblyScript/assemblyscript/issues/1003). Zwitterion will follow the official extension choice once it is made.
 
-Importing AssemblyScript is nearly identical to importing JavaScript or TypeScript. The key difference is that the default export of your entry AssemblyScript module is a function that returns a promise. This function takes as its one parameter an object containing imports to the AssemblyScript module. You can import AssemblyScript from JavaScript or TypeScript files like this:
+Importing AssemblyScript is nearly identical to importing JavaScript or TypeScript. The key difference is that the default export of your entry AssemblyScript module is a function that returns a promise. This function takes as its one parameter an object containing imports to the AssemblyScript module. 
+
+Passing values to and from functions exported from AssemblyScript modules should be straightforward, but there are some limitations. Zwitterion uses [as-bind](https://github.com/torch2424/as-bind) under the hood to broker values to and from AssemblyScript modules. Look there if you need more information.
+
+You can import AssemblyScript from JavaScript or TypeScript files like this:
 
 `./app.js`:
 

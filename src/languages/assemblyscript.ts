@@ -1,12 +1,15 @@
 import {
     ASCOptions,
-    Plugin
-} from '../../index.d.ts';
+    Plugin,
+    JavaScript
+} from '../../index.d';
 import {
-    addGlobals
+    addGlobals,
+    compileToJs
 } from '../utilities';
 import * as asc from 'assemblyscript/cli/asc';
 import * as fs from 'fs-extra';
+import { JavaScriptPlugin } from './javascript';
 
 export const AssemblyScriptPlugin: Readonly<Plugin> = {
     fileExtensions: ['as'],
@@ -43,23 +46,29 @@ export const AssemblyScriptPlugin: Readonly<Plugin> = {
                 });
             }
 
-            // TODO I would like to figure out a better way of including the loader...I would especially like to get rid of the use of require here
-            const loaderString: string = (await fs.readFile(require.resolve('assemblyscript/lib/loader'))).toString();
-
-            return addGlobals({
+            // TODO the only reason we are compiling to JS here is to get the as-bind to resolve
+            // TODO eventually, once we use import maps, we should be able to get rid of this extra compilation step
+            const compiledToJS: JavaScript = compileToJs({
                 source: `
-                    const exports = {};
-
-                    ${loaderString}
+                    import { AsBind } from 'as-bind';
 
                     const wasmByteCode = Uint8Array.from('${binary}'.split(','));
 
                     export default async (imports) => {
-                        return await instantiate(wasmByteCode, imports);
+                        return (await AsBind.instantiate(wasmByteCode, imports)).exports;
                     };        
+
                 `,
+                filePath: transformerCreatorParams.url,
+                tscOptions: JavaScriptPlugin.defaultCompilerOptions
+            });
+
+            const globalsAdded: JavaScript = addGlobals({
+                source: compiledToJS,
                 wsPort: transformerCreatorParams.wsPort
             });
+
+            return globalsAdded;
         }
     }
 };
