@@ -87,6 +87,7 @@ function compile(params: {
         const stderr: asc.MemoryStream = asc.createMemoryStream();
 
         asc.main([
+            `${require.resolve('as-bind/lib/assembly/as-bind')}.ts`, // TODO it would be nice to get rid of having to include this file, see here: https://github.com/torch2424/as-bind/issues/13
             params.filepath,
             '--binaryFile', 'binary',
             ...params.ascOptions
