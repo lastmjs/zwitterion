@@ -35,7 +35,7 @@
     "mime": "2.4.4",
     "sanitize-filename": "1.6.3",
     "ts-node": "8.6.2",
-    "typescript": "3.7.4",
+    "typescript": "3.7.5",
     "wabt": "1.0.12",
     "whatwg-url": "8.0.0",
     "ws": "7.2.1"
