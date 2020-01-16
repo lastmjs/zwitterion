@@ -1,6 +1,6 @@
 {
   "name": "zwitterion",
-  "version": "0.44.0",
+  "version": "0.44.1",
   "description": "A web dev server that lets you import anything*",
   "scripts": {
     "start": "ts-node --transpile-only src/app.ts --port 5050",
