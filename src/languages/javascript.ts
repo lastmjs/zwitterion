@@ -2,7 +2,7 @@ import {
     JavaScript,
     TSCOptions,
     Plugin
-} from '../../index.d.ts';
+} from '../../index.d';
 import {
     addGlobals,
     compileToJs,
