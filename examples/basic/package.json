@@ -1,0 +1,12 @@
+{
+  "scripts": {
+    "start": "zwitterion",
+    "build": "zwitterion --build-static --exclude node_modules"
+  },
+  "author": "Jordan Last <jordan.michael.last@gmail.com>",
+  "license": "MIT",
+  "dependencies": {},
+  "devDependencies": {
+    "zwitterion": "0.44.2"
+  }
+}
