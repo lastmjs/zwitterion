@@ -7,6 +7,6 @@
   "license": "MIT",
   "dependencies": {},
   "devDependencies": {
-    "zwitterion": "0.44.1"
+    "zwitterion": "0.44.2"
   }
 }
