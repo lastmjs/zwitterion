@@ -531,6 +531,9 @@ async function runRust() {
 `./add.rs`
 
 ```rust
+#![no_main]
+
+#[no_mangle]
 pub fn add(x: i32, y: i32) -> i32 {
   return x + y;
 }
@@ -587,9 +590,12 @@ async function runCPP() {
 `./add.cpp`
 
 ```c++
-int add(int x, int y) {
-  return x + y;
+extern "C" {
+  int add(int x, int y) {
+    return x + y;
+  }
 }
+
 ```
 
 ### WebAssembly Text Format (Wat)
@@ -646,7 +652,7 @@ async function runWasm() {
 `./add.wasm`
 
 ```
-The is a compiled Wasm binary file with a function called `add`
+Imagine this is a compiled Wasm binary file with a function called `add`
 ```
 
 ## Command Line Options
