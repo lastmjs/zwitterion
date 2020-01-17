@@ -81,6 +81,7 @@ Also...Zwitterion is NOT a bundler. It eschews bundling for a simpler experience
 
 # Documentation
 
+* [Examples](examples)
 * [Installation and Basic Use](#installation-and-basic-use)
 * [Production Use](#production-use)
 * [Languages](#languages)
