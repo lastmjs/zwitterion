@@ -44,7 +44,7 @@
     "@types/babel__core": "7.1.3",
     "@types/fs-extra": "8.0.1",
     "@types/mime": "2.0.1",
-    "@types/node": "12.12.24",
+    "@types/node": "12.12.25",
     "@types/uuid": "3.4.6",
     "@types/ws": "7.2.0",
     "fast-check": "1.21.0",
