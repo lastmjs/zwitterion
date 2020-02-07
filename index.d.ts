@@ -17,6 +17,7 @@ export type CommandLineOptions = {
     readonly customHTTPHeadersFilePath: string | undefined;
     readonly ascOptionsFilePath: string | undefined;
     readonly tscOptionsFilePath: string | undefined;
+    readonly spaRoot: string | undefined;
 };
 
 export type Clients = {

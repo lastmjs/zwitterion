@@ -6,15 +6,15 @@ import {
     CustomHTTPHeaders,
     HTTPHeaders,
     Plugin
-} from '../index.d.ts';
+} from '../index.d';
 import {
     getFileContents,
     getCustomHTTPHeaders,
     getCustomHTTPHeadersForURL,
     getCompilerOptionsFromFile
-} from './utilities.ts';
+} from './utilities';
 import * as mime from 'mime';
-import { ZwitterionPlugins } from './plugins.ts';
+import { ZwitterionPlugins } from './plugins';
 
 export async function createHTTPServer(params: {
     wsPort: number;
@@ -25,6 +25,7 @@ export async function createHTTPServer(params: {
     customHTTPHeadersFilePath: string | undefined;
     ascOptionsFilePath: string | undefined;
     tscOptionsFilePath: string | undefined;
+    spaRoot: string | undefined;
 }): Promise<Readonly<http.Server>> {
     return http.createServer(async (req: Readonly<http.IncomingMessage>, res: http.ServerResponse) => {
 
@@ -38,6 +39,7 @@ export async function createHTTPServer(params: {
             if (fileExtension === '/') {
 
                 await handleIndex({
+                    spaRoot: params.spaRoot,
                     compiledFiles: params.compiledFiles,
                     watchFiles: params.watchFiles,
                     clients: params.clients,
@@ -68,7 +70,8 @@ export async function createHTTPServer(params: {
                             fileExtension,
                             tscOptionsFilePath: params.tscOptionsFilePath,
                             ascOptionsFilePath: params.ascOptionsFilePath
-                        })
+                        }),
+                        spaRoot: params.spaRoot
                     });
 
                     return;
@@ -82,7 +85,8 @@ export async function createHTTPServer(params: {
                 clients: params.clients,
                 disableSpa: params.disableSpa,
                 res,
-                customHTTPHeadersFilePath: params.customHTTPHeadersFilePath
+                customHTTPHeadersFilePath: params.customHTTPHeadersFilePath,
+                spaRoot: params.spaRoot
             });
         }
         catch(error) {
@@ -113,6 +117,7 @@ function getCompilerOptionsFilePath(params: {
 }
 
 async function handleIndex(params: {
+    spaRoot: string | undefined;
     compiledFiles: CompiledFiles;
     watchFiles: boolean;
     clients: Clients;
@@ -121,7 +126,7 @@ async function handleIndex(params: {
     customHTTPHeadersFilePath: string | undefined;
 }): Promise<void> {
 
-    const url: string = './index.html';
+    const url: string = params.spaRoot === undefined ? './index.html' : `./${params.spaRoot}`;
 
     const indexFileContentsResult: Readonly<FileContentsResult> = await getFileContents({
         url,
@@ -129,7 +134,8 @@ async function handleIndex(params: {
         watchFiles: params.watchFiles,
         clients: params.clients,
         disableSpa: params.disableSpa,
-        transformer: 'NOT_SET'
+        transformer: 'NOT_SET',
+        spaRoot: params.spaRoot
     });
 
     const customHTTPHeaders: Readonly<CustomHTTPHeaders> = await getCustomHTTPHeaders({
@@ -164,6 +170,7 @@ async function handlePlugin(params: {
     res: http.ServerResponse;
     customHTTPHeadersFilePath: string | undefined;
     compilerOptionsFilePath: string | undefined;
+    spaRoot: string | undefined;
 }): Promise<void> {
 
     // TODO can't we do better here than any?
@@ -185,7 +192,8 @@ async function handlePlugin(params: {
             url: params.url,
             compilerOptions,
             wsPort: params.wsPort
-        })
+        }),
+        spaRoot: params.spaRoot
     });
 
     const customHTTPHeaders: Readonly<CustomHTTPHeaders> = await getCustomHTTPHeaders({
@@ -216,6 +224,7 @@ async function handleGeneric(params: {
     disableSpa: boolean;
     res: http.ServerResponse;
     customHTTPHeadersFilePath: string | undefined;
+    spaRoot: string | undefined;
 }): Promise<void> {
 
     const genericFileContentsResult: Readonly<FileContentsResult> = await getFileContents({
@@ -224,7 +233,8 @@ async function handleGeneric(params: {
         watchFiles: params.watchFiles,
         clients: params.clients,
         disableSpa: params.disableSpa,
-        transformer: 'NOT_SET'
+        transformer: 'NOT_SET',
+        spaRoot: params.spaRoot
     });
 
     const mimeType: string | null = mime.getType(params.url);
