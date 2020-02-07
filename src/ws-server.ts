@@ -2,7 +2,7 @@ import * as WebSocket from 'ws';
 import * as http from 'http';
 import {
     Clients
-} from '../index.d.ts';
+} from '../index.d';
 
 export function createWebSocketServer(params: {
     wsPort: number;

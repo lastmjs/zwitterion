@@ -689,6 +689,14 @@ A comma-separated list of paths, relative to the current directory, to include i
 --include [include]
 ```
 
+### SPA Root
+
+A path to a file, relative to the current directory, to serve as the SPA root. It will be returned for the root path and when a file cannot be found:
+
+```bash
+--spa-root [spaRoot]
+```
+
 ### Disable SPA
 
 Disable the SPA redirect to index.html:

@@ -1,7 +1,7 @@
 import {
     Plugin,
     WabtOptions
-} from '../../index.d.ts';
+} from '../../index.d';
 import {
     addGlobals
 } from '../utilities';

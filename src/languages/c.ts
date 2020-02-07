@@ -1,12 +1,12 @@
 import { 
     Plugin,
     COptions
-} from "../../index.d.ts";
+} from "../../index.d";
 import { exec } from 'child_process';
 import * as sanitize from 'sanitize-filename';
 import {
     addGlobals
-} from '../utilities.ts';
+} from '../utilities';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 

@@ -1,14 +1,14 @@
 import {
     Clients, 
     CompiledFiles
-} from '../index.d.ts';
+} from '../index.d';
 import * as http from 'http';
-import { createHTTPServer } from './http-server.ts';
+import { createHTTPServer } from './http-server';
 import * as WebSocket from 'ws';
-import { createWebSocketServer } from './ws-server.ts';
+import { createWebSocketServer } from './ws-server';
 import {
     buildStatic
-} from './static-builder.ts';
+} from './static-builder';
 
 export let httpServer: Readonly<http.Server> | 'NOT_CREATED' = 'NOT_CREATED';
 export let wsServer: Readonly<WebSocket.Server> | 'NOT_CREATED' = 'NOT_CREATED';
@@ -23,6 +23,7 @@ export function start(params: {
     customHTTPHeadersFilePath: string | undefined;
     ascOptionsFilePath: string | undefined;
     tscOptionsFilePath: string | undefined;
+    spaRoot: string | undefined;
 }): Promise<void> {
     return new Promise(async (resolve) => {
         httpServer = await createHTTPServer({
@@ -33,7 +34,8 @@ export function start(params: {
             disableSpa: params.disableSpa,
             customHTTPHeadersFilePath: params.customHTTPHeadersFilePath,
             ascOptionsFilePath: params.ascOptionsFilePath,
-            tscOptionsFilePath: params.tscOptionsFilePath
+            tscOptionsFilePath: params.tscOptionsFilePath,
+            spaRoot: params.spaRoot
         });
     
         wsServer = createWebSocketServer({
