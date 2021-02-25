@@ -34,7 +34,7 @@
     "is-windows": "1.0.2",
     "mime": "2.5.2",
     "sanitize-filename": "1.6.3",
-    "ts-node": "8.6.2",
+    "ts-node": "8.10.2",
     "typescript": "3.9.9",
     "wabt": "1.0.20",
     "whatwg-url": "8.0.0",
@@ -42,7 +42,7 @@
   },
   "devDependencies": {
     "@types/babel__core": "7.1.12",
-    "@types/fs-extra": "8.0.1",
+    "@types/fs-extra": "8.1.1",
     "@types/mime": "2.0.3",
     "@types/node": "12.20.4",
     "@types/uuid": "3.4.9",
