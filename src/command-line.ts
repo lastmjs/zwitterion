@@ -1,6 +1,6 @@
 import * as program from 'commander';
 import * as fs from 'fs-extra';
-import { CommandLineOptions } from '../index.d.ts';
+import { CommandLineOptions } from '../index.d';
 
 const packageJSON: {
     version: string;
@@ -19,6 +19,7 @@ program
     .option('--headers-file [headersFile]', 'A path to a JSON file, relative to the current directory, for custom HTTP headers')
     .option('--asc-options-file [ascOptionsFile]', 'A path to a JSON file, relative to the current directory, for asc compiler options')
     .option('--tsc-options-file [tscOptionsFile]', 'A path to a JSON file, relative to the current directory, for tsc compiler options')
+    .option('--spa-root [spaRoot]', 'A path to a file, relative to the current directory, to serve as the SPA root. It will be returned for the root path and when a file cannot be found')
     // .options('--plugins [plugins]', '')
     .parse(process.argv);
 
@@ -33,6 +34,7 @@ const disableSpa: boolean = program.disableSpa || false;
 const customHTTPHeadersFilePath: string | undefined = program.headersFile;
 const ascOptionsFilePath: string | undefined = program.ascOptionsFile;
 const tscOptionsFilePath: string | undefined = program.tscOptionsFile;
+const spaRoot: string | undefined = program.spaRoot;
 
 export const commandLineOptions: Readonly<CommandLineOptions> = {
     buildStatic,
@@ -44,5 +46,6 @@ export const commandLineOptions: Readonly<CommandLineOptions> = {
     disableSpa,
     customHTTPHeadersFilePath,
     ascOptionsFilePath,
-    tscOptionsFilePath
+    tscOptionsFilePath,
+    spaRoot
 };

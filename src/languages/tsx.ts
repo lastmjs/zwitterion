@@ -1,7 +1,7 @@
 import {
     Plugin
-} from '../../index.d.ts';
-import { JavaScriptPlugin } from './javascript.ts';
+} from '../../index.d';
+import { JavaScriptPlugin } from './javascript';
 
 export const TSXPlugin: Readonly<Plugin> = {
     fileExtensions: ['tsx'],

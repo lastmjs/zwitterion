@@ -1,7 +1,7 @@
 import { 
     Plugin,
     JSONOptions
-} from "../../index.d.ts";
+} from "../../index.d";
 import {
     addGlobals
 } from '../utilities';

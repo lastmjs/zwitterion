@@ -1,7 +1,7 @@
 import { 
     Plugin
-} from "../../index.d.ts";
-import { CPlugin } from './c.ts';
+} from "../../index.d";
+import { CPlugin } from './c';
 
 export const CPPPlugin: Readonly<Plugin> = {
     fileExtensions: ['cpp', 'c++', 'cc'],

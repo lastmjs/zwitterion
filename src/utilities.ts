@@ -9,7 +9,7 @@ import {
     HTTPHeaders,
     FileContentsResult,
     TSCOptions
-} from '../index.d.ts';
+} from '../index.d';
 import * as chokidar from 'chokidar';
 import * as WebSocket from 'ws';
 import * as tsc from 'typescript';
@@ -24,6 +24,7 @@ export async function getFileContents(params: {
     watchFiles: boolean;
     clients: Clients;
     transformer: Transformer | 'NOT_SET';
+    spaRoot: string | undefined;
 }): Promise<Readonly<FileContentsResult>> {
 
     const cachedFileContents: Readonly<Buffer> | null | undefined = await returnFileContentsFromCache({
@@ -64,7 +65,7 @@ export async function getFileContents(params: {
         }
 
         if (!params.disableSpa) {
-            const indexFileContents: Readonly<Buffer> = await fs.readFile(`./index.html`);
+            const indexFileContents: Readonly<Buffer> = await fs.readFile(params.spaRoot === undefined ? `./index.html` : `./${params.spaRoot}`);
                         
             return {
                 fileContents: indexFileContents
