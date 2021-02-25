@@ -2,12 +2,10 @@ import * as program from 'commander';
 import * as fs from 'fs-extra';
 import { CommandLineOptions } from '../index.d';
 
-const packageJSON: {
-    version: string;
-} = JSON.parse(fs.readFileSync('./package.json').toString());
+const zwitterionVersion: string = getZwitterionVersion();
 
 program
-    .version(packageJSON.version)
+    .version(zwitterionVersion)
     .option('--port [port]', 'Specify the server\'s port')
     // .option('-nw, --no-watch-files', 'Do not watch files in current directory and do not reload browser on changes')
     // .option('--ts-warning', 'Report TypeScript errors in the browser console as warnings')
@@ -49,3 +47,21 @@ export const commandLineOptions: Readonly<CommandLineOptions> = {
     tscOptionsFilePath,
     spaRoot
 };
+
+function getZwitterionVersion(): string {
+    try {
+        const packageJSON: {
+            version: string;
+        } = JSON.parse(fs.readFileSync(require.resolve('zwitterion/package.json')).toString());
+
+        return packageJSON.version;
+    }
+    catch(error) {
+        if (error.code === 'MODULE_NOT_FOUND') {
+            return '0.0.0';
+        }
+        else {
+            throw error;
+        }
+    }
+}
