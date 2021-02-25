@@ -164,7 +164,7 @@ export function buildStatic(params: {
 
         echo "Static build finished"
     `, {
-        shell: '/bin/bash'
+        shell: 'bash'
     }, () => {
         process.exit();
     });
