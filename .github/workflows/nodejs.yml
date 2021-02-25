@@ -26,7 +26,7 @@ jobs:
     - name: install macos-latest dependencies
       if: matrix.os == 'macos-latest' # TODO this if statement does not seem to work. The other builds on other os's do not fail entirely, but this command does fail
       run: |
-        brew update && brew cask install firefox && brew cask install google-chrome
+        brew update && brew install --cask firefox && brew install --cask google-chrome
     - name: npm install and npm test
       run: |
         npm ci
