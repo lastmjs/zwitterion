@@ -95,6 +95,13 @@ function compile(params: {
             stdout,
             stderr,
             readFile: (filename: string, baseDir: string) => {
+                // TODO I am not sure why asconfig.json is being requested...
+                // TODO I also think this might preclude an asconfig.json from being used
+                // TODO we need to handle the case where the asconfig.json is not found
+                if (filename === 'asconfig.json') {
+                    return '';
+                }
+
                 const filenameWithoutTSExtension: string = filename.replace('.ts', '');
                 return fs.readFileSync(filenameWithoutTSExtension).toString();
             },
