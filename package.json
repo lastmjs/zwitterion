@@ -38,7 +38,7 @@
     "typescript": "3.9.9",
     "wabt": "1.0.12",
     "whatwg-url": "8.0.0",
-    "ws": "7.4.3"
+    "ws": "7.4.5"
   },
   "devDependencies": {
     "@types/babel__core": "7.1.12",
