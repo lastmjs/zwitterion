@@ -41,7 +41,7 @@
     "ws": "7.4.3"
   },
   "devDependencies": {
-    "@types/babel__core": "7.1.12",
+    "@types/babel__core": "7.20.5",
     "@types/fs-extra": "8.1.1",
     "@types/mime": "2.0.3",
     "@types/node": "12.20.4",
